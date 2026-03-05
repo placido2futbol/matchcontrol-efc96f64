@@ -1,14 +1,24 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useAuth } from '@/hooks/useAuth';
+import Dashboard from './Dashboard';
+import Auth from './Auth';
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="text-4xl mb-2">⚽</div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!user) return <Auth />;
+
+  return <Dashboard />;
 };
 
 export default Index;
