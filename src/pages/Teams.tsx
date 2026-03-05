@@ -1,0 +1,181 @@
+import { useState } from 'react';
+import { useTeams } from '@/hooks/useTeams';
+import { FCF_EQUIPOS_DB, FCFTeam } from '@/data/fcf-teams';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Plus, Trash2, Upload, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+export default function Teams() {
+  const { teams, loading, saveTeam, deleteTeam } = useTeams();
+  const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | undefined>();
+  const [name, setName] = useState('');
+  const [crestUrl, setCrestUrl] = useState('');
+  const [kitUrl, setKitUrl] = useState('');
+  const [fcfUrl, setFcfUrl] = useState('');
+  const [players, setPlayers] = useState<{ name: string; dorsal: string }[]>([{ name: '', dorsal: '' }]);
+
+  const openNew = () => {
+    setEditId(undefined);
+    setName('');
+    setCrestUrl('');
+    setKitUrl('');
+    setFcfUrl('');
+    setPlayers([{ name: '', dorsal: '' }]);
+    setModalOpen(true);
+  };
+
+  const openEdit = (teamId: string) => {
+    const t = teams.find(x => x.id === teamId);
+    if (!t) return;
+    setEditId(t.id);
+    setName(t.name);
+    setCrestUrl(t.crest_url);
+    setKitUrl(t.kit_url);
+    setFcfUrl(t.fcf_url);
+    setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal })) : [{ name: '', dorsal: '' }]);
+    setModalOpen(true);
+  };
+
+  const loadFromFCF = (fcf: FCFTeam) => {
+    setName(fcf.name);
+    setCrestUrl(fcf.crest);
+    setKitUrl(fcf.kit);
+    setFcfUrl(fcf.fcf);
+    setPlayers(fcf.players.map(p => ({ name: p, dorsal: '' })));
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) { toast.error('Nombre requerido'); return; }
+    const validPlayers = players.filter(p => p.name.trim());
+    await saveTeam(name, crestUrl, kitUrl, fcfUrl, validPlayers, editId);
+    setModalOpen(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Seguro que quieres eliminar este equipo?')) return;
+    await deleteTeam(id);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" onClick={() => navigate('/')}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+        </Button>
+        <h1 className="font-display text-xl text-foreground">Gestión de Equipos</h1>
+        <Button className="ml-auto" onClick={openNew}>
+          <Plus className="h-4 w-4 mr-1" /> Nuevo Equipo
+        </Button>
+      </div>
+
+      {/* FCF import */}
+      <Card>
+        <CardHeader className="py-3">
+          <CardTitle className="text-sm">Importar desde FCF (Quarta Catalana · Grup 28)</CardTitle>
+        </CardHeader>
+        <CardContent className="py-2">
+          <div className="flex gap-2 flex-wrap">
+            {FCF_EQUIPOS_DB.map(fcf => (
+              <Button
+                key={fcf.fcf}
+                variant="outline"
+                size="sm"
+                onClick={() => { loadFromFCF(fcf); setEditId(undefined); setModalOpen(true); }}
+                className="text-xs"
+              >
+                {fcf.crest && <img src={fcf.crest} alt="" className="w-4 h-4 mr-1" />}
+                {fcf.name}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Teams list */}
+      {loading ? (
+        <p className="text-muted-foreground">Cargando equipos...</p>
+      ) : teams.length === 0 ? (
+        <p className="text-muted-foreground text-center py-8">No tienes equipos. Importa desde la FCF o crea uno nuevo.</p>
+      ) : (
+        <div className="grid gap-3">
+          {teams.map(t => (
+            <Card key={t.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => openEdit(t.id)}>
+              <CardContent className="py-3 flex items-center gap-3">
+                {t.crest_url && <img src={t.crest_url} alt="" className="w-10 h-10 object-contain" />}
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-foreground truncate">{t.name}</div>
+                  <div className="text-xs text-muted-foreground">{t.players.length} jugadores</div>
+                </div>
+                <Button variant="destructive" size="icon" onClick={e => { e.stopPropagation(); handleDelete(t.id); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">{editId ? 'Editar Equipo' : 'Nuevo Equipo'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Nombre del equipo" value={name} onChange={e => setName(e.target.value)} />
+            <Input placeholder="URL del escudo" value={crestUrl} onChange={e => setCrestUrl(e.target.value)} />
+            <Input placeholder="URL de la equipación" value={kitUrl} onChange={e => setKitUrl(e.target.value)} />
+
+            <div>
+              <label className="text-sm font-medium text-foreground">Jugadores</label>
+              <div className="space-y-1 max-h-60 overflow-y-auto">
+                {players.map((p, i) => (
+                  <div key={i} className="flex gap-1">
+                    <Input
+                      placeholder="Nombre"
+                      value={p.name}
+                      onChange={e => {
+                        const next = [...players];
+                        next[i] = { ...next[i], name: e.target.value };
+                        setPlayers(next);
+                      }}
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder="Dorsal"
+                      value={p.dorsal}
+                      onChange={e => {
+                        const next = [...players];
+                        next[i] = { ...next[i], dorsal: e.target.value };
+                        setPlayers(next);
+                      }}
+                      className="w-20"
+                    />
+                    <Button variant="destructive" size="icon" onClick={() => setPlayers(players.filter((_, j) => j !== i))}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" size="sm" className="mt-1" onClick={() => setPlayers([...players, { name: '', dorsal: '' }])}>
+                <Plus className="h-3 w-3 mr-1" /> Añadir Jugador
+              </Button>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSave}>Guardar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
