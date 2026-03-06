@@ -1,5 +1,7 @@
 import PlayerRow, { MatchPlayer } from './PlayerRow';
 
+const SANT_PAU_PATTERN = /SANT PAU D'ORDAL/i;
+
 interface TeamPanelProps {
   title: string;
   teamSide: 'home' | 'away';
@@ -9,6 +11,7 @@ interface TeamPanelProps {
   selectedPlayers: string[];
   pendingSubSlot: number | null;
   onSelectPlayer: (slotIndex: number, playerName: string) => void;
+  onDorsalChange: (slotIndex: number, dorsal: string) => void;
   onGoal: (slotIndex: number, delta: number) => void;
   onYellowCard1: (slotIndex: number, checked: boolean) => void;
   onYellowCard2: (slotIndex: number, checked: boolean) => void;
@@ -25,12 +28,16 @@ export default function TeamPanel({
   selectedPlayers,
   pendingSubSlot,
   onSelectPlayer,
+  onDorsalChange,
   onGoal,
   onYellowCard1,
   onYellowCard2,
   onRedCard,
   onSub,
 }: TeamPanelProps) {
+  const isSantPau = SANT_PAU_PATTERN.test(title);
+  const showDorsal = !isSantPau;
+
   const renderTable = (players: MatchPlayer[], label: string) => (
     <div className="mb-4">
       <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
@@ -39,6 +46,7 @@ export default function TeamPanel({
           <thead>
             <tr className="bg-muted">
               <th className="p-1 text-left text-muted-foreground">Jugador</th>
+              {showDorsal && <th className="p-1 text-center text-muted-foreground">Nº</th>}
               <th className="p-1 text-center text-muted-foreground">TG1</th>
               <th className="p-1 text-center text-muted-foreground">TG2</th>
               <th className="p-1 text-center text-muted-foreground">TR</th>
@@ -55,7 +63,9 @@ export default function TeamPanel({
                 selectedPlayers={selectedPlayers}
                 teamSide={teamSide}
                 pendingSub={pendingSubSlot === p.slotIndex}
+                showDorsal={showDorsal}
                 onSelectPlayer={onSelectPlayer}
+                onDorsalChange={onDorsalChange}
                 onGoal={onGoal}
                 onYellowCard1={onYellowCard1}
                 onYellowCard2={onYellowCard2}

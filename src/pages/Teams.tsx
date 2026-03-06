@@ -18,6 +18,7 @@ export default function Teams() {
   const [name, setName] = useState('');
   const [crestUrl, setCrestUrl] = useState('');
   const [kitUrl, setKitUrl] = useState('');
+  const [kitHtml, setKitHtml] = useState('');
   const [fcfUrl, setFcfUrl] = useState('');
   const [players, setPlayers] = useState<{ name: string; dorsal: string }[]>([{ name: '', dorsal: '' }]);
 
@@ -26,6 +27,7 @@ export default function Teams() {
     setName('');
     setCrestUrl('');
     setKitUrl('');
+    setKitHtml('');
     setFcfUrl('');
     setPlayers([{ name: '', dorsal: '' }]);
     setModalOpen(true);
@@ -38,6 +40,7 @@ export default function Teams() {
     setName(t.name);
     setCrestUrl(t.crest_url);
     setKitUrl(t.kit_url);
+    setKitHtml(t.kit_html);
     setFcfUrl(t.fcf_url);
     setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal })) : [{ name: '', dorsal: '' }]);
     setModalOpen(true);
@@ -54,7 +57,7 @@ export default function Teams() {
   const handleSave = async () => {
     if (!name.trim()) { toast.error('Nombre requerido'); return; }
     const validPlayers = players.filter(p => p.name.trim());
-    await saveTeam(name, crestUrl, kitUrl, fcfUrl, validPlayers, editId);
+    await saveTeam(name, crestUrl, kitUrl, fcfUrl, validPlayers, editId, kitHtml);
     setModalOpen(false);
   };
 
@@ -131,7 +134,8 @@ export default function Teams() {
           <div className="space-y-3">
             <Input placeholder="Nombre del equipo" value={name} onChange={e => setName(e.target.value)} />
             <Input placeholder="URL del escudo" value={crestUrl} onChange={e => setCrestUrl(e.target.value)} />
-            <Input placeholder="URL de la equipación" value={kitUrl} onChange={e => setKitUrl(e.target.value)} />
+            <Input placeholder="URL de la equipación (imagen)" value={kitUrl} onChange={e => setKitUrl(e.target.value)} />
+            <Input placeholder="HTML de la equipación (SVG inline)" value={kitHtml} onChange={e => setKitHtml(e.target.value)} />
 
             <div>
               <label className="text-sm font-medium text-foreground">Jugadores</label>

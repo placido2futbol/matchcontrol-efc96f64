@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Minus, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 
 export interface MatchPlayer {
   slotIndex: number;
   playerName: string;
+  dorsal: string;
   goals: number;
   yellowCard1: boolean;
   yellowCard2: boolean;
@@ -21,12 +23,14 @@ interface PlayerRowProps {
   selectedPlayers: string[];
   teamSide: 'home' | 'away';
   onSelectPlayer: (slotIndex: number, playerName: string) => void;
+  onDorsalChange: (slotIndex: number, dorsal: string) => void;
   onGoal: (slotIndex: number, delta: number) => void;
   onYellowCard1: (slotIndex: number, checked: boolean) => void;
   onYellowCard2: (slotIndex: number, checked: boolean) => void;
   onRedCard: (slotIndex: number, checked: boolean) => void;
   onSub: (slotIndex: number, type: 'in' | 'out') => void;
   pendingSub: boolean;
+  showDorsal: boolean;
 }
 
 export default function PlayerRow({
@@ -34,12 +38,14 @@ export default function PlayerRow({
   availablePlayers,
   selectedPlayers,
   onSelectPlayer,
+  onDorsalChange,
   onGoal,
   onYellowCard1,
   onYellowCard2,
   onRedCard,
   onSub,
   pendingSub,
+  showDorsal,
 }: PlayerRowProps) {
   return (
     <tr className={`border-b border-border ${pendingSub ? 'ring-2 ring-warning rounded' : ''}`}>
@@ -65,6 +71,16 @@ export default function PlayerRow({
           </SelectContent>
         </Select>
       </td>
+      {showDorsal && (
+        <td className="p-1">
+          <Input
+            value={player.dorsal}
+            onChange={e => onDorsalChange(player.slotIndex, e.target.value)}
+            placeholder="Nº"
+            className="h-8 w-14 text-xs text-center"
+          />
+        </td>
+      )}
       <td className="p-1 text-center">
         <Checkbox
           checked={player.yellowCard1}

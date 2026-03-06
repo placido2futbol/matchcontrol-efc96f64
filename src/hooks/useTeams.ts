@@ -72,14 +72,15 @@ export function useTeams() {
     kitUrl: string,
     fcfUrl: string,
     players: { name: string; dorsal: string }[],
-    editId?: string
+    editId?: string,
+    kitHtml?: string
   ) => {
     if (!user) return;
 
     if (editId) {
       const { error } = await supabase
         .from('teams')
-        .update({ name, crest_url: crestUrl, kit_url: kitUrl, fcf_url: fcfUrl })
+        .update({ name, crest_url: crestUrl, kit_url: kitUrl, kit_html: kitHtml || '', fcf_url: fcfUrl })
         .eq('id', editId);
       if (error) { toast.error('Error actualizando equipo'); return; }
 
@@ -92,7 +93,7 @@ export function useTeams() {
     } else {
       const { data, error } = await supabase
         .from('teams')
-        .insert({ user_id: user.id, name, crest_url: crestUrl, kit_url: kitUrl, fcf_url: fcfUrl })
+        .insert({ user_id: user.id, name, crest_url: crestUrl, kit_url: kitUrl, kit_html: kitHtml || '', fcf_url: fcfUrl })
         .select()
         .single();
       if (error || !data) { toast.error('Error guardando equipo'); return; }
