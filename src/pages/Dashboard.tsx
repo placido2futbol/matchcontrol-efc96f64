@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3 } from 'lucide-react';
 
 interface MatchSummary {
   id: string;
@@ -49,12 +49,15 @@ export default function Dashboard() {
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Button onClick={() => navigate('/match')} className="h-16 text-base">
           <Plus className="h-5 w-5 mr-2" /> Nuevo Partido
         </Button>
         <Button variant="outline" onClick={() => navigate('/teams')} className="h-16 text-base">
           <Users className="h-5 w-5 mr-2" /> Gestión Equipos
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/sant-pau-stats')} className="h-16 text-base">
+          <BarChart3 className="h-5 w-5 mr-2" /> Estadísticas SP
         </Button>
       </div>
 
