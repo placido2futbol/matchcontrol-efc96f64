@@ -19,6 +19,7 @@ function createSlots(count: number, startIndex: number, isStarter: boolean): Mat
   return Array.from({ length: count }, (_, i) => ({
     slotIndex: startIndex + i,
     playerName: '',
+    dorsal: '',
     goals: 0,
     yellowCard1: false,
     yellowCard2: false,
@@ -74,6 +75,9 @@ export default function MatchPage() {
   ) => ({
     onSelectPlayer: (slotIndex: number, playerName: string) => {
       setPlayers(prev => prev.map(p => p.slotIndex === slotIndex ? { ...p, playerName } : p));
+    },
+    onDorsalChange: (slotIndex: number, dorsal: string) => {
+      setPlayers(prev => prev.map(p => p.slotIndex === slotIndex ? { ...p, dorsal } : p));
     },
     onGoal: (slotIndex: number, delta: number) => {
       setPlayers(prev => prev.map(p => {
@@ -205,7 +209,8 @@ export default function MatchPage() {
         ...homePlayers.filter(p => p.playerName).map(p => ({
           match_id: match.id,
           player_name: p.playerName,
-          team_side: 'home',
+          dorsal: p.dorsal || '',
+          team_side: 'home' as const,
           is_starter: p.isStarter,
           goals: p.goals,
           yellow_cards: (p.yellowCard1 ? 1 : 0) + (p.yellowCard2 ? 1 : 0),
@@ -215,7 +220,8 @@ export default function MatchPage() {
         ...awayPlayers.filter(p => p.playerName).map(p => ({
           match_id: match.id,
           player_name: p.playerName,
-          team_side: 'away',
+          dorsal: p.dorsal || '',
+          team_side: 'away' as const,
           is_starter: p.isStarter,
           goals: p.goals,
           yellow_cards: (p.yellowCard1 ? 1 : 0) + (p.yellowCard2 ? 1 : 0),
