@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import { Team } from '@/hooks/useTeams';
+import KitDisplay from './KitDisplay';
 
 interface ScoreboardProps {
   homeTeam: Team | null;
@@ -31,9 +32,17 @@ export default function Scoreboard({
       <div className="flex items-center justify-center gap-8">
         {/* Home */}
         <div className="flex flex-col items-center gap-2">
-          {homeTeam?.crest_url && (
-            <img src={homeTeam.crest_url} alt={homeTeam.name} className="w-14 h-14 object-contain" />
-          )}
+          <div className="flex items-center gap-3">
+            {homeTeam?.crest_url && (
+              <img src={homeTeam.crest_url} alt={homeTeam.name} className="w-14 h-14 object-contain" />
+            )}
+            <KitDisplay
+              kitHtml={homeTeam?.kit_html}
+              kitUrl={homeTeam?.kit_url}
+              alt={`Kit ${homeTeam?.name}`}
+              className="w-12 h-16"
+            />
+          </div>
           <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
             {homeTeam?.name || 'Local'}
           </span>
@@ -44,9 +53,17 @@ export default function Scoreboard({
 
         {/* Away */}
         <div className="flex flex-col items-center gap-2">
-          {awayTeam?.crest_url && (
-            <img src={awayTeam.crest_url} alt={awayTeam.name} className="w-14 h-14 object-contain" />
-          )}
+          <div className="flex items-center gap-3">
+            {awayTeam?.crest_url && (
+              <img src={awayTeam.crest_url} alt={awayTeam.name} className="w-14 h-14 object-contain" />
+            )}
+            <KitDisplay
+              kitHtml={awayTeam?.kit_html}
+              kitUrl={awayTeam?.kit_url}
+              alt={`Kit ${awayTeam?.name}`}
+              className="w-12 h-16"
+            />
+          </div>
           <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
             {awayTeam?.name || 'Visitante'}
           </span>

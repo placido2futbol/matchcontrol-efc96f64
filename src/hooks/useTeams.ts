@@ -8,6 +8,7 @@ export interface Team {
   name: string;
   crest_url: string;
   kit_url: string;
+  kit_html: string;
   fcf_url: string;
   players: Player[];
 }
@@ -47,6 +48,7 @@ export function useTeams() {
         name: t.name,
         crest_url: t.crest_url || '',
         kit_url: t.kit_url || '',
+        kit_html: t.kit_html || '',
         fcf_url: t.fcf_url || '',
         players: (playersData || []).map(p => ({
           id: p.id,

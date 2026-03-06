@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import Scoreboard from '@/components/match/Scoreboard';
 import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
+import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -335,6 +336,16 @@ export default function MatchPage() {
 
       {/* Events */}
       <EventLog events={events} />
+
+      {/* Sant Pau Stats */}
+      <SantPauStats
+        homeTeamName={homeTeam?.name || ''}
+        awayTeamName={awayTeam?.name || ''}
+        homePlayers={homePlayers}
+        awayPlayers={awayPlayers}
+        events={events}
+        totalSeconds={timer.seconds}
+      />
     </div>
   );
 }
