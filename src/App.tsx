@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Match from "./pages/Match";
 import Teams from "./pages/Teams";
 import MatchDetailPage from "./pages/MatchDetailPage";
+import SantPauGlobalStats from "./pages/SantPauGlobalStats";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/match" element={<Match />} />
             <Route path="/match/:id" element={<MatchDetailPage />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
