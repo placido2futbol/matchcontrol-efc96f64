@@ -29,45 +29,45 @@ export default function Scoreboard({
       <h2 className="font-display text-lg text-foreground">Cronómetro</h2>
       <div className="timer-display text-5xl text-foreground">{timerDisplay}</div>
 
-      <div className="flex items-center justify-center gap-8">
+      <div className="flex items-center justify-center gap-6">
         {/* Home */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
+            {homeTeam?.name || 'Local'}
+          </span>
           <div className="flex items-center gap-3">
-            {homeTeam?.crest_url && (
-              <img src={homeTeam.crest_url} alt={homeTeam.name} className="w-14 h-14 object-contain" />
-            )}
             <KitDisplay
               kitHtml={homeTeam?.kit_html}
               kitUrl={homeTeam?.kit_url}
               alt={`Kit ${homeTeam?.name}`}
-              className="w-12 h-16"
+              className="w-14 h-20"
             />
+            {homeTeam?.crest_url && (
+              <img src={homeTeam.crest_url} alt={homeTeam.name} className="w-16 h-16 object-contain" />
+            )}
+            <div className="scoreboard-number text-foreground">{homeScore}</div>
           </div>
-          <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
-            {homeTeam?.name || 'Local'}
-          </span>
-          <div className="scoreboard-number text-foreground">{homeScore}</div>
         </div>
 
-        <span className="text-2xl text-muted-foreground font-display">–</span>
+        <span className="text-3xl text-muted-foreground font-display">–</span>
 
         {/* Away */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
+            {awayTeam?.name || 'Visitante'}
+          </span>
           <div className="flex items-center gap-3">
+            <div className="scoreboard-number text-foreground">{awayScore}</div>
             {awayTeam?.crest_url && (
-              <img src={awayTeam.crest_url} alt={awayTeam.name} className="w-14 h-14 object-contain" />
+              <img src={awayTeam.crest_url} alt={awayTeam.name} className="w-16 h-16 object-contain" />
             )}
             <KitDisplay
               kitHtml={awayTeam?.kit_html}
               kitUrl={awayTeam?.kit_url}
               alt={`Kit ${awayTeam?.name}`}
-              className="w-12 h-16"
+              className="w-14 h-20"
             />
           </div>
-          <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
-            {awayTeam?.name || 'Visitante'}
-          </span>
-          <div className="scoreboard-number text-foreground">{awayScore}</div>
         </div>
       </div>
 
