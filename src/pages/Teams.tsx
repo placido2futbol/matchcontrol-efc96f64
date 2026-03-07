@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTeams } from '@/hooks/useTeams';
 import { FCF_EQUIPOS_DB, FCFTeam } from '@/data/fcf-teams';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Trash2, Upload, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import KitDisplay from '@/components/match/KitDisplay';
 
 export default function Teams() {
   const { teams, loading, saveTeam, deleteTeam } = useTeams();
@@ -21,6 +22,7 @@ export default function Teams() {
   const [kitHtml, setKitHtml] = useState('');
   const [fcfUrl, setFcfUrl] = useState('');
   const [players, setPlayers] = useState<{ name: string; dorsal: string }[]>([{ name: '', dorsal: '' }]);
+  const kitFileRef = useRef<HTMLInputElement>(null);
 
   const openNew = () => {
     setEditId(undefined);
@@ -52,6 +54,21 @@ export default function Teams() {
     setKitUrl(fcf.kit);
     setFcfUrl(fcf.fcf);
     setPlayers(fcf.players.map(p => ({ name: p, dorsal: '' })));
+  };
+
+  const handleKitImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setKitUrl(reader.result as string);
+      toast.success('Imagen de equipación cargada');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSave = async () => {
@@ -134,8 +151,32 @@ export default function Teams() {
           <div className="space-y-3">
             <Input placeholder="Nombre del equipo" value={name} onChange={e => setName(e.target.value)} />
             <Input placeholder="URL del escudo" value={crestUrl} onChange={e => setCrestUrl(e.target.value)} />
-            <Input placeholder="URL de la equipación (imagen)" value={kitUrl} onChange={e => setKitUrl(e.target.value)} />
-            <Input placeholder="HTML de la equipación (SVG inline)" value={kitHtml} onChange={e => setKitHtml(e.target.value)} />
+            
+            {/* Kit image section */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Equipación</label>
+              <div className="flex gap-2">
+                <Input placeholder="URL de la equipación (imagen)" value={kitUrl} onChange={e => setKitUrl(e.target.value)} className="flex-1" />
+                <input
+                  ref={kitFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleKitImageUpload}
+                />
+                <Button variant="outline" size="icon" onClick={() => kitFileRef.current?.click()} title="Subir imagen de equipación">
+                  <ImagePlus className="h-4 w-4" />
+                </Button>
+              </div>
+              <Input placeholder="HTML de la equipación (SVG inline)" value={kitHtml} onChange={e => setKitHtml(e.target.value)} />
+              {/* Kit preview */}
+              {(kitHtml || kitUrl) && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                  <span className="text-xs text-muted-foreground">Vista previa:</span>
+                  <KitDisplay kitHtml={kitHtml} kitUrl={kitUrl} size={60} />
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="text-sm font-medium text-foreground">Jugadores</label>
