@@ -173,7 +173,7 @@ export default function Teams() {
               {(kitHtml || kitUrl) && (
                 <div className="flex items-center gap-2 p-2 bg-muted rounded">
                   <span className="text-xs text-muted-foreground">Vista previa:</span>
-                  <KitDisplay kitHtml={kitHtml} kitUrl={kitUrl} size={60} />
+                  <KitDisplay kitHtml={kitHtml} kitUrl={kitUrl} className="w-[60px] h-[60px]" />
                 </div>
               )}
             </div>
