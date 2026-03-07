@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, Printer } from 'lucide-react';
 
 interface MatchDetail {
   id: string;
@@ -31,6 +31,7 @@ interface MatchEventRow {
 interface MatchPlayerRow {
   id: string;
   player_name: string;
+  dorsal: string;
   team_side: string;
   is_starter: boolean;
   goals: number;
@@ -71,6 +72,10 @@ export default function MatchDetail() {
     })();
   }, [user, id]);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando...</div>;
   if (!match) return <div className="p-8 text-center text-muted-foreground">Partido no encontrado</div>;
 
@@ -83,6 +88,7 @@ export default function MatchDetail() {
       <table className="w-full text-xs border border-border">
         <thead>
           <tr className="bg-muted">
+            <th className="p-1 text-left text-muted-foreground">Nº</th>
             <th className="p-1 text-left text-muted-foreground">Jugador</th>
             <th className="p-1 text-center text-muted-foreground">Titular</th>
             <th className="p-1 text-center text-muted-foreground">Goles</th>
@@ -94,6 +100,7 @@ export default function MatchDetail() {
         <tbody>
           {teamPlayers.map(p => (
             <tr key={p.id} className="border-b border-border">
+              <td className="p-1 text-muted-foreground">{p.dorsal || '-'}</td>
               <td className="p-1 text-foreground">{p.player_name}</td>
               <td className="p-1 text-center">{p.is_starter ? '✓' : ''}</td>
               <td className="p-1 text-center font-bold">{p.goals || ''}</td>
@@ -108,14 +115,22 @@ export default function MatchDetail() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4">
-      <div className="flex items-center gap-2">
+    <div className="max-w-4xl mx-auto p-4 space-y-4 print:p-2">
+      <div className="flex items-center gap-2 print:hidden">
         <Button variant="ghost" onClick={() => navigate('/')}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
         <h1 className="font-display text-xl text-foreground">
           <FileText className="inline h-5 w-5 mr-1" /> Detalle del Partido
         </h1>
+        <Button variant="outline" className="ml-auto" onClick={handlePrint}>
+          <Printer className="h-4 w-4 mr-1" /> Imprimir / PDF
+        </Button>
+      </div>
+
+      {/* Print header */}
+      <div className="hidden print:block text-center mb-4">
+        <h1 className="font-bold text-lg">MatchControl - Detalle del Partido</h1>
       </div>
 
       {/* Score */}

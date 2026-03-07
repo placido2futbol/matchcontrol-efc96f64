@@ -37,7 +37,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-display">⚽ Ficha Partido</CardTitle>
+          <CardTitle className="text-2xl font-display">⚽ MatchControl</CardTitle>
           <CardDescription>
             {isLogin ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}
           </CardDescription>
