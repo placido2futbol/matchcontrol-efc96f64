@@ -216,7 +216,7 @@ export default function TacticalBoard() {
       </div>
 
       {/* Toolbar */}
-      <div className="px-3 py-1.5 shrink-0">
+      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2">
         <Toolbar
           tool={tool}
           onToolChange={setTool}
@@ -227,6 +227,16 @@ export default function TacticalBoard() {
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
         />
+        {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-[10px] h-7"
+            onClick={() => updateScene(s => ({ ...s, titlePos: { x: 88, y: 6 } }))}
+          >
+            Mostrar título
+          </Button>
+        )}
       </div>
 
       {/* Roster panel */}
