@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
 import { useTeams } from '@/hooks/useTeams';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { FCF_EQUIPOS_DB, FCFTeam } from '@/data/fcf-teams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import KitDisplay from '@/components/match/KitDisplay';
