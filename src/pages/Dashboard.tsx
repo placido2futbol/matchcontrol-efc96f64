@@ -395,7 +395,7 @@ export default function Dashboard() {
 
       {/* Match history */}
       <div>
-        <h2 className="font-display text-lg mb-4 flex items-center gap-2 text-foreground">
+        <h2 className={`font-display text-lg mb-4 flex items-center gap-2 ${textClass}`}>
           <History className="h-5 w-5 text-primary" /> Historial de Partidos
         </h2>
         {loading ? (
