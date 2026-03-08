@@ -1,5 +1,6 @@
 import { MatchPlayer } from './PlayerRow';
 import { MatchEvent } from './EventLog';
+import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
 
 const SANT_PAU_NAME = "SANT PAU D'ORDAL, U.E. A";
 
@@ -35,42 +36,14 @@ export default function SantPauStats({
 
   const side: 'home' | 'away' = isSantPauHome ? 'home' : 'away';
   const players = side === 'home' ? homePlayers : awayPlayers;
-  const totalMinutes = Math.floor(totalSeconds / 60);
-
-  // Calculate minutes per player based on sub events
-  const subEvents = events.filter(e => e.type === 'substitution' && e.teamSide === side);
-
-  const calcMinutes = (player: MatchPlayer): number => {
-    if (!player.playerName) return 0;
-    const name = player.playerName;
-
-    // Check if player was subbed out
-    const subbedOutEvent = subEvents.find(e => e.details?.includes(`Sale ${name}`));
-    // Check if player was subbed in
-    const subbedInEvent = subEvents.find(e => e.details?.includes(`Entra ${name}`));
-
-    if (player.isStarter) {
-      if (subbedOutEvent) {
-        return Math.floor(subbedOutEvent.minute / 60);
-      }
-      return totalMinutes;
-    } else {
-      if (subbedInEvent) {
-        const entryMinute = Math.floor(subbedInEvent.minute / 60);
-        if (subbedOutEvent) {
-          return Math.floor(subbedOutEvent.minute / 60) - entryMinute;
-        }
-        return totalMinutes - entryMinute;
-      }
-      return 0;
-    }
-  };
+  const sideEvents = events.filter(e => e.teamSide === side);
+  const totalMinutes = Math.min(Math.floor(totalSeconds / 60), 90);
 
   const stats: PlayerStats[] = players
     .filter(p => p.playerName)
     .map(p => ({
       name: p.playerName,
-      minutes: calcMinutes(p),
+      minutes: calcMinutesPlayed(p.playerName, p.isStarter, sideEvents, totalSeconds),
       goals: p.goals,
       yellows: (p.yellowCard1 ? 1 : 0) + (p.yellowCard2 ? 1 : 0),
       reds: p.redCard ? 1 : 0,
