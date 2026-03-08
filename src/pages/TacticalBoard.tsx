@@ -280,17 +280,43 @@ export default function TacticalBoard() {
                   zIndex: 12,
                 }}
               >
-                <span
-                  className="font-extrabold whitespace-nowrap px-2 py-0.5 cursor-default"
+                <div
+                  className="relative"
                   style={{
-                    color: label.color,
-                    background: label.bgColor,
-                    fontSize: label.fontSize === 'lg' ? 14 : label.fontSize === 'md' ? 11 : 9,
-                    border: label.bgColor !== 'transparent' ? '2px solid rgba(0,0,0,0.2)' : 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  {label.text}
-                </span>
+                  {label.fontSize === 'lg' && label.bgColor !== 'transparent' && (
+                    <div
+                      className="absolute inset-0 rounded-md"
+                      style={{
+                        background: label.bgColor,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        border: '2.5px solid rgba(0,0,0,0.3)',
+                        transform: 'scale(1.08, 1.2)',
+                      }}
+                    />
+                  )}
+                  <span
+                    className="relative whitespace-nowrap cursor-default"
+                    style={{
+                      color: label.fontSize === 'lg' ? '#000' : label.color,
+                      fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 11 : 9,
+                      fontWeight: 900,
+                      fontFamily: "'Russo One', sans-serif",
+                      letterSpacing: label.fontSize === 'lg' ? '0.5px' : '0',
+                      textShadow: label.fontSize === 'lg' ? 'none' : '0 1px 3px rgba(0,0,0,0.5)',
+                      padding: label.fontSize === 'lg' ? '4px 12px' : '1px 4px',
+                      background: label.fontSize === 'lg' ? 'transparent' : (label.bgColor !== 'transparent' ? label.bgColor : 'transparent'),
+                      border: label.fontSize !== 'lg' && label.bgColor !== 'transparent' ? '1.5px solid rgba(0,0,0,0.2)' : 'none',
+                      borderRadius: label.fontSize !== 'lg' ? 3 : 0,
+                    }}
+                  >
+                    {label.text}
+                  </span>
+                </div>
                 {tool === 'eraser' && (
                   <button
                     className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
