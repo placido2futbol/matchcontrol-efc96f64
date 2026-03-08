@@ -41,32 +41,37 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 2: CÓRNERS EN CONTRA =====
     {
       id: generateId(),
-      name: 'Córners en contra',
+      name: 'CÒRNERS EN CONTRA',
       players: [
-        p('ABDE', 1, BLUE, 8, 5),        // poste corto
-        p('PORTERO', 1, PINK, 10, 12),    // portero
-        // M.ZONA (2,3,4)
+        p('ABDE', 1, BLUE, 8, 5),
+        p('PORTERO', 1, PINK, 10, 12),
         p('GARCI', 2, BLUE, 16, 22),
         p('FELIU', 3, BLUE, 20, 22),
         p('JUAN', 4, BLUE, 24, 22),
-        // M.INDIVIDUAL (5,6,7)
         p('ARNAU', 5, BLUE, 16, 32),
         p('BEÑAT', 6, BLUE, 20, 32),
         p('PINO', 7, BLUE, 24, 32),
-        // Caída
         p('ISAAC', 8, BLUE, 22, 48),
-        // Laterales
         p('MANU', 9, BLUE, 8, 88),
         p('BIEL', 10, BLUE, 38, 88),
       ],
       drawings: [],
       labels: [
-        label('CÓRNERS EN CONTRA', 80, 6, 'lg'),
         label('M.ZONA', 10, 18, 'sm', 'transparent', '#ffffff'),
         label('M.INDIVIDUAL', 10, 28, 'sm', 'transparent', '#ffffff'),
         label('CAIDA', 16, 45, 'sm', 'transparent', '#ffffff'),
       ],
       ball: { x: 3, y: 3, visible: true },
+      legend: {
+        entries: [
+          { number: 2, name: 'GARCI', borderColor: '#ffff00' },
+          { number: 3, name: 'FELIU', borderColor: '#ffff00' },
+          { number: 4, name: 'JUAN', borderColor: '#ffff00' },
+          { number: 5, name: 'ARNAU', borderColor: '#cc0000' },
+          { number: 6, name: 'BEÑAT', borderColor: '#cc0000' },
+          { number: 7, name: 'PINO', borderColor: '#cc0000' },
+        ],
+      },
     },
 
     // ===== ESCENA 3: FALTA LATERAL EN CONTRA =====
