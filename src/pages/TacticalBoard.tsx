@@ -8,6 +8,7 @@ import PlayerToken from '@/components/tactical/PlayerToken';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
+import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
@@ -92,6 +93,22 @@ export default function TacticalBoard() {
     };
     updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
   }, [activeScene.players, updateScene]);
+
+  // Add from roster
+  const handleAddFromRoster = useCallback((partial: Partial<TacticalPlayer>) => {
+    const newPlayer: TacticalPlayer = {
+      id: generateId(),
+      name: partial.name || 'Player',
+      number: partial.number || 1,
+      position: partial.position || '',
+      team: partial.team || 'home',
+      color: partial.color || '#3B82F6',
+      x: 50,
+      y: 50,
+      onField: true,
+    };
+    updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
+  }, [updateScene]);
 
   // Drawings
   const handleDrawingsChange = useCallback((drawings: DrawingPath[]) => {
@@ -194,6 +211,11 @@ export default function TacticalBoard() {
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
         />
+      </div>
+
+      {/* Roster panel */}
+      <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
+        <RosterPanel onAddPlayer={handleAddFromRoster} />
       </div>
 
       {/* Main content */}
