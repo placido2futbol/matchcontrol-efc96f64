@@ -67,6 +67,7 @@ export default function MatchPage() {
   const [homePendingSub, setHomePendingSub] = useState<number | null>(null);
   const [awayPendingSub, setAwayPendingSub] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
 
   const homeTeam = teams.find(t => t.id === homeTeamId) || null;
   const awayTeam = teams.find(t => t.id === awayTeamId) || null;
