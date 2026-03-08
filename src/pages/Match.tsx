@@ -369,6 +369,110 @@ export default function MatchPage() {
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
 
+  const [importingFcf, setImportingFcf] = useState(false);
+
+  const handleImportFCF = async () => {
+    if (!homeTeam?.fcf_url && !awayTeam?.fcf_url) {
+      toast.error('Al menos uno de los equipos debe tener URL de la FCF configurada.');
+      return;
+    }
+
+    setImportingFcf(true);
+    try {
+      const teamUrl = homeTeam?.fcf_url || awayTeam?.fcf_url;
+      const { data, error } = await supabase.functions.invoke('fcf-scrape-match', {
+        body: { 
+          teamPageUrl: teamUrl,
+          homeTeamName: homeTeam?.name,
+          awayTeamName: awayTeam?.name 
+        },
+      });
+
+      if (error || !data?.success) {
+        toast.error(data?.error || 'Error al obtener el acta');
+        return;
+      }
+
+      if (data.matchData) {
+        // Map players from the scraped data
+        if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
+          const starters = data.matchData.homePlayers.filter((p: any) => p.isStarter);
+          const subs = data.matchData.homePlayers.filter((p: any) => !p.isStarter);
+          
+          const newHomePlayers = [...homePlayers];
+          
+          // Fill starters (first 11 slots)
+          starters.forEach((p: any, i: number) => {
+            if (i < 11) {
+              newHomePlayers[i] = {
+                ...newHomePlayers[i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: true
+              };
+            }
+          });
+          
+          // Fill subs (slots 11-19)
+          subs.forEach((p: any, i: number) => {
+            if (i < 9) {
+              newHomePlayers[11 + i] = {
+                ...newHomePlayers[11 + i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: false
+              };
+            }
+          });
+          
+          setHomePlayers(newHomePlayers);
+        }
+
+        if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
+          const starters = data.matchData.awayPlayers.filter((p: any) => p.isStarter);
+          const subs = data.matchData.awayPlayers.filter((p: any) => !p.isStarter);
+          
+          const newAwayPlayers = [...awayPlayers];
+          
+          // Fill starters (first 11 slots)
+          starters.forEach((p: any, i: number) => {
+            if (i < 11) {
+              newAwayPlayers[i] = {
+                ...newAwayPlayers[i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: true
+              };
+            }
+          });
+          
+          // Fill subs (slots 11-19)
+          subs.forEach((p: any, i: number) => {
+            if (i < 9) {
+              newAwayPlayers[11 + i] = {
+                ...newAwayPlayers[11 + i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: false
+              };
+            }
+          });
+          
+          setAwayPlayers(newAwayPlayers);
+        }
+        
+        toast.success(`Acta importada: ${data.matchData.homePlayers.length + data.matchData.awayPlayers.length} jugadores`);
+      } else {
+        toast.error('No se encontró el acta para este partido');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Error de conexión');
+    } finally {
+      setImportingFcf(false);
+    }
+  };
+
   const saveMatch = async (status: 'in_progress' | 'finished') => {
     if (!user) return;
     setSaving(true);
@@ -531,8 +635,8 @@ export default function MatchPage() {
       </div>
 
       {/* Team selection */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Equipo Local</label>
           <Select value={homeTeamId} onValueChange={setHomeTeamId}>
             <SelectTrigger><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
@@ -543,7 +647,7 @@ export default function MatchPage() {
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Equipo Visitante</label>
           <Select value={awayTeamId} onValueChange={setAwayTeamId}>
             <SelectTrigger><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
@@ -554,6 +658,18 @@ export default function MatchPage() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="flex justify-end pt-2 pb-4">
+        <Button 
+          variant="outline" 
+          onClick={handleImportFCF} 
+          disabled={!homeTeamId || !awayTeamId || importingFcf}
+          className="w-full sm:w-auto"
+        >
+          {importingFcf ? <span className="animate-spin mr-2">⏳</span> : <Flag className="h-4 w-4 mr-2" />}
+          Importar Acta FCF
+        </Button>
       </div>
 
       {/* Scoreboard */}
