@@ -49,6 +49,7 @@ export default function TacticalBoard() {
   const [pendingRoster, setPendingRoster] = useState<Partial<TacticalPlayer> | null>(null);
   const [sharing, setSharing] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
+  const [boardCrest, setBoardCrest] = useState<string | null>(null);
 
   const handleShare = useCallback(async () => {
     if (!user) {
@@ -56,19 +57,23 @@ export default function TacticalBoard() {
       return;
     }
     setSharing(true);
+    // Inject board-level crest into all scenes for sharing
+    const scenesWithCrest = scenes.map(s => ({
+      ...s,
+      showCrest: !!boardCrest,
+      crestUrl: boardCrest || undefined,
+    }));
     try {
       if (shareId) {
-        // Update existing
         await supabase.from('tactical_boards').update({
-          scenes: scenes as any,
+          scenes: scenesWithCrest as any,
           updated_at: new Date().toISOString(),
         }).eq('id', shareId);
       } else {
-        // Create new
         const { data, error } = await supabase.from('tactical_boards').insert({
           user_id: user.id,
           name: 'Pizarra Táctica',
-          scenes: scenes as any,
+          scenes: scenesWithCrest as any,
         }).select('id').single();
         if (error) throw error;
         setShareId(data.id);
@@ -286,15 +291,9 @@ export default function TacticalBoard() {
           onAddHomePlayer={() => addPlayerToField('home')}
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
-          showCrest={activeScene.showCrest}
-          crestUrl={activeScene.crestUrl}
-          onSelectCrest={(url) => {
-            if (url === null) {
-              updateScene(s => ({ ...s, showCrest: false, crestUrl: undefined }));
-            } else {
-              updateScene(s => ({ ...s, showCrest: true, crestUrl: url }));
-            }
-          }}
+          showCrest={!!boardCrest}
+          crestUrl={boardCrest || undefined}
+          onSelectCrest={(url) => setBoardCrest(url)}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
@@ -357,10 +356,10 @@ export default function TacticalBoard() {
             {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
 
             {/* Club crest watermark */}
-            {activeScene.showCrest && activeScene.crestUrl && (
+            {boardCrest && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 5 }}>
                 <img
-                  src={activeScene.crestUrl}
+                  src={boardCrest}
                   alt="Escudo"
                   className="w-[45%] max-w-[280px] h-auto object-contain"
                   style={{ opacity: 0.12, filter: 'grayscale(20%)' }}
