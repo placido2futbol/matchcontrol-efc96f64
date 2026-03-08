@@ -77,7 +77,7 @@ export default function TacticalViewer() {
         if (next >= sceneFrames.length) return 0;
         return next;
       });
-    }, 1200);
+    }, 1500);
   }, [hasFrames, sceneFrames.length]);
 
   const stopFramePlayback = useCallback(() => {
@@ -190,7 +190,7 @@ export default function TacticalViewer() {
                 top: `${currentBall.y}%`,
                 transform: 'translate(-50%, -50%)',
                 zIndex: 15,
-                transition: playingFrames ? 'left 0.8s ease, top 0.8s ease' : undefined,
+                transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
               }}
             >
               <img src={soccerBallImg} alt="Balón" className="w-7 h-7 drop-shadow-lg" draggable={false} />
@@ -279,7 +279,7 @@ export default function TacticalViewer() {
                   top: `${pos.y}%`,
                   transform: 'translate(-50%, -50%)',
                   zIndex: 20,
-                  transition: playingFrames ? 'left 0.8s ease, top 0.8s ease' : undefined,
+                  transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
                 }}
               >
                 <div

@@ -292,40 +292,41 @@ export default function TacticalBoard() {
     setActiveFrameIndex(null);
   }, [updateScene]);
 
+  // Overlay positions for animation (doesn't modify scene data)
+  const [animOverlay, setAnimOverlay] = useState<Record<string, { x: number; y: number }> | null>(null);
+  const [animBall, setAnimBall] = useState<BallPosition | null>(null);
+
   const handleSelectFrame = useCallback((index: number) => {
     const frames = activeScene.frames;
     if (!frames || !frames[index]) return;
-    const frame = frames[index];
     setActiveFrameIndex(index);
-    // Apply frame positions to players
-    updateScene(s => ({
-      ...s,
-      players: s.players.map(p => {
-        const fp = frame.players.find(fp => fp.id === p.id);
-        return fp ? { ...p, x: fp.x, y: fp.y } : p;
-      }),
-      ball: frame.ball,
-      drawings: frame.drawings,
-    }));
-  }, [activeScene.frames, updateScene]);
+  }, [activeScene.frames]);
+
+  const applyFrameOverlay = useCallback((frame: AnimationFrame) => {
+    const overlay: Record<string, { x: number; y: number }> = {};
+    frame.players.forEach(fp => { overlay[fp.id] = { x: fp.x, y: fp.y }; });
+    setAnimOverlay(overlay);
+    setAnimBall(frame.ball);
+  }, []);
 
   const handlePlayFrames = useCallback(() => {
     const frames = activeScene.frames;
     if (!frames || frames.length < 2) return;
     setPlayingFrames(true);
+    setActiveFrameIndex(0);
+    applyFrameOverlay(frames[0]);
     let idx = 0;
-    handleSelectFrame(0);
     playTimerRef.current = setInterval(() => {
-      idx++;
-      if (idx >= frames.length) {
-        idx = 0;
-      }
-      handleSelectFrame(idx);
-    }, 1200);
-  }, [activeScene.frames, handleSelectFrame]);
+      idx = (idx + 1) % frames.length;
+      setActiveFrameIndex(idx);
+      applyFrameOverlay(frames[idx]);
+    }, 1500);
+  }, [activeScene.frames, applyFrameOverlay]);
 
   const handleStopFrames = useCallback(() => {
     setPlayingFrames(false);
+    setAnimOverlay(null);
+    setAnimBall(null);
     if (playTimerRef.current) {
       clearInterval(playTimerRef.current);
       playTimerRef.current = null;
@@ -334,9 +335,8 @@ export default function TacticalBoard() {
 
   // Cleanup on unmount or scene change
   useEffect(() => {
-    return () => {
-      if (playTimerRef.current) clearInterval(playTimerRef.current);
-    };
+    handleStopFrames();
+    return () => { if (playTimerRef.current) clearInterval(playTimerRef.current); };
   }, [activeSceneId]);
 
   return (
@@ -462,8 +462,21 @@ export default function TacticalBoard() {
               halfPitch={activeScene.halfPitch}
             />
 
-            {/* Ball (draggable) */}
-            {activeScene.ball.visible && (
+            {/* Ball - show animated position during playback, or normal draggable */}
+            {playingFrames && animBall?.visible ? (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${animBall.x}%`,
+                  top: `${animBall.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 15,
+                  transition: 'left 1s ease-in-out, top 1s ease-in-out',
+                }}
+              >
+                <img src={soccerBallImg} alt="Balón" className="w-7 h-7 drop-shadow-lg" draggable={false} />
+              </div>
+            ) : activeScene.ball.visible && (
               <DraggableElement
                 x={activeScene.ball.x}
                 y={activeScene.ball.y}
@@ -586,6 +599,8 @@ export default function TacticalBoard() {
                 onDragEnd={handlePlayerDragEnd}
                 onClick={handlePlayerClick}
                 isSelected={selectedPlayerId === p.id}
+                animating={playingFrames}
+                overridePos={playingFrames && animOverlay ? animOverlay[p.id] : undefined}
               />
             ))}
 
