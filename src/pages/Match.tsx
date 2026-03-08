@@ -363,8 +363,8 @@ export default function MatchPage() {
     },
   });
 
-  const homeHandlers = createPlayerHandlers('home', homePlayers, setHomePlayers, setHomeScore, homePendingSub, setHomePendingSub);
-  const awayHandlers = createPlayerHandlers('away', awayPlayers, setAwayPlayers, setAwayScore, awayPendingSub, setAwayPendingSub);
+  const homeHandlers = createPlayerHandlers('home', homePlayers, setHomePlayers, setHomeScore, homePendingSub, setHomePendingSub, homeTeam);
+  const awayHandlers = createPlayerHandlers('away', awayPlayers, setAwayPlayers, setAwayScore, awayPendingSub, setAwayPendingSub, awayTeam);
 
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
