@@ -216,7 +216,7 @@ export default function TacticalBoard() {
       </div>
 
       {/* Toolbar */}
-      <div className="px-3 py-1.5 shrink-0">
+      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2">
         <Toolbar
           tool={tool}
           onToolChange={setTool}
@@ -227,6 +227,16 @@ export default function TacticalBoard() {
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
         />
+        {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-[10px] h-7"
+            onClick={() => updateScene(s => ({ ...s, titlePos: { x: 88, y: 6 } }))}
+          >
+            Mostrar título
+          </Button>
+        )}
       </div>
 
       {/* Roster panel */}
@@ -291,14 +301,16 @@ export default function TacticalBoard() {
                 onDragEnd={(x, y) => updateScene(s => ({ ...s, ball: { x, y, visible: true } }))}
                 zIndex={15}
               >
-                <div className="w-7 h-7 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
-                  <span className="text-[11px]">⚽</span>
-                </div>
+                <svg width="28" height="28" viewBox="0 0 100 100" className="drop-shadow-lg pointer-events-none">
+                  <circle cx="50" cy="50" r="48" fill="white" stroke="#222" strokeWidth="3"/>
+                  <path d="M50 2 L62 22 L88 22 L68 38 L76 62 L50 48 L24 62 L32 38 L12 22 L38 22 Z" fill="#222" opacity="0.85"/>
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="#444" strokeWidth="1.5"/>
+                </svg>
               </DraggableElement>
             )}
 
-            {/* Scene title overlay with crest (draggable) */}
-            {activeScene.name !== '11 Inicial' && (
+            {/* Scene title overlay with crest (draggable, hideable) */}
+            {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x !== -100 && (
               <DraggableElement
                 x={activeScene.titlePos?.x ?? 88}
                 y={activeScene.titlePos?.y ?? 6}
@@ -306,7 +318,7 @@ export default function TacticalBoard() {
                 onDragEnd={(x, y) => updateScene(s => ({ ...s, titlePos: { x, y } }))}
                 zIndex={35}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 relative group">
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
                     alt="Escudo Sant Pau"
@@ -331,6 +343,13 @@ export default function TacticalBoard() {
                   >
                     {activeScene.name}
                   </div>
+                  <button
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+                    onClick={(e) => { e.stopPropagation(); updateScene(s => ({ ...s, titlePos: { x: -100, y: -100 } })); }}
+                    title="Ocultar título"
+                  >
+                    ×
+                  </button>
                 </div>
               </DraggableElement>
             )}
