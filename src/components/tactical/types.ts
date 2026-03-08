@@ -54,6 +54,7 @@ export interface TacticalScene {
   legend?: SceneLegend;
   halfPitch?: boolean;
   titlePos?: { x: number; y: number };
+  showCrest?: boolean;
 }
 
 export type DrawingTool = 'select' | 'arrow' | 'curved-arrow' | 'line' | 'dashed' | 'free' | 'eraser' | 'label' | 'ball';

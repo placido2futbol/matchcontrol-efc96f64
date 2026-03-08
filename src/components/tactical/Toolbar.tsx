@@ -2,7 +2,7 @@ import { DrawingTool } from './types';
 import { Button } from '@/components/ui/button';
 import {
   MousePointer2, ArrowRight, Spline, Minus, MoreHorizontal, Pencil, Eraser, Trash2,
-  Maximize, Type, Circle, UserPlus
+  Maximize, Type, Circle, UserPlus, Shield
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -20,6 +20,8 @@ interface ToolbarProps {
   onAddHomePlayer: () => void;
   onAddAwayPlayer: () => void;
   onFullscreen: () => void;
+  showCrest?: boolean;
+  onToggleCrest?: () => void;
 }
 
 const TOOLS: { tool: DrawingTool; icon: React.ReactNode; label: string }[] = [
@@ -39,17 +41,18 @@ const COLORS = ['#ffffff', '#ff4444', '#4488ff', '#ffcc00', '#00cc66', '#ff8800'
 export default function Toolbar({
   tool, onToolChange, drawColor, onDrawColorChange,
   onClearDrawings, onAddHomePlayer, onAddAwayPlayer, onFullscreen,
+  showCrest, onToggleCrest,
 }: ToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+    <div className="flex flex-wrap items-center gap-1 p-2 bg-card border border-border rounded-xl shadow-lg">
       {/* Drawing tools */}
       <div className="flex items-center gap-0.5 border-r border-border pr-2 mr-1">
         {TOOLS.map(t => (
           <Button
             key={t.tool}
-            variant={tool === t.tool ? 'default' : 'ghost'}
+            variant={tool === t.tool ? 'default' : 'outline'}
             size="icon"
-            className="h-8 w-8"
+            className={`h-8 w-8 ${tool !== t.tool ? 'bg-muted text-foreground hover:bg-accent hover:text-accent-foreground border-border' : ''}`}
             onClick={() => onToolChange(t.tool)}
             title={t.label}
           >
@@ -61,7 +64,7 @@ export default function Toolbar({
       {/* Color picker */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" title="Color">
+          <Button variant="outline" size="icon" className="h-8 w-8 bg-muted border-border" title="Color">
             <div className="w-4 h-4 rounded-full border-2 border-border" style={{ background: drawColor }} />
           </Button>
         </DropdownMenuTrigger>
@@ -78,7 +81,7 @@ export default function Toolbar({
       </DropdownMenu>
 
       {/* Clear */}
-      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={onClearDrawings} title="Borrar dibujos">
+      <Button variant="outline" size="icon" className="h-8 w-8 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20" onClick={onClearDrawings} title="Borrar dibujos">
         <Trash2 className="h-4 w-4" />
       </Button>
 
@@ -88,7 +91,7 @@ export default function Toolbar({
       <Button
         variant="outline"
         size="sm"
-        className="h-8 text-xs gap-1"
+        className="h-8 text-xs gap-1 bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20"
         onClick={onAddHomePlayer}
         title="Añadir jugador local"
       >
@@ -98,7 +101,7 @@ export default function Toolbar({
       <Button
         variant="outline"
         size="sm"
-        className="h-8 text-xs gap-1"
+        className="h-8 text-xs gap-1 bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-500/20"
         onClick={onAddAwayPlayer}
         title="Añadir jugador rival"
       >
@@ -106,10 +109,23 @@ export default function Toolbar({
         <UserPlus className="h-3.5 w-3.5" />
       </Button>
 
+      {/* Crest toggle */}
+      {onToggleCrest && (
+        <Button
+          variant="outline"
+          size="icon"
+          className={`h-8 w-8 ${showCrest ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-muted text-foreground border-border hover:bg-accent'}`}
+          onClick={onToggleCrest}
+          title={showCrest ? 'Ocultar escudo' : 'Mostrar escudo en campo'}
+        >
+          <Shield className="h-4 w-4" />
+        </Button>
+      )}
+
       <div className="flex-1" />
 
       {/* Fullscreen */}
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onFullscreen} title="Pantalla completa">
+      <Button variant="outline" size="icon" className="h-8 w-8 bg-muted text-foreground border-border hover:bg-accent" onClick={onFullscreen} title="Pantalla completa">
         <Maximize className="h-4 w-4" />
       </Button>
     </div>
