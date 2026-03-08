@@ -192,16 +192,30 @@ export default function Dashboard() {
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
 
   const crestAlpha = crestOpacity / 100;
-  const overlayAlpha = Math.max(0.15, 1 - crestAlpha * 1.5); // lighter overlay as opacity increases
   const bgStyle: React.CSSProperties = bgType === 'color'
     ? { background: bgValue }
     : bgType === 'crest'
-    ? { backgroundImage: `linear-gradient(rgba(0,0,0,${overlayAlpha}), rgba(0,0,0,${overlayAlpha})), url(${bgValue})`, backgroundSize: '40%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#1a1a2e' }
+    ? { backgroundColor: '#1a1a2e' }
     : {};
 
   return (
-    <div className="min-h-screen" style={bgStyle}>
-      <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
+    <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
+      {bgType === 'crest' && bgValue && (
+        <img
+          src={bgValue}
+          alt=""
+          className="absolute inset-0 m-auto pointer-events-none select-none"
+          style={{
+            width: '40%',
+            height: 'auto',
+            objectFit: 'contain',
+            opacity: crestAlpha,
+            mixBlendMode: 'screen',
+            filter: 'brightness(1.2)',
+          }}
+        />
+      )}
+      <div className="relative max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
