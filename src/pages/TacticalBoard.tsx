@@ -599,6 +599,8 @@ export default function TacticalBoard() {
                 onDragEnd={handlePlayerDragEnd}
                 onClick={handlePlayerClick}
                 isSelected={selectedPlayerId === p.id}
+                animating={playingFrames}
+                overridePos={playingFrames && animOverlay ? animOverlay[p.id] : undefined}
               />
             ))}
 
