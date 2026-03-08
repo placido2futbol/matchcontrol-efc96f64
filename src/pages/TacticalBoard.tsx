@@ -49,6 +49,7 @@ export default function TacticalBoard() {
   const [pendingRoster, setPendingRoster] = useState<Partial<TacticalPlayer> | null>(null);
   const [sharing, setSharing] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
+  const [boardCrest, setBoardCrest] = useState<string | null>(null);
 
   const handleShare = useCallback(async () => {
     if (!user) {
