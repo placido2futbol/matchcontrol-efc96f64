@@ -40,6 +40,7 @@ export default function TacticalBoard() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [labelInput, setLabelInput] = useState<{ x: number; y: number } | null>(null);
   const [labelText, setLabelText] = useState('');
+  const [pendingRoster, setPendingRoster] = useState<Partial<TacticalPlayer> | null>(null);
 
   const activeScene = scenes.find(s => s.id === activeSceneId)!;
   const fieldPlayers = activeScene.players.filter(p => p.onField);
@@ -94,21 +95,12 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
   }, [activeScene.players, updateScene]);
 
-  // Add from roster
-  const handleAddFromRoster = useCallback((partial: Partial<TacticalPlayer>) => {
-    const newPlayer: TacticalPlayer = {
-      id: generateId(),
-      name: partial.name || 'Player',
-      number: partial.number || 1,
-      position: partial.position || '',
-      team: partial.team || 'home',
-      color: partial.color || '#3B82F6',
-      x: 50,
-      y: 50,
-      onField: true,
-    };
-    updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
-  }, [updateScene]);
+  // Add from roster - set pending, user clicks field to place
+  const handleSelectFromRoster = useCallback((partial: Partial<TacticalPlayer>) => {
+    setPendingRoster(partial);
+    setTool('select');
+    setSelectedPlayerId(null);
+  }, []);
 
   // Drawings
   const handleDrawingsChange = useCallback((drawings: DrawingPath[]) => {
@@ -119,16 +111,35 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, drawings: [] }));
   }, [updateScene]);
 
-  // Ball & Label placement
+  // Ball, Label & Roster placement
   const handlePitchClick = useCallback((e: React.MouseEvent) => {
-    if (tool === 'select') {
-      setSelectedPlayerId(null);
-      return;
-    }
     if (!pitchRef.current) return;
     const rect = pitchRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // Place pending roster player
+    if (pendingRoster) {
+      const newPlayer: TacticalPlayer = {
+        id: generateId(),
+        name: pendingRoster.name || 'Player',
+        number: pendingRoster.number || 1,
+        position: pendingRoster.position || '',
+        team: pendingRoster.team || 'home',
+        color: pendingRoster.color || '#3B82F6',
+        x: Math.round(x / 2) * 2,
+        y: Math.round(y / 2) * 2,
+        onField: true,
+      };
+      updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
+      setPendingRoster(null);
+      return;
+    }
+
+    if (tool === 'select') {
+      setSelectedPlayerId(null);
+      return;
+    }
 
     if (tool === 'ball') {
       updateScene(s => ({ ...s, ball: { x, y, visible: true } }));
@@ -136,7 +147,7 @@ export default function TacticalBoard() {
     } else if (tool === 'label') {
       setLabelInput({ x, y });
     }
-  }, [tool, updateScene]);
+  }, [tool, updateScene, pendingRoster]);
 
   const handleAddLabel = useCallback(() => {
     if (!labelInput || !labelText.trim()) { setLabelInput(null); setLabelText(''); return; }
@@ -215,7 +226,17 @@ export default function TacticalBoard() {
 
       {/* Roster panel */}
       <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
-        <RosterPanel onAddPlayer={handleAddFromRoster} />
+        <RosterPanel onAddPlayer={handleSelectFromRoster} />
+        {pendingRoster && (
+          <div className="flex items-center gap-2 py-1 px-2 mt-1 rounded-lg bg-primary/10 border border-primary/30 animate-fade-in">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: pendingRoster.color || '#3B82F6' }}>
+              {pendingRoster.number}
+            </div>
+            <span className="text-xs font-semibold text-primary">{pendingRoster.name}</span>
+            <span className="text-[10px] text-muted-foreground">← Haz clic en el campo para colocarlo</span>
+            <button onClick={() => setPendingRoster(null)} className="ml-auto text-[10px] text-muted-foreground hover:text-destructive">✕</button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
@@ -237,8 +258,8 @@ export default function TacticalBoard() {
         <div className="flex-1 flex items-center justify-center min-w-0">
           <div
             ref={pitchRef}
-            className="relative w-full rounded-xl overflow-hidden shadow-2xl"
-            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)' }}
+            className={`relative w-full rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
+            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)', cursor: pendingRoster ? 'crosshair' : undefined }}
             onClick={handlePitchClick}
           >
             <PitchSVG />
