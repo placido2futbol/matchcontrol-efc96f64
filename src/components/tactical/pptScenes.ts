@@ -164,28 +164,30 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 6: CÓRNER A FAVOR 2 CONTRA 1 =====
     {
       id: generateId(),
-      name: 'Córner a favor',
+      name: 'CORNER A FAVOR 2 CONTRA 1',
       players: [
-        p('PORTERO', 1, PINK, 50, 6),     // portero rival
-        p('ISAAC', 2, BLUE, 6, 8),         // lanzador esquina
-        p('JUAN', 3, BLUE, 14, 8),         // corto
-        p('MANU', 4, BLUE, 30, 12),        // cerca portería
-        // Rematadores
+        p('PORTERO', 1, PINK, 50, 6),
+        p('ISAAC', 2, BLUE, 6, 8),
+        p('JUAN', 3, BLUE, 14, 8),
+        p('MANU', 4, BLUE, 30, 12),
         p('FELIU', 2, BLUE, 42, 30),
         p('BIEL', 3, BLUE, 46, 30),
         p('PINO', 4, BLUE, 50, 30),
-        // Coberturas
         p('ARNAU', 5, BLUE, 32, 48),
         p('PEÑA', 6, BLUE, 50, 48),
-        // Atrás
         p('GARCI', 7, BLUE, 36, 82),
         p('BEÑAT', 8, BLUE, 52, 82),
       ],
       drawings: [],
-      labels: [
-        label('CÓRNER A FAVOR', 78, 6, 'lg'),
-      ],
+      labels: [],
       ball: { x: 4, y: 4, visible: true },
+      legend: {
+        entries: [
+          { number: 2, name: 'FELIU' },
+          { number: 3, name: 'BIEL' },
+          { number: 4, name: 'PINO' },
+        ],
+      },
     },
 
     // ===== ESCENA 7: CÓRNER CON PANTALLA =====
