@@ -396,36 +396,72 @@ export default function MatchPage() {
       if (data.matchData) {
         // Map players from the scraped data
         if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
+          const starters = data.matchData.homePlayers.filter((p: any) => p.isStarter);
+          const subs = data.matchData.homePlayers.filter((p: any) => !p.isStarter);
+          
           const newHomePlayers = [...homePlayers];
-          data.matchData.homePlayers.forEach((p: any, i: number) => {
-            if (i < newHomePlayers.length) {
+          
+          // Fill starters (first 11 slots)
+          starters.forEach((p: any, i: number) => {
+            if (i < 11) {
               newHomePlayers[i] = {
                 ...newHomePlayers[i],
                 playerName: p.name,
                 dorsal: p.dorsal,
-                isStarter: p.isStarter
+                isStarter: true
               };
             }
           });
+          
+          // Fill subs (slots 11-19)
+          subs.forEach((p: any, i: number) => {
+            if (i < 9) {
+              newHomePlayers[11 + i] = {
+                ...newHomePlayers[11 + i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: false
+              };
+            }
+          });
+          
           setHomePlayers(newHomePlayers);
         }
 
         if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
+          const starters = data.matchData.awayPlayers.filter((p: any) => p.isStarter);
+          const subs = data.matchData.awayPlayers.filter((p: any) => !p.isStarter);
+          
           const newAwayPlayers = [...awayPlayers];
-          data.matchData.awayPlayers.forEach((p: any, i: number) => {
-            if (i < newAwayPlayers.length) {
+          
+          // Fill starters (first 11 slots)
+          starters.forEach((p: any, i: number) => {
+            if (i < 11) {
               newAwayPlayers[i] = {
                 ...newAwayPlayers[i],
                 playerName: p.name,
                 dorsal: p.dorsal,
-                isStarter: p.isStarter
+                isStarter: true
               };
             }
           });
+          
+          // Fill subs (slots 11-19)
+          subs.forEach((p: any, i: number) => {
+            if (i < 9) {
+              newAwayPlayers[11 + i] = {
+                ...newAwayPlayers[11 + i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: false
+              };
+            }
+          });
+          
           setAwayPlayers(newAwayPlayers);
         }
         
-        toast.success('Acta importada correctamente');
+        toast.success(`Acta importada: ${data.matchData.homePlayers.length + data.matchData.awayPlayers.length} jugadores`);
       } else {
         toast.error('No se encontró el acta para este partido');
       }
