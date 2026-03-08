@@ -252,36 +252,40 @@ export default function TacticalViewer() {
       </div>
 
       {/* Controls bar */}
-      <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-3 bg-black/70 backdrop-blur-sm">
-        <button onClick={goPrev} className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition">
+      <div className="shrink-0 flex items-center justify-center gap-2 px-4 py-3" style={{ background: '#1a1a2e' }}>
+        <button onClick={goPrev} className="p-2 rounded-full transition" style={{ background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }}>
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2 flex-wrap justify-center">
+        <div className="flex items-center gap-1.5 flex-wrap justify-center overflow-x-auto max-w-[70vw]">
           {scenes.map((s, i) => (
             <button
               key={s.id}
               onClick={() => { setActiveIndex(i); setAutoPlay(false); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                i === activeIndex
-                  ? 'bg-white text-black shadow-lg scale-105 border-white'
-                  : 'bg-white/20 text-white hover:bg-white/30 border-white/30'
-              }`}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap"
+              style={i === activeIndex
+                ? { background: '#ffffff', color: '#1a1a2e', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                : { background: '#2d2d4a', color: '#c0c0d0', border: '1px solid #3d3d5c' }
+              }
             >
               {s.name.length > 15 ? s.name.substring(0, 15) + '…' : s.name}
             </button>
           ))}
         </div>
 
-        <button onClick={goNext} className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition">
+        <button onClick={goNext} className="p-2 rounded-full transition" style={{ background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }}>
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        <div className="w-px h-6 bg-white/30 mx-1" />
+        <div className="w-px h-6 mx-1" style={{ background: '#3d3d5c' }} />
 
         <button
           onClick={() => setAutoPlay(!autoPlay)}
-          className={`p-2 rounded-full border transition ${autoPlay ? 'bg-yellow-400 text-black border-yellow-300' : 'bg-white/20 hover:bg-white/30 text-white border-white/30'}`}
+          className="p-2 rounded-full transition"
+          style={autoPlay
+            ? { background: '#facc15', color: '#1a1a2e', border: '1px solid #eab308' }
+            : { background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }
+          }
           title={autoPlay ? 'Pausar' : 'Auto-play'}
         >
           {autoPlay ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
@@ -291,18 +295,20 @@ export default function TacticalViewer() {
           <select
             value={autoInterval}
             onChange={(e) => setAutoInterval(Number(e.target.value))}
-            className="bg-white/20 text-white text-xs font-bold rounded px-2 py-1 border border-white/30"
+            className="text-xs font-bold rounded px-2 py-1"
+            style={{ background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }}
           >
-            <option value={3} className="text-black">3s</option>
-            <option value={5} className="text-black">5s</option>
-            <option value={8} className="text-black">8s</option>
-            <option value={10} className="text-black">10s</option>
+            <option value={3}>3s</option>
+            <option value={5}>5s</option>
+            <option value={8}>8s</option>
+            <option value={10}>10s</option>
           </select>
         )}
 
         <button
           onClick={() => { setActiveIndex(0); setAutoPlay(false); }}
-          className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition"
+          className="p-2 rounded-full transition"
+          style={{ background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }}
           title="Reiniciar"
         >
           <RotateCcw className="w-4 h-4" />
