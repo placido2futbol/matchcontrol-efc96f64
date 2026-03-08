@@ -136,6 +136,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     selectBgColor('');
     setBgCrest('');
     localStorage.setItem('mc_bg_crest', '');
+    setBgCustomImage('');
     setDarkMode(false);
     setAccentColor('green');
     setFontSize('normal');
