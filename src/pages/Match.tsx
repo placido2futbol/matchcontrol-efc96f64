@@ -432,70 +432,54 @@ export default function MatchPage() {
       }
 
       if (data.matchData) {
-        // Map players from the scraped data
+        // Map and dedupe players from scraped data (avoid repeats between 11/subs)
         if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
-          const starters = data.matchData.homePlayers.filter((p: any) => p.isStarter);
-          const subs = data.matchData.homePlayers.filter((p: any) => !p.isStarter);
-          
+          const { starters, subs } = normalizeImportedPlayers(data.matchData.homePlayers);
           const newHomePlayers = [...homePlayers];
-          
-          // Fill starters (first 11 slots)
-          starters.forEach((p: any, i: number) => {
-            if (i < 11) {
-              newHomePlayers[i] = {
-                ...newHomePlayers[i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: true
-              };
-            }
+
+          starters.forEach((p, i) => {
+            newHomePlayers[i] = {
+              ...newHomePlayers[i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: true,
+            };
           });
-          
-          // Fill subs (slots 11-19)
-          subs.forEach((p: any, i: number) => {
-            if (i < 9) {
-              newHomePlayers[11 + i] = {
-                ...newHomePlayers[11 + i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: false
-              };
-            }
+
+          subs.forEach((p, i) => {
+            newHomePlayers[11 + i] = {
+              ...newHomePlayers[11 + i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: false,
+            };
           });
-          
+
           setHomePlayers(newHomePlayers);
         }
 
         if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
-          const starters = data.matchData.awayPlayers.filter((p: any) => p.isStarter);
-          const subs = data.matchData.awayPlayers.filter((p: any) => !p.isStarter);
-          
+          const { starters, subs } = normalizeImportedPlayers(data.matchData.awayPlayers);
           const newAwayPlayers = [...awayPlayers];
-          
-          // Fill starters (first 11 slots)
-          starters.forEach((p: any, i: number) => {
-            if (i < 11) {
-              newAwayPlayers[i] = {
-                ...newAwayPlayers[i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: true
-              };
-            }
+
+          starters.forEach((p, i) => {
+            newAwayPlayers[i] = {
+              ...newAwayPlayers[i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: true,
+            };
           });
-          
-          // Fill subs (slots 11-19)
-          subs.forEach((p: any, i: number) => {
-            if (i < 9) {
-              newAwayPlayers[11 + i] = {
-                ...newAwayPlayers[11 + i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: false
-              };
-            }
+
+          subs.forEach((p, i) => {
+            newAwayPlayers[11 + i] = {
+              ...newAwayPlayers[11 + i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: false,
+            };
           });
-          
+
           setAwayPlayers(newAwayPlayers);
         }
         
