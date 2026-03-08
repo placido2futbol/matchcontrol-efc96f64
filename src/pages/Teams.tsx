@@ -191,17 +191,19 @@ export default function Teams() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (!file) return;
+                          if (!file || !user) return;
                           if (!file.type.startsWith('image/')) { toast.error('Solo imágenes'); return; }
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            const next = [...players];
-                            next[i] = { ...next[i], photo_url: reader.result as string };
-                            setPlayers(next);
-                          };
-                          reader.readAsDataURL(file);
+                          const ext = file.name.split('.').pop() || 'jpg';
+                          const path = `${user.id}/player-${Date.now()}-${i}.${ext}`;
+                          const { error } = await supabase.storage.from('player-photos').upload(path, file, { upsert: true });
+                          if (error) { toast.error('Error subiendo foto'); return; }
+                          const { data: urlData } = supabase.storage.from('player-photos').getPublicUrl(path);
+                          const next = [...players];
+                          next[i] = { ...next[i], photo_url: urlData.publicUrl };
+                          setPlayers(next);
+                          toast.success('Foto subida');
                         }}
                       />
                       {p.photo_url ? (
