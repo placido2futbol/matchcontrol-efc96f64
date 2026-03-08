@@ -94,6 +94,22 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
   }, [activeScene.players, updateScene]);
 
+  // Add from roster
+  const handleAddFromRoster = useCallback((partial: Partial<TacticalPlayer>) => {
+    const newPlayer: TacticalPlayer = {
+      id: generateId(),
+      name: partial.name || 'Player',
+      number: partial.number || 1,
+      position: partial.position || '',
+      team: partial.team || 'home',
+      color: partial.color || '#3B82F6',
+      x: 50,
+      y: 50,
+      onField: true,
+    };
+    updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
+  }, [updateScene]);
+
   // Drawings
   const handleDrawingsChange = useCallback((drawings: DrawingPath[]) => {
     updateScene(s => ({ ...s, drawings }));
