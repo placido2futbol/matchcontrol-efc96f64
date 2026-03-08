@@ -11,7 +11,7 @@ interface PlayerTokenProps {
   overridePos?: { x: number; y: number };
 }
 
-export default function PlayerToken({ player, containerRef, onDragEnd, onClick, isSelected }: PlayerTokenProps) {
+export default function PlayerToken({ player, containerRef, onDragEnd, onClick, isSelected, animating, overridePos }: PlayerTokenProps) {
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const startPlayerPos = useRef({ x: 0, y: 0 });
