@@ -353,8 +353,8 @@ export default function TacticalBoard() {
         </Button>
       </div>
 
-      {/* Toolbar */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2">
+      {/* Toolbar + Frames */}
+      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2 flex-wrap">
         <Toolbar
           tool={tool}
           onToolChange={setTool}
@@ -368,20 +368,6 @@ export default function TacticalBoard() {
           crestUrl={boardCrest || undefined}
           onSelectCrest={(url) => setBoardCrest(url)}
         />
-        {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-[10px] h-7"
-            onClick={() => updateScene(s => ({ ...s, titlePos: { x: 88, y: 6 } }))}
-          >
-            Mostrar título
-          </Button>
-        )}
-      </div>
-
-      {/* Frame timeline */}
-      <div className="px-3 py-1 shrink-0">
         <FrameTimeline
           frames={activeScene.frames || []}
           onCaptureFrame={handleCaptureFrame}
@@ -392,6 +378,16 @@ export default function TacticalBoard() {
           activeFrameIndex={activeFrameIndex}
           onSelectFrame={handleSelectFrame}
         />
+        {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-[10px] h-7"
+            onClick={() => updateScene(s => ({ ...s, titlePos: { x: 88, y: 6 } }))}
+          >
+            Mostrar título
+          </Button>
+        )}
       </div>
 
       <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
