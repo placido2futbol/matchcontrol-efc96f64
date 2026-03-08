@@ -98,10 +98,14 @@ function NotificationCard({ event, visible, playerPhotoUrl }: { event: MatchEven
         {label}
       </span>
       {/* Player initial circle as avatar placeholder */}
-      <div className="w-16 h-16 rounded-full bg-background/20 border-2 border-background/40 flex items-center justify-center">
-        <span className="text-2xl font-bold text-primary-foreground">
-          {event.playerName?.charAt(0)?.toUpperCase() || '?'}
-        </span>
+      <div className="w-16 h-16 rounded-full bg-background/20 border-2 border-background/40 flex items-center justify-center overflow-hidden">
+        {playerPhotoUrl ? (
+          <img src={playerPhotoUrl} alt={event.playerName} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-2xl font-bold text-primary-foreground">
+            {event.playerName?.charAt(0)?.toUpperCase() || '?'}
+          </span>
+        )}
       </div>
       <span className="text-base font-semibold text-primary-foreground text-center">
         {event.playerName}
