@@ -193,31 +193,32 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 7: CÓRNER CON PANTALLA =====
     {
       id: generateId(),
-      name: 'Córner con pantalla',
+      name: 'CORNER CON PANTALLA DE 3',
       players: [
         p('PORTERO', 1, PINK, 50, 6),
         p('JUAN', 2, BLUE, 20, 10),
         p('MANU', 3, BLUE, 48, 10),
-        p('ISAAC', 4, BLUE, 78, 6),         // lanzador
-        // Pantalla (2,3,4)
+        p('ISAAC', 4, BLUE, 78, 6),
         p('BEÑAT', 2, BLUE, 40, 32),
         p('FELIU', 3, BLUE, 44, 32),
         p('BIEL', 4, BLUE, 48, 32),
-        // Centro
         p('JUGADOR', 5, BLUE, 28, 45),
         p('JUGADOR', 6, BLUE, 46, 45),
-        // Coberturas
         p('BIEL', 7, BLUE, 30, 58),
         p('ARNAU', 8, BLUE, 50, 58),
-        // Atrás
         p('GARCI', 9, BLUE, 36, 90),
         p('BEÑAT', 10, BLUE, 56, 90),
       ],
       drawings: [],
-      labels: [
-        label('CÓRNER CON PANTALLA', 18, 8, 'lg'),
-      ],
+      labels: [],
       ball: { x: 82, y: 4, visible: true },
+      legend: {
+        entries: [
+          { number: 2, name: 'BEÑAT' },
+          { number: 3, name: 'FELIU' },
+          { number: 4, name: 'BIEL' },
+        ],
+      },
     },
   ];
 }
