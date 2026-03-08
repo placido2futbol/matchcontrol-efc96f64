@@ -390,7 +390,7 @@ export default function TacticalBoard() {
         )}
       </div>
 
-      <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
+      <div className="px-2 py-1 shrink-0 border-b border-border bg-card/40 overflow-x-auto">
         <RosterPanel onAddPlayer={handleSelectFromRoster} />
         {pendingRoster && (
           <div className="flex items-center gap-2 py-1 px-2 mt-1 rounded-lg bg-primary/10 border border-primary/30 animate-fade-in">
