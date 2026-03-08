@@ -126,7 +126,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
   const isLightBg = bgColor && selectedBgColor?.light;
-  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && bgCrest);
+  const activeBgImage = bgCrest || bgCustomImage;
+  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && activeBgImage);
   const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
