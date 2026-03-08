@@ -248,7 +248,24 @@ export default function Teams() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground">Jugadores</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-foreground">Jugadores</label>
+                {fcfUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleScrapeDorsals}
+                    disabled={scrapingDorsals}
+                    className="text-xs h-7"
+                  >
+                    {scrapingDorsals ? (
+                      <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Buscando...</>
+                    ) : (
+                      <><Download className="h-3 w-3 mr-1" /> Importar dorsales (FCF)</>
+                    )}
+                  </Button>
+                )}
+              </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {players.map((p, i) => (
                   <div key={i} className="flex gap-1 items-center">
