@@ -321,8 +321,8 @@ export default function TacticalBoard() {
       idx = (idx + 1) % frames.length;
       setActiveFrameIndex(idx);
       applyFrameOverlay(frames[idx]);
-    }, 1500);
-  }, [activeScene.frames, applyFrameOverlay]);
+    }, frameSpeed);
+  }, [activeScene.frames, applyFrameOverlay, frameSpeed]);
 
   const handleStopFrames = useCallback(() => {
     setPlayingFrames(false);
