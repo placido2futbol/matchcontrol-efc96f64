@@ -260,10 +260,14 @@ export default function TacticalBoard() {
           <div
             ref={pitchRef}
             className={`relative w-full rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
-            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)', cursor: pendingRoster ? 'crosshair' : undefined }}
+            style={{
+              aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
+              maxHeight: 'calc(100vh - 140px)',
+              cursor: pendingRoster ? 'crosshair' : undefined,
+            }}
             onClick={handlePitchClick}
           >
-            <PitchSVG />
+            {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
 
             <DrawingLayer
               drawings={activeScene.drawings}
