@@ -101,14 +101,75 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
+  const bgStyle: React.CSSProperties = bgType === 'color'
+    ? { background: bgValue }
+    : bgType === 'crest'
+    ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+    : {};
+
   return (
-    <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
+    <div className="min-h-screen" style={bgStyle}>
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl sm:text-2xl text-foreground">⚽ MatchControl</h1>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
-        </Button>
+        <h1 className={`font-display text-xl sm:text-2xl ${bgType !== 'default' ? 'text-white' : 'text-foreground'}`}>⚽ MatchControl</h1>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className={`h-8 w-8 ${bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}`}>
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Palette className="h-3.5 w-3.5" />
+                  Color de fondo
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {BG_COLORS.map(c => (
+                    <DropdownMenuItem
+                      key={c.value}
+                      onClick={() => applyBg('color', c.value)}
+                      className={`gap-2 text-xs ${bgType === 'color' && bgValue === c.value ? 'bg-primary/10' : ''}`}
+                    >
+                      <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ background: c.value }} />
+                      {c.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Image className="h-3.5 w-3.5" />
+                  Escudo de fondo
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="max-h-64 overflow-y-auto w-56">
+                  {FCF_EQUIPOS_DB.map(team => (
+                    <DropdownMenuItem
+                      key={team.name}
+                      onClick={() => applyBg('crest', team.crest)}
+                      className={`gap-2 text-xs ${bgType === 'crest' && bgValue === team.crest ? 'bg-primary/10' : ''}`}
+                    >
+                      <img src={team.crest} alt="" className="w-5 h-5 object-contain shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <span className="truncate">{team.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              {bgType !== 'default' && (
+                <DropdownMenuItem onClick={() => applyBg('default', '')} className="gap-2 text-xs text-destructive">
+                  <X className="h-3.5 w-3.5" />
+                  Quitar fondo personalizado
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="sm" onClick={signOut} className={bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}>
+            <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
+          </Button>
+        </div>
       </div>
 
       {/* Actions */}
