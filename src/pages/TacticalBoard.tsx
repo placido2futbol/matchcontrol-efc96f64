@@ -339,23 +339,21 @@ export default function TacticalBoard() {
             )}
 
 
-            {/* Text labels */}
+            {/* Text labels (draggable) */}
             {activeScene.labels.map(label => (
-              <div
+              <DraggableElement
                 key={label.id}
-                className="absolute select-none group"
-                style={{
-                  left: `${label.x}%`,
-                  top: `${label.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 12,
-                }}
+                x={label.x}
+                y={label.y}
+                containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+                onDragEnd={(x, y) => handleLabelDragEnd(label.id, x, y)}
+                zIndex={12}
               >
                 <span
-                  className="whitespace-nowrap cursor-default"
+                  className="whitespace-nowrap cursor-grab active:cursor-grabbing group relative"
                   style={{
                     color: label.color,
-                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 11 : 10,
+                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 12 : 10,
                     fontWeight: 900,
                     fontFamily: "'Russo One', 'Arial Black', sans-serif",
                     textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
@@ -365,16 +363,16 @@ export default function TacticalBoard() {
                   }}
                 >
                   {label.text}
+                  {tool === 'eraser' && (
+                    <button
+                      className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); handleRemoveLabel(label.id); }}
+                    >
+                      ×
+                    </button>
+                  )}
                 </span>
-                {tool === 'eraser' && (
-                  <button
-                    className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => { e.stopPropagation(); handleRemoveLabel(label.id); }}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
+              </DraggableElement>
             ))}
 
             {/* Label input popup */}
