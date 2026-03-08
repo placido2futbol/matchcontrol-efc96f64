@@ -73,7 +73,7 @@ export function useTeams() {
     crestUrl: string,
     kitUrl: string,
     fcfUrl: string,
-    players: { name: string; dorsal: string }[],
+    players: { name: string; dorsal: string; photo_url?: string }[],
     editId?: string,
     kitHtml?: string
   ) => {
