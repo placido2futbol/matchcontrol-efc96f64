@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, FileText, Printer } from 'lucide-react';
+import { calcMinutesFromDbEvents } from '@/lib/calcMinutesFromDbEvents';
 
 interface MatchDetail {
   id: string;
@@ -81,6 +82,18 @@ export default function MatchDetail() {
 
   const homePlayers = players.filter(p => p.team_side === 'home');
   const awayPlayers = players.filter(p => p.team_side === 'away');
+  const homeEvents = events.filter(e => e.team_side === 'home');
+  const awayEvents = events.filter(e => e.team_side === 'away');
+
+  const getMinutes = (player: MatchPlayerRow) => {
+    const sideEvents = player.team_side === 'home' ? homeEvents : awayEvents;
+    return calcMinutesFromDbEvents(
+      player.player_name,
+      player.is_starter,
+      sideEvents,
+      match.total_seconds
+    );
+  };
 
   const renderPlayerTable = (teamPlayers: MatchPlayerRow[], label: string) => (
     <div>
@@ -106,7 +119,7 @@ export default function MatchDetail() {
               <td className="p-1 text-center font-bold">{p.goals || ''}</td>
               <td className="p-1 text-center">{p.yellow_cards || ''}</td>
               <td className="p-1 text-center">{p.red_card ? '🟥' : ''}</td>
-              <td className="p-1 text-center text-muted-foreground">{p.minutes_played}'</td>
+              <td className="p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
             </tr>
           ))}
         </tbody>
