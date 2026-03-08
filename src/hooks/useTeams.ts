@@ -89,7 +89,7 @@ export function useTeams() {
       await supabase.from('players').delete().eq('team_id', editId);
       if (players.length > 0) {
         await supabase.from('players').insert(
-          players.map(p => ({ team_id: editId, name: p.name, dorsal: p.dorsal }))
+          players.map(p => ({ team_id: editId, name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' }))
         );
       }
     } else {
