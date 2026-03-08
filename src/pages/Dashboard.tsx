@@ -48,10 +48,49 @@ export default function Dashboard() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Theme settings from localStorage
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('mc_dark') === 'true');
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
+  const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
+  const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
   const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
     return (localStorage.getItem('mc_bg_type') as any) || 'default';
   });
   const [bgValue, setBgValue] = useState(() => localStorage.getItem('mc_bg_value') || '');
+
+  // Apply dark mode
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('mc_dark', String(darkMode));
+  }, [darkMode]);
+
+  // Apply accent color
+  useEffect(() => {
+    const accents: Record<string, string> = {
+      green: '145 63%',
+      blue: '217 91%',
+      red: '0 72%',
+      orange: '25 95%',
+      purple: '270 60%',
+      yellow: '45 93%',
+    };
+    const val = accents[accentColor] || accents.green;
+    document.documentElement.style.setProperty('--primary', `${val} ${darkMode ? '42%' : '32%'}`);
+    document.documentElement.style.setProperty('--ring', `${val} ${darkMode ? '42%' : '32%'}`);
+    localStorage.setItem('mc_accent', accentColor);
+  }, [accentColor, darkMode]);
+
+  // Apply font size
+  useEffect(() => {
+    const sizes: Record<string, string> = { small: '14px', normal: '16px', large: '18px' };
+    document.documentElement.style.fontSize = sizes[fontSize] || '16px';
+    localStorage.setItem('mc_fontsize', fontSize);
+  }, [fontSize]);
+
+  useEffect(() => {
+    localStorage.setItem('mc_compact', String(compactCards));
+  }, [compactCards]);
 
   const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
     setBgType(type);
@@ -67,6 +106,15 @@ export default function Dashboard() {
     { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
     { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
     { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
+  ];
+
+  const ACCENT_OPTIONS = [
+    { label: 'Verde', value: 'green', color: 'hsl(145, 63%, 32%)' },
+    { label: 'Azul', value: 'blue', color: 'hsl(217, 91%, 50%)' },
+    { label: 'Rojo', value: 'red', color: 'hsl(0, 72%, 51%)' },
+    { label: 'Naranja', value: 'orange', color: 'hsl(25, 95%, 53%)' },
+    { label: 'Morado', value: 'purple', color: 'hsl(270, 60%, 50%)' },
+    { label: 'Amarillo', value: 'yellow', color: 'hsl(45, 93%, 47%)' },
   ];
 
   const fetchMatches = async () => {
