@@ -5,6 +5,7 @@ import KitDisplay from '@/components/match/KitDisplay';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import { MatchPlayer } from '@/components/match/PlayerRow';
 import LiveEventNotification from '@/components/match/LiveEventNotification';
+import FootballPitch, { getDefaultPositions } from '@/components/match/FootballPitch';
 import { Wifi, WifiOff } from 'lucide-react';
 
 function LiveTimer({ seconds, running, lastUpdate }: { seconds: number; running: boolean; lastUpdate: number }) {
