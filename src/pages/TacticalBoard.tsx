@@ -340,8 +340,8 @@ export default function TacticalBoard() {
     return () => { if (playTimerRef.current) clearInterval(playTimerRef.current); };
   }, [activeSceneId]);
 
-  // Only admin can access
-  if (!user || user.email !== 'pinilla.22@gmail.com') {
+  const ADMIN_EMAILS = ['pinilla.22@gmail.com', 'placido.futbol2@gmail.com'];
+  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground font-bold">Acceso restringido</p>

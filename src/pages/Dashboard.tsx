@@ -31,7 +31,8 @@ interface MatchSummary {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
-  const isAdmin = user?.email === 'pinilla.22@gmail.com';
+  const ADMIN_EMAILS = ['pinilla.22@gmail.com', 'placido.futbol2@gmail.com'];
+  const isAdmin = ADMIN_EMAILS.includes(user?.email ?? '');
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
