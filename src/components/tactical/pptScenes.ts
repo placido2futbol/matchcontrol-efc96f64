@@ -108,30 +108,32 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 4: FALTA FRONTAL EN CONTRA =====
     {
       id: generateId(),
-      name: 'Falta frontal en contra',
+      name: 'FALTA FRONTAL EN CONTRA',
       players: [
         p('PORTERO', 1, PINK, 52, 6),
-        // Barrera numerada
         p('JUAN', 2, BLUE, 25, 30),
         p('GARCI', 3, BLUE, 29, 30),
         p('FELIU', 4, BLUE, 33, 30),
         p('ARNAU', 5, BLUE, 37, 30),
-        // Rivales en barrera
         p('', 0, BLUE, 44, 30),
         p('', 0, BLUE, 48, 30),
         p('', 0, BLUE, 52, 30),
         p('', 0, BLUE, 10, 30),
-        // Rival con balón
         p('RIVAL', 0, RED, 28, 48),
-        // Atrás
         p('JUGADOR', 11, BLUE, 42, 92),
       ],
       drawings: [],
-      labels: [
-        label('FALTA FRONTAL EN CONTRA', 78, 6, 'lg'),
-        label('BARRERA', 60, 36, 'sm', 'transparent', '#ffffff'),
-      ],
+      labels: [],
       ball: { x: 22, y: 45, visible: true },
+      legend: {
+        title: 'BARRERA',
+        entries: [
+          { number: 2, name: 'JUAN' },
+          { number: 3, name: 'GARCI' },
+          { number: 4, name: 'FELIU' },
+          { number: 5, name: 'ARNAU' },
+        ],
+      },
     },
 
     // ===== ESCENA 5: FALTA FRONTAL A FAVOR =====
