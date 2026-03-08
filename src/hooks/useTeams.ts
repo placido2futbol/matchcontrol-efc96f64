@@ -102,7 +102,7 @@ export function useTeams() {
 
       if (players.length > 0) {
         await supabase.from('players').insert(
-          players.map(p => ({ team_id: data.id, name: p.name, dorsal: p.dorsal }))
+          players.map(p => ({ team_id: data.id, name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' }))
         );
       }
     }
