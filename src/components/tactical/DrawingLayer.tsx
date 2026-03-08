@@ -9,22 +9,22 @@ interface DrawingLayerProps {
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
-function getRelativePos(e: React.MouseEvent | React.TouchEvent, container: HTMLDivElement) {
+function getRelativePos(e: React.MouseEvent, container: HTMLDivElement) {
   const rect = container.getBoundingClientRect();
-  const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-  const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
   return {
-    x: ((clientX - rect.left) / rect.width) * 100,
-    y: ((clientY - rect.top) / rect.height) * 100,
+    x: ((e.clientX - rect.left) / rect.width) * 100,
+    y: ((e.clientY - rect.top) / rect.height) * 100,
   };
 }
 
-function renderPath(path: DrawingPath, viewBox: { w: number; h: number }) {
-  const pts = path.points.map(p => ({ x: (p.x / 100) * viewBox.w, y: (p.y / 100) * viewBox.h }));
+const VB = { w: 1050, h: 680 };
+
+function renderPath(path: DrawingPath) {
+  const pts = path.points.map(p => ({ x: (p.x / 100) * VB.w, y: (p.y / 100) * VB.h }));
   if (pts.length < 2) return null;
 
-  const strokeDash = path.type === 'dashed' ? '8 6' : undefined;
-  const strokeWidth = path.type === 'free' ? 2.5 : 3;
+  const strokeDash = path.type === 'dashed' ? '10 8' : undefined;
+  const strokeWidth = path.type === 'free' ? 3 : 3.5;
 
   if (path.type === 'free') {
     const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
@@ -35,7 +35,7 @@ function renderPath(path: DrawingPath, viewBox: { w: number; h: number }) {
   const end = pts[pts.length - 1];
 
   if (path.type === 'curved-arrow') {
-    const mid = pts.length > 2 ? pts[Math.floor(pts.length / 2)] : { x: (start.x + end.x) / 2, y: Math.min(start.y, end.y) - 40 };
+    const mid = { x: (start.x + end.x) / 2, y: Math.min(start.y, end.y) - 50 };
     const d = `M ${start.x} ${start.y} Q ${mid.x} ${mid.y} ${end.x} ${end.y}`;
     return (
       <g key={path.id}>
@@ -45,7 +45,6 @@ function renderPath(path: DrawingPath, viewBox: { w: number; h: number }) {
     );
   }
 
-  // arrow or line or dashed
   const hasArrow = path.type === 'arrow';
   return (
     <g key={path.id}>
@@ -56,7 +55,7 @@ function renderPath(path: DrawingPath, viewBox: { w: number; h: number }) {
 }
 
 function ArrowHead({ x, y, angle, color }: { x: number; y: number; angle: number; color: string }) {
-  const len = 12;
+  const len = 14;
   const spread = 0.5;
   const x1 = x - len * Math.cos(angle - spread);
   const y1 = y - len * Math.sin(angle - spread);
@@ -68,9 +67,8 @@ function ArrowHead({ x, y, angle, color }: { x: number; y: number; angle: number
 export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawColor, containerRef }: DrawingLayerProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const currentPath = useRef<DrawingPath | null>(null);
-  const VB = { w: 1050, h: 680 };
 
-  const isDrawTool = tool !== 'select' && tool !== 'eraser';
+  const isDrawTool = ['arrow', 'curved-arrow', 'line', 'dashed', 'free'].includes(tool);
 
   const handleStart = useCallback((e: React.MouseEvent) => {
     if (!isDrawTool || !containerRef.current) return;
@@ -86,13 +84,8 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
     if (currentPath.current.type === 'free') {
       currentPath.current.points.push(pos);
     } else {
-      // For line-based tools keep only start + current end
       currentPath.current.points = [currentPath.current.points[0], pos];
-      if (currentPath.current.type === 'curved-arrow' && currentPath.current.points.length < 3) {
-        // Will use midpoint calculation in render
-      }
     }
-    // Force re-render
     onDrawingsChange([...drawings]);
   }, [isDrawing, drawings, onDrawingsChange, containerRef]);
 
@@ -108,7 +101,6 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
   const handleClick = useCallback((e: React.MouseEvent) => {
     if (tool !== 'eraser' || !containerRef.current) return;
     const pos = getRelativePos(e, containerRef.current);
-    // Remove closest drawing
     const threshold = 5;
     const filtered = drawings.filter(d => {
       return !d.points.some(p => Math.abs(p.x - pos.x) < threshold && Math.abs(p.y - pos.y) < threshold);
@@ -118,15 +110,17 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
     }
   }, [tool, drawings, onDrawingsChange, containerRef]);
 
+  const active = isDrawTool || tool === 'eraser';
+
   return (
     <svg
       viewBox={`0 0 ${VB.w} ${VB.h}`}
       className="absolute inset-0 w-full h-full"
       preserveAspectRatio="xMidYMid meet"
-      style={{ 
-        zIndex: isDrawTool || tool === 'eraser' ? 25 : 5, 
-        pointerEvents: isDrawTool || tool === 'eraser' ? 'auto' : 'none',
-        cursor: tool === 'eraser' ? 'crosshair' : isDrawTool ? 'crosshair' : 'default',
+      style={{
+        zIndex: active ? 25 : 5,
+        pointerEvents: active ? 'auto' : 'none',
+        cursor: active ? 'crosshair' : 'default',
       }}
       onMouseDown={handleStart}
       onMouseMove={handleMove}
@@ -134,8 +128,8 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
       onMouseLeave={handleEnd}
       onClick={handleClick}
     >
-      {drawings.map(d => renderPath(d, VB))}
-      {isDrawing && currentPath.current && renderPath(currentPath.current, VB)}
+      {drawings.map(d => renderPath(d))}
+      {isDrawing && currentPath.current && renderPath(currentPath.current)}
     </svg>
   );
 }
