@@ -5,6 +5,7 @@ import KitDisplay from '@/components/match/KitDisplay';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import { MatchPlayer } from '@/components/match/PlayerRow';
 import LiveEventNotification from '@/components/match/LiveEventNotification';
+import FootballPitch, { getDefaultPositions } from '@/components/match/FootballPitch';
 import { Wifi, WifiOff } from 'lucide-react';
 
 function LiveTimer({ seconds, running, lastUpdate }: { seconds: number; running: boolean; lastUpdate: number }) {
@@ -168,6 +169,18 @@ export default function LiveMatchPage() {
           </div>
         </div>
       </div>
+
+      {/* Football Pitch */}
+      <FootballPitch
+        homePlayers={state.homePlayers}
+        awayPlayers={state.awayPlayers}
+        homeTeamName={state.homeTeamName}
+        awayTeamName={state.awayTeamName}
+        homeTeamCrest={state.homeTeamCrest}
+        awayTeamCrest={state.awayTeamCrest}
+        positions={state.playerPositions || getDefaultPositions(state.homePlayers, state.awayPlayers)}
+        readOnly
+      />
 
       {/* Players */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

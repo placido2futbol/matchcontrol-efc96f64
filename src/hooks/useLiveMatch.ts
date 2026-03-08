@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MatchPlayer } from '@/components/match/PlayerRow';
 import { MatchEvent } from '@/components/match/EventLog';
+import { PlayerPosition } from '@/components/match/FootballPitch';
 
 export interface LiveMatchState {
   homeTeamName: string;
@@ -10,7 +11,7 @@ export interface LiveMatchState {
   awayScore: number;
   timerSeconds: number;
   timerRunning: boolean;
-  timerLastUpdate: number; // timestamp when timer state was last sent
+  timerLastUpdate: number;
   events: MatchEvent[];
   homePlayers: MatchPlayer[];
   awayPlayers: MatchPlayer[];
@@ -23,6 +24,7 @@ export interface LiveMatchState {
   awayTeamKitHtml?: string;
   homeTeamKitUrl?: string;
   awayTeamKitUrl?: string;
+  playerPositions?: PlayerPosition[];
 }
 
 export function useLiveBroadcast(sessionId: string) {

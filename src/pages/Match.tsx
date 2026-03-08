@@ -11,6 +11,7 @@ import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
+import FootballPitch, { PlayerPosition, getDefaultPositions } from '@/components/match/FootballPitch';
 import { Save, ArrowLeft, Share2, Check, Flag } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -66,6 +67,7 @@ export default function MatchPage() {
   const [homePendingSub, setHomePendingSub] = useState<number | null>(null);
   const [awayPendingSub, setAwayPendingSub] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [playerPositions, setPlayerPositions] = useState<PlayerPosition[]>([]);
 
   const homeTeam = teams.find(t => t.id === homeTeamId) || null;
   const awayTeam = teams.find(t => t.id === awayTeamId) || null;
@@ -171,6 +173,14 @@ export default function MatchPage() {
     load();
   }, [matchId, user]);
 
+  // Auto-generate default positions when players change and no positions exist
+  useEffect(() => {
+    const hasNamedStarters = homePlayers.some(p => p.isStarter && p.playerName) || awayPlayers.some(p => p.isStarter && p.playerName);
+    if (hasNamedStarters && playerPositions.length === 0) {
+      setPlayerPositions(getDefaultPositions(homePlayers, awayPlayers));
+    }
+  }, [homePlayers, awayPlayers]);
+
   // Broadcast live state on every change
   useEffect(() => {
     const state: LiveMatchState = {
@@ -193,9 +203,10 @@ export default function MatchPage() {
       awayTeamKitHtml: awayTeam?.kit_html || undefined,
       homeTeamKitUrl: homeTeam?.kit_url || undefined,
       awayTeamKitUrl: awayTeam?.kit_url || undefined,
+      playerPositions,
     };
     broadcast(state);
-  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam]);
+  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam, playerPositions]);
 
   const liveUrl = `${window.location.origin}/live/${sessionId}`;
   const handleCopyLink = () => {
@@ -578,6 +589,18 @@ export default function MatchPage() {
           {...awayHandlers}
         />
       </div>
+
+      {/* Football Pitch */}
+      <FootballPitch
+        homePlayers={homePlayers}
+        awayPlayers={awayPlayers}
+        homeTeamName={homeTeam?.name || 'Local'}
+        awayTeamName={awayTeam?.name || 'Visitante'}
+        homeTeamCrest={homeTeam?.crest_url || undefined}
+        awayTeamCrest={awayTeam?.crest_url || undefined}
+        positions={playerPositions}
+        onPositionsChange={setPlayerPositions}
+      />
 
       {/* Events */}
       <EventLog events={events} onDeleteEvent={deleteEvent} />
