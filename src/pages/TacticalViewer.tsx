@@ -51,6 +51,69 @@ export default function TacticalViewer() {
     return () => clearInterval(timer);
   }, [autoPlay, autoInterval, scenes.length]);
 
+  // Frame animation state
+  const [playingFrames, setPlayingFrames] = useState(false);
+  const [currentFrameIdx, setCurrentFrameIdx] = useState(0);
+  const frameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Stop frame playback on scene change
+  useEffect(() => {
+    setPlayingFrames(false);
+    setCurrentFrameIdx(0);
+    if (frameTimerRef.current) clearInterval(frameTimerRef.current);
+  }, [activeIndex]);
+
+  const scene = scenes[activeIndex] || null;
+  const sceneFrames = scene?.frames || [];
+  const hasFrames = sceneFrames.length >= 2;
+
+  const startFramePlayback = useCallback(() => {
+    if (!hasFrames) return;
+    setPlayingFrames(true);
+    setCurrentFrameIdx(0);
+    frameTimerRef.current = setInterval(() => {
+      setCurrentFrameIdx(prev => {
+        const next = prev + 1;
+        if (next >= sceneFrames.length) return 0;
+        return next;
+      });
+    }, 1200);
+  }, [hasFrames, sceneFrames.length]);
+
+  const stopFramePlayback = useCallback(() => {
+    setPlayingFrames(false);
+    setCurrentFrameIdx(0);
+    if (frameTimerRef.current) {
+      clearInterval(frameTimerRef.current);
+      frameTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => { if (frameTimerRef.current) clearInterval(frameTimerRef.current); };
+  }, []);
+
+  // Get interpolated player positions when frames are playing
+  const getPlayerPosition = useCallback((player: TacticalPlayer) => {
+    if (!playingFrames || sceneFrames.length === 0) return { x: player.x, y: player.y };
+    const frame = sceneFrames[currentFrameIdx];
+    if (!frame) return { x: player.x, y: player.y };
+    const fp = frame.players.find(p => p.id === player.id);
+    return fp ? { x: fp.x, y: fp.y } : { x: player.x, y: player.y };
+  }, [playingFrames, sceneFrames, currentFrameIdx]);
+
+  const getCurrentBall = useCallback(() => {
+    if (!playingFrames || sceneFrames.length === 0 || !scene) return scene?.ball;
+    const frame = sceneFrames[currentFrameIdx];
+    return frame?.ball || scene.ball;
+  }, [playingFrames, sceneFrames, currentFrameIdx, scene]);
+
+  const getCurrentDrawings = useCallback(() => {
+    if (!playingFrames || sceneFrames.length === 0 || !scene) return scene?.drawings || [];
+    const frame = sceneFrames[currentFrameIdx];
+    return frame?.drawings || scene.drawings;
+  }, [playingFrames, sceneFrames, currentFrameIdx, scene]);
+
   const goNext = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % scenes.length);
   }, [scenes.length]);
@@ -67,7 +130,7 @@ export default function TacticalViewer() {
     );
   }
 
-  if (error || scenes.length === 0) {
+  if (error || scenes.length === 0 || !scene) {
     return (
       <div className="h-screen flex items-center justify-center bg-[hsl(145,55%,20%)]">
         <p className="text-white text-lg font-bold">{error || 'Pizarra vacía'}</p>
@@ -75,7 +138,8 @@ export default function TacticalViewer() {
     );
   }
 
-  const scene = scenes[activeIndex];
+  const currentBall = getCurrentBall();
+  const currentDrawings = getCurrentDrawings();
 
   return (
     <div className="h-screen flex flex-col bg-[hsl(145,55%,15%)] select-none">
