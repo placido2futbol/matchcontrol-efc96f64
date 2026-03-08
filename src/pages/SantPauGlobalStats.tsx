@@ -45,14 +45,38 @@ export default function SantPauGlobalStats() {
   const [playerData, setPlayerData] = useState<Record<string, PlayerAccum>>({});
   const [loading, setLoading] = useState(true);
 
+  const [allRosterNames, setAllRosterNames] = useState<string[]>([]);
+
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: allMatches } = await supabase
-        .from('matches')
-        .select('id, match_date, home_team_name, away_team_name, home_score, away_score, total_seconds')
-        .eq('user_id', user.id)
-        .order('match_date', { ascending: true });
+      // Fetch matches, and all teams + players in parallel
+      const [{ data: allMatches }, { data: allTeams }] = await Promise.all([
+        supabase
+          .from('matches')
+          .select('id, match_date, home_team_name, away_team_name, home_score, away_score, total_seconds')
+          .eq('user_id', user.id)
+          .order('match_date', { ascending: true }),
+        supabase
+          .from('teams')
+          .select('id, name')
+          .eq('user_id', user.id),
+      ]);
+
+      // Find Sant Pau team(s) and fetch their roster
+      const spTeams = (allTeams || []).filter(t =>
+        t.name.toUpperCase().includes(SANT_PAU_KEY)
+      );
+      let rosterNames: string[] = [];
+      if (spTeams.length > 0) {
+        const teamIds = spTeams.map(t => t.id);
+        const { data: rosterPlayers } = await supabase
+          .from('players')
+          .select('name')
+          .in('team_id', teamIds);
+        rosterNames = (rosterPlayers || []).map(p => p.name);
+      }
+      setAllRosterNames(rosterNames);
 
       const spMatches = (allMatches || []).filter(
         m =>
@@ -70,7 +94,6 @@ export default function SantPauGlobalStats() {
 
       const matchIds = spMatches.map(m => m.id);
 
-      // Fetch players and events in parallel
       const [{ data: players }, { data: events }] = await Promise.all([
         supabase
           .from('match_players')
@@ -83,7 +106,6 @@ export default function SantPauGlobalStats() {
           .order('minute'),
       ]);
 
-      // Build side map and total_seconds map
       const sideMap: Record<string, string> = {};
       const secondsMap: Record<string, number> = {};
       spMatches.forEach(m => {
@@ -91,7 +113,6 @@ export default function SantPauGlobalStats() {
         secondsMap[m.id] = m.total_seconds;
       });
 
-      // Group events by match_id and side
       const eventsByMatch: Record<string, EventRow[]> = {};
       (events || []).forEach(e => {
         const key = e.match_id;
@@ -99,7 +120,6 @@ export default function SantPauGlobalStats() {
         eventsByMatch[key].push(e as EventRow);
       });
 
-      // Accumulate player stats with recalculated minutes
       const accum: Record<string, PlayerAccum> = {};
       (players || []).forEach(p => {
         const santPauSide = sideMap[p.match_id];
@@ -130,7 +150,10 @@ export default function SantPauGlobalStats() {
     })();
   }, [user]);
 
-  const playerNames = Object.keys(playerData).sort((a, b) => a.localeCompare(b));
+  // Merge roster players with match players so all appear
+  const playerNames = Array.from(
+    new Set([...Object.keys(playerData), ...allRosterNames])
+  ).sort((a, b) => a.localeCompare(b));
 
   const getSummary = (name: string) => {
     const pd = playerData[name];
