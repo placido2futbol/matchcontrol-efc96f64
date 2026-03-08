@@ -52,10 +52,8 @@ export default function Dashboard() {
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
   const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
   const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
-  const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
-    return (localStorage.getItem('mc_bg_type') as any) || 'default';
-  });
-  const [bgValue, setBgValue] = useState(() => localStorage.getItem('mc_bg_value') || '');
+  const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
+  const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
 
   // Apply dark mode
   useEffect(() => {
