@@ -4,6 +4,7 @@ import { useLiveSubscription, LiveMatchState } from '@/hooks/useLiveMatch';
 import KitDisplay from '@/components/match/KitDisplay';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import { MatchPlayer } from '@/components/match/PlayerRow';
+import LiveEventNotification from '@/components/match/LiveEventNotification';
 import { Wifi, WifiOff } from 'lucide-react';
 
 function LiveTimer({ seconds, running, lastUpdate }: { seconds: number; running: boolean; lastUpdate: number }) {
@@ -102,6 +103,8 @@ export default function LiveMatchPage() {
   }
 
   return (
+    <>
+    <LiveEventNotification events={state.events} />
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       {/* Live indicator */}
       <div className="flex items-center gap-2 justify-center">
@@ -185,5 +188,6 @@ export default function LiveMatchPage() {
         MatchControl — Visualización en directo
       </div>
     </div>
+    </>
   );
 }
