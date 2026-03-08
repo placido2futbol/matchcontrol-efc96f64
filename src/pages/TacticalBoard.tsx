@@ -275,6 +275,7 @@ export default function TacticalBoard() {
               tool={tool}
               drawColor={drawColor}
               containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+              halfPitch={activeScene.halfPitch}
             />
 
             {/* Ball */}
