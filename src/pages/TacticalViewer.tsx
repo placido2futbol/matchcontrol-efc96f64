@@ -77,7 +77,7 @@ export default function TacticalViewer() {
         if (next >= sceneFrames.length) return 0;
         return next;
       });
-    }, 1200);
+    }, 1500);
   }, [hasFrames, sceneFrames.length]);
 
   const stopFramePlayback = useCallback(() => {
