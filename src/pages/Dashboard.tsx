@@ -332,7 +332,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Crest opacity */}
-                {bgType === 'crest' && (
+                {bgCrest && (
                   <div>
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
                       <Sun className="h-3.5 w-3.5" /> Transparencia escudo
