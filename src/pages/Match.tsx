@@ -11,6 +11,7 @@ import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
+import FootballPitch, { PlayerPosition, getDefaultPositions } from '@/components/match/FootballPitch';
 import { Save, ArrowLeft, Share2, Check, Flag } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
