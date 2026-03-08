@@ -191,11 +191,12 @@ export default function Dashboard() {
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
 
-  const overlayOpacity = 1 - crestOpacity / 100;
+  const crestAlpha = crestOpacity / 100;
+  const overlayAlpha = Math.max(0.15, 1 - crestAlpha * 1.5); // lighter overlay as opacity increases
   const bgStyle: React.CSSProperties = bgType === 'color'
     ? { background: bgValue }
     : bgType === 'crest'
-    ? { backgroundImage: `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${Math.min(overlayOpacity + 0.1, 0.95)})), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+    ? { backgroundImage: `linear-gradient(rgba(0,0,0,${overlayAlpha}), rgba(0,0,0,${overlayAlpha})), url(${bgValue})`, backgroundSize: '40%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#1a1a2e' }
     : {};
 
   return (
