@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { TacticalPlayer, generateId } from './types';
-import { fcfTeams } from '@/data/fcf-teams';
+import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
 
 interface RosterPlayer {
   name: string;
