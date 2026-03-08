@@ -33,6 +33,35 @@ function createSlots(count: number, startIndex: number, isStarter: boolean): Mat
   }));
 }
 
+function uniquePlayersByName(players: { name: string }[]) {
+  const seen = new Set<string>();
+  return players.filter((p) => {
+    const key = p.name.trim().toUpperCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function normalizeImportedPlayers(players: Array<{ name: string; dorsal: string; isStarter: boolean }>) {
+  const seen = new Set<string>();
+  const starters: Array<{ name: string; dorsal: string }> = [];
+  const subs: Array<{ name: string; dorsal: string }> = [];
+
+  for (const p of players) {
+    const name = p.name?.trim();
+    if (!name) continue;
+    const key = name.toUpperCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const target = p.isStarter ? starters : subs;
+    target.push({ name, dorsal: p.dorsal || '' });
+  }
+
+  return { starters: starters.slice(0, 11), subs: subs.slice(0, 9) };
+}
+
 export default function MatchPage() {
   const { user } = useAuth();
   const { teams } = useTeams();
@@ -369,6 +398,15 @@ export default function MatchPage() {
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
 
+  const homeAvailablePlayers = useMemo(
+    () => uniquePlayersByName(homeTeam?.players || []).map((p) => p.name),
+    [homeTeam]
+  );
+  const awayAvailablePlayers = useMemo(
+    () => uniquePlayersByName(awayTeam?.players || []).map((p) => p.name),
+    [awayTeam]
+  );
+
   const [importingFcf, setImportingFcf] = useState(false);
 
   const handleImportFCF = async () => {
@@ -394,70 +432,54 @@ export default function MatchPage() {
       }
 
       if (data.matchData) {
-        // Map players from the scraped data
+        // Map and dedupe players from scraped data (avoid repeats between 11/subs)
         if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
-          const starters = data.matchData.homePlayers.filter((p: any) => p.isStarter);
-          const subs = data.matchData.homePlayers.filter((p: any) => !p.isStarter);
-          
+          const { starters, subs } = normalizeImportedPlayers(data.matchData.homePlayers);
           const newHomePlayers = [...homePlayers];
-          
-          // Fill starters (first 11 slots)
-          starters.forEach((p: any, i: number) => {
-            if (i < 11) {
-              newHomePlayers[i] = {
-                ...newHomePlayers[i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: true
-              };
-            }
+
+          starters.forEach((p, i) => {
+            newHomePlayers[i] = {
+              ...newHomePlayers[i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: true,
+            };
           });
-          
-          // Fill subs (slots 11-19)
-          subs.forEach((p: any, i: number) => {
-            if (i < 9) {
-              newHomePlayers[11 + i] = {
-                ...newHomePlayers[11 + i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: false
-              };
-            }
+
+          subs.forEach((p, i) => {
+            newHomePlayers[11 + i] = {
+              ...newHomePlayers[11 + i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: false,
+            };
           });
-          
+
           setHomePlayers(newHomePlayers);
         }
 
         if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
-          const starters = data.matchData.awayPlayers.filter((p: any) => p.isStarter);
-          const subs = data.matchData.awayPlayers.filter((p: any) => !p.isStarter);
-          
+          const { starters, subs } = normalizeImportedPlayers(data.matchData.awayPlayers);
           const newAwayPlayers = [...awayPlayers];
-          
-          // Fill starters (first 11 slots)
-          starters.forEach((p: any, i: number) => {
-            if (i < 11) {
-              newAwayPlayers[i] = {
-                ...newAwayPlayers[i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: true
-              };
-            }
+
+          starters.forEach((p, i) => {
+            newAwayPlayers[i] = {
+              ...newAwayPlayers[i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: true,
+            };
           });
-          
-          // Fill subs (slots 11-19)
-          subs.forEach((p: any, i: number) => {
-            if (i < 9) {
-              newAwayPlayers[11 + i] = {
-                ...newAwayPlayers[11 + i],
-                playerName: p.name,
-                dorsal: p.dorsal,
-                isStarter: false
-              };
-            }
+
+          subs.forEach((p, i) => {
+            newAwayPlayers[11 + i] = {
+              ...newAwayPlayers[11 + i],
+              playerName: p.name,
+              dorsal: p.dorsal,
+              isStarter: false,
+            };
           });
-          
+
           setAwayPlayers(newAwayPlayers);
         }
         
@@ -691,7 +713,7 @@ export default function MatchPage() {
           teamSide="home"
           starters={homePlayers.filter(p => p.isStarter)}
           subs={homePlayers.filter(p => !p.isStarter)}
-          availablePlayers={homeTeam?.players.map(p => p.name) || []}
+          availablePlayers={homeAvailablePlayers}
           selectedPlayers={homeSelected}
           pendingSubSlot={homePendingSub}
           {...homeHandlers}
@@ -701,7 +723,7 @@ export default function MatchPage() {
           teamSide="away"
           starters={awayPlayers.filter(p => p.isStarter)}
           subs={awayPlayers.filter(p => !p.isStarter)}
-          availablePlayers={awayTeam?.players.map(p => p.name) || []}
+          availablePlayers={awayAvailablePlayers}
           selectedPlayers={awaySelected}
           pendingSubSlot={awayPendingSub}
           {...awayHandlers}
