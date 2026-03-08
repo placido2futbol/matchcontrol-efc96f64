@@ -7,19 +7,18 @@ import PitchSVG from '@/components/tactical/PitchSVG';
 import PlayerToken from '@/components/tactical/PlayerToken';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
-import BenchPanel from '@/components/tactical/BenchPanel';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
 import SceneManager from '@/components/tactical/SceneManager';
 import {
   TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition,
-  FORMATIONS, SET_PIECE_TEMPLATES, createDefaultPlayers, generateId,
+  generateId,
 } from '@/components/tactical/types';
 
-function createDefaultScene(): TacticalScene {
+function createEmptyScene(name: string = 'Nueva escena'): TacticalScene {
   return {
     id: generateId(),
-    name: 'Ataque',
-    players: createDefaultPlayers(),
+    name,
+    players: [],
     drawings: [],
     labels: [],
     ball: { x: 50, y: 50, visible: false },
@@ -30,12 +29,11 @@ export default function TacticalBoard() {
   const navigate = useNavigate();
   const pitchRef = useRef<HTMLDivElement>(null);
 
-  const [scenes, setScenes] = useState<TacticalScene[]>([createDefaultScene()]);
+  const [scenes, setScenes] = useState<TacticalScene[]>([createEmptyScene('Escena 1')]);
   const [activeSceneId, setActiveSceneId] = useState(scenes[0].id);
   const [tool, setTool] = useState<DrawingTool>('select');
   const [drawColor, setDrawColor] = useState('#ff4444');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [labelInput, setLabelInput] = useState<{ x: number; y: number } | null>(null);
   const [labelText, setLabelText] = useState('');
 
@@ -72,65 +70,25 @@ export default function TacticalBoard() {
     setSelectedPlayerId(null);
   }, [updateScene]);
 
-  const handleMoveToBench = useCallback((id: string) => {
-    updateScene(s => ({ ...s, players: s.players.map(p => p.id === id ? { ...p, onField: false } : p) }));
-    setSelectedPlayerId(null);
-  }, [updateScene]);
-
-  const handleMoveToField = useCallback((id: string) => {
-    updateScene(s => ({ ...s, players: s.players.map(p => p.id === id ? { ...p, onField: true, x: 50, y: 50 } : p) }));
-  }, [updateScene]);
-
-  const handleAddPlayer = useCallback(() => {
-    const maxNum = Math.max(0, ...activeScene.players.map(p => p.number));
+  // Quick add players directly to the field center
+  const addPlayerToField = useCallback((team: 'home' | 'away') => {
+    const existing = activeScene.players;
+    const teamPlayers = existing.filter(p => p.team === team);
+    const num = teamPlayers.length + 1;
+    const color = team === 'home' ? '#3B82F6' : '#EF4444';
     const newPlayer: TacticalPlayer = {
-      id: generateId(), name: `Jugador ${maxNum + 1}`, number: maxNum + 1,
-      position: 'SUB', team: 'home', color: '#3B82F6', x: 0, y: 0, onField: false,
+      id: generateId(),
+      name: `${num}`,
+      number: num,
+      position: '',
+      team,
+      color,
+      x: 50,
+      y: 50,
+      onField: true,
     };
     updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
   }, [activeScene.players, updateScene]);
-
-  // Formation
-  const handleFormationSelect = useCallback((key: string) => {
-    const formation = FORMATIONS[key];
-    updateScene(s => {
-      const onField = s.players.filter(p => p.onField);
-      const updated = s.players.map(p => {
-        if (!p.onField) return p;
-        const idx = onField.indexOf(p);
-        if (idx < formation.positions.length) {
-          return { ...p, x: formation.positions[idx].x, y: formation.positions[idx].y };
-        }
-        return { ...p, onField: false };
-      });
-      return { ...s, players: updated };
-    });
-  }, [updateScene]);
-
-  // Set piece templates
-  const handleSetPieceSelect = useCallback((key: string) => {
-    const template = SET_PIECE_TEMPLATES[key];
-    const players: TacticalPlayer[] = template.players.map((tp, i) => ({
-      id: generateId(),
-      name: tp.name || `Player ${i + 1}`,
-      number: tp.number || i + 1,
-      position: tp.position || 'FLD',
-      team: 'home' as const,
-      color: tp.color || '#3B82F6',
-      x: tp.x || 50,
-      y: tp.y || 50,
-      onField: tp.onField !== false,
-    }));
-    // Add bench slots
-    for (let i = players.length + 1; i <= 20; i++) {
-      players.push({
-        id: generateId(), name: `Jugador ${i}`, number: i,
-        position: 'SUB', team: 'home', color: '#3B82F6', x: 0, y: 0, onField: false,
-      });
-    }
-    const labels: TextLabel[] = template.labels.map(l => ({ ...l, id: generateId() }));
-    updateScene(s => ({ ...s, players, labels, ball: template.ball, drawings: [] }));
-  }, [updateScene]);
 
   // Drawings
   const handleDrawingsChange = useCallback((drawings: DrawingPath[]) => {
@@ -141,7 +99,7 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, drawings: [] }));
   }, [updateScene]);
 
-  // Ball & Label placement via pitch click
+  // Ball & Label placement
   const handlePitchClick = useCallback((e: React.MouseEvent) => {
     if (tool === 'select') {
       setSelectedPlayerId(null);
@@ -173,13 +131,13 @@ export default function TacticalBoard() {
     setTool('select');
   }, [labelInput, labelText, updateScene]);
 
+  const handleRemoveLabel = useCallback((id: string) => {
+    updateScene(s => ({ ...s, labels: s.labels.filter(l => l.id !== id) }));
+  }, [updateScene]);
+
   // Scenes
   const handleAddScene = useCallback(() => {
-    const newScene: TacticalScene = {
-      id: generateId(), name: `Escena ${scenes.length + 1}`,
-      players: createDefaultPlayers(), drawings: [], labels: [],
-      ball: { x: 50, y: 50, visible: false },
-    };
+    const newScene = createEmptyScene(`Escena ${scenes.length + 1}`);
     setScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
   }, [scenes.length]);
@@ -206,10 +164,8 @@ export default function TacticalBoard() {
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen?.();
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen?.();
-      setIsFullscreen(false);
     }
   }, []);
 
@@ -231,15 +187,15 @@ export default function TacticalBoard() {
           drawColor={drawColor}
           onDrawColorChange={setDrawColor}
           onClearDrawings={handleClearDrawings}
-          onFormationSelect={handleFormationSelect}
-          onSetPieceSelect={handleSetPieceSelect}
+          onAddHomePlayer={() => addPlayerToField('home')}
+          onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
         />
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex gap-2 p-2 min-h-0">
-        {/* Left sidebar */}
+        {/* Left sidebar - Scenes */}
         <div className="w-40 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
           <SceneManager
             scenes={scenes}
@@ -281,8 +237,8 @@ export default function TacticalBoard() {
                   zIndex: 15,
                 }}
               >
-                <div className="w-5 h-5 rounded-full bg-white border-2 border-gray-800 shadow-lg flex items-center justify-center">
-                  <span className="text-[8px]">⚽</span>
+                <div className="w-6 h-6 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
+                  <span className="text-[10px]">⚽</span>
                 </div>
               </div>
             )}
@@ -291,7 +247,7 @@ export default function TacticalBoard() {
             {activeScene.labels.map(label => (
               <div
                 key={label.id}
-                className="absolute pointer-events-none select-none"
+                className="absolute select-none group"
                 style={{
                   left: `${label.x}%`,
                   top: `${label.y}%`,
@@ -300,7 +256,7 @@ export default function TacticalBoard() {
                 }}
               >
                 <span
-                  className="font-extrabold whitespace-nowrap px-2 py-0.5"
+                  className="font-extrabold whitespace-nowrap px-2 py-0.5 cursor-default"
                   style={{
                     color: label.color,
                     background: label.bgColor,
@@ -310,6 +266,14 @@ export default function TacticalBoard() {
                 >
                   {label.text}
                 </span>
+                {tool === 'eraser' && (
+                  <button
+                    className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveLabel(label.id); }}
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             ))}
 
@@ -354,23 +318,77 @@ export default function TacticalBoard() {
                 onUpdate={handleUpdatePlayer}
                 onDuplicate={handleDuplicatePlayer}
                 onRemove={handleRemovePlayer}
-                onMoveToBench={handleMoveToBench}
+                onMoveToBench={() => handleRemovePlayer(selectedPlayer.id)}
                 onClose={() => setSelectedPlayerId(null)}
               />
+            )}
+
+            {/* Empty state hint */}
+            {fieldPlayers.length === 0 && !labelInput && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div className="bg-black/50 text-white rounded-xl px-6 py-4 text-center">
+                  <p className="text-sm font-bold">Campo vacío</p>
+                  <p className="text-xs mt-1 opacity-80">
+                    Usa los botones <span className="inline-block w-3 h-3 rounded-full bg-blue-500 align-middle mx-0.5" />+ y <span className="inline-block w-3 h-3 rounded-full bg-red-500 align-middle mx-0.5" />+ de la barra para añadir jugadores
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Right sidebar */}
-        <div className="w-44 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
-          <BenchPanel
-            players={activeScene.players}
-            onAddPlayer={handleAddPlayer}
-            onMoveToField={handleMoveToField}
-            onRemovePlayer={handleRemovePlayer}
-          />
+        {/* Right sidebar - Legend (like PPT) */}
+        <div className="w-48 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
+            Jugadores ({fieldPlayers.length})
+          </h3>
+          <div className="space-y-1">
+            {fieldPlayers.map(p => (
+              <div
+                key={p.id}
+                className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  selectedPlayerId === p.id ? 'bg-primary/15 ring-1 ring-primary/30' : 'hover:bg-muted'
+                }`}
+                onClick={() => setSelectedPlayerId(selectedPlayerId === p.id ? null : p.id)}
+              >
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-sm"
+                  style={{
+                    background: p.color,
+                    color: isLight(p.color) ? '#1a1a2e' : '#fff',
+                    border: '2px solid rgba(0,0,0,0.2)',
+                  }}
+                >
+                  {p.number}
+                </div>
+                <span
+                  className="text-xs font-bold truncate px-1.5 py-0.5"
+                  style={{
+                    background: p.team === 'away' ? 'transparent' : '#ffff00',
+                    color: '#cc0000',
+                    border: p.team === 'away' ? 'none' : '1px solid #cc0000',
+                  }}
+                >
+                  {p.name.toUpperCase()}
+                </span>
+              </div>
+            ))}
+          </div>
+          {fieldPlayers.length === 0 && (
+            <p className="text-[10px] text-muted-foreground text-center py-8">
+              Añade jugadores con los botones de la barra superior
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+function isLight(hex: string): boolean {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 160;
 }
