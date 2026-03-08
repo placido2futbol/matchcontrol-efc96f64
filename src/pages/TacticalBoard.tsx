@@ -286,6 +286,8 @@ export default function TacticalBoard() {
           onAddHomePlayer={() => addPlayerToField('home')}
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
+          showCrest={activeScene.showCrest}
+          onToggleCrest={() => updateScene(s => ({ ...s, showCrest: !s.showCrest }))}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
