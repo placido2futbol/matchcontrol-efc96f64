@@ -36,6 +36,7 @@ const initialScenes = createPPTScenes();
 
 export default function TacticalBoard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const pitchRef = useRef<HTMLDivElement>(null);
 
   const [scenes, setScenes] = useState<TacticalScene[]>(initialScenes);
@@ -46,6 +47,57 @@ export default function TacticalBoard() {
   const [labelInput, setLabelInput] = useState<{ x: number; y: number } | null>(null);
   const [labelText, setLabelText] = useState('');
   const [pendingRoster, setPendingRoster] = useState<Partial<TacticalPlayer> | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareId, setShareId] = useState<string | null>(null);
+
+  const handleShare = useCallback(async () => {
+    if (!user) {
+      toast({ title: 'Inicia sesión para compartir', variant: 'destructive' });
+      return;
+    }
+    setSharing(true);
+    try {
+      if (shareId) {
+        // Update existing
+        await supabase.from('tactical_boards').update({
+          scenes: scenes as any,
+          updated_at: new Date().toISOString(),
+        }).eq('id', shareId);
+      } else {
+        // Create new
+        const { data, error } = await supabase.from('tactical_boards').insert({
+          user_id: user.id,
+          name: 'Pizarra Táctica',
+          scenes: scenes as any,
+        }).select('id').single();
+        if (error) throw error;
+        setShareId(data.id);
+      }
+      const url = `${window.location.origin}/tactical/view/${shareId || ''}`;
+      // We need the ID from the insert, let's handle this properly
+      if (!shareId) {
+        const { data } = await supabase.from('tactical_boards')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (data) {
+          setShareId(data.id);
+          const shareUrl = `${window.location.origin}/tactical/view/${data.id}`;
+          await navigator.clipboard.writeText(shareUrl);
+          toast({ title: '¡Enlace copiado!', description: 'Comparte este enlace para que puedan ver la pizarra.' });
+        }
+      } else {
+        const shareUrl = `${window.location.origin}/tactical/view/${shareId}`;
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: '¡Enlace actualizado y copiado!' });
+      }
+    } catch (err) {
+      toast({ title: 'Error al compartir', variant: 'destructive' });
+    }
+    setSharing(false);
+  }, [user, scenes, shareId]);
 
   const activeScene = scenes.find(s => s.id === activeSceneId)!;
   const fieldPlayers = activeScene.players.filter(p => p.onField);
