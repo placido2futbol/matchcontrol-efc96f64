@@ -27,6 +27,7 @@ export default function LiveEventNotification({ events, playerPhotos = {} }: { e
           id: ++idRef.current,
           event,
           visible: true,
+          playerPhotoUrl: playerPhotos[event.playerName] || undefined,
         }));
         setNotifications(prev => [...prev, ...newNotifs]);
 
