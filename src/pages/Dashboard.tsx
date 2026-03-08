@@ -75,6 +75,10 @@ export default function Dashboard() {
       orange: '25 95%',
       purple: '270 60%',
       yellow: '45 93%',
+      pink: '330 80%',
+      teal: '175 70%',
+      indigo: '240 60%',
+      lime: '85 75%',
     };
     const val = accents[accentColor] || accents.green;
     document.documentElement.style.setProperty('--primary', `${val} ${darkMode ? '42%' : '32%'}`);
