@@ -531,8 +531,8 @@ export default function MatchPage() {
       </div>
 
       {/* Team selection */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Equipo Local</label>
           <Select value={homeTeamId} onValueChange={setHomeTeamId}>
             <SelectTrigger><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
@@ -543,7 +543,7 @@ export default function MatchPage() {
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Equipo Visitante</label>
           <Select value={awayTeamId} onValueChange={setAwayTeamId}>
             <SelectTrigger><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
@@ -554,6 +554,18 @@ export default function MatchPage() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="flex justify-end pt-2 pb-4">
+        <Button 
+          variant="outline" 
+          onClick={handleImportFCF} 
+          disabled={!homeTeamId || !awayTeamId || importingFcf}
+          className="w-full sm:w-auto"
+        >
+          {importingFcf ? <span className="animate-spin mr-2">⏳</span> : <Flag className="h-4 w-4 mr-2" />}
+          Importar Acta FCF
+        </Button>
       </div>
 
       {/* Scoreboard */}
