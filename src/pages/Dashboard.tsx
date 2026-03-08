@@ -50,9 +50,31 @@ export default function Dashboard() {
   const {
     darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
     compactCards, setCompactCards, crestOpacity, setCrestOpacity,
-    bgColor, selectBgColor, bgCrest, selectCrest,
+    bgColor, selectBgColor, bgCrest, selectCrest, bgCustomImage, setBgCustomImage,
     textClass, mutedTextClass, btnClass, resetAll,
   } = useTheme();
+
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/bg-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('backgrounds').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('backgrounds').getPublicUrl(path);
+      // Clear crest when setting custom image
+      selectCrest('');
+      setBgCustomImage(urlData.publicUrl);
+    } catch (err: any) {
+      toast.error('Error subiendo imagen: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
 
 
