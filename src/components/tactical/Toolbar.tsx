@@ -1,16 +1,14 @@
-import { DrawingTool, FORMATIONS, SET_PIECE_TEMPLATES } from './types';
+import { DrawingTool } from './types';
 import { Button } from '@/components/ui/button';
 import {
   MousePointer2, ArrowRight, Spline, Minus, MoreHorizontal, Pencil, Eraser, Trash2,
-  Maximize, Type, Circle
+  Maximize, Type, Circle, UserPlus
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 
 interface ToolbarProps {
@@ -19,8 +17,8 @@ interface ToolbarProps {
   drawColor: string;
   onDrawColorChange: (color: string) => void;
   onClearDrawings: () => void;
-  onFormationSelect: (formationKey: string) => void;
-  onSetPieceSelect: (templateKey: string) => void;
+  onAddHomePlayer: () => void;
+  onAddAwayPlayer: () => void;
   onFullscreen: () => void;
 }
 
@@ -40,7 +38,7 @@ const COLORS = ['#ffffff', '#ff4444', '#4488ff', '#ffcc00', '#00cc66', '#ff8800'
 
 export default function Toolbar({
   tool, onToolChange, drawColor, onDrawColorChange,
-  onClearDrawings, onFormationSelect, onSetPieceSelect, onFullscreen,
+  onClearDrawings, onAddHomePlayer, onAddAwayPlayer, onFullscreen,
 }: ToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-lg">
@@ -86,39 +84,27 @@ export default function Toolbar({
 
       <div className="h-6 w-px bg-border mx-1" />
 
-      {/* Formations */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 text-xs">
-            Formación
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {Object.keys(FORMATIONS).map(key => (
-            <DropdownMenuItem key={key} onClick={() => onFormationSelect(key)}>
-              {FORMATIONS[key].name}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Set pieces */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 text-xs">
-            Estrategia
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel className="text-[10px]">Jugadas a balón parado</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {Object.keys(SET_PIECE_TEMPLATES).map(key => (
-            <DropdownMenuItem key={key} onClick={() => onSetPieceSelect(key)}>
-              {SET_PIECE_TEMPLATES[key].name}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Quick add players */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 text-xs gap-1"
+        onClick={onAddHomePlayer}
+        title="Añadir jugador local"
+      >
+        <div className="w-3 h-3 rounded-full" style={{ background: '#3B82F6' }} />
+        <UserPlus className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 text-xs gap-1"
+        onClick={onAddAwayPlayer}
+        title="Añadir jugador rival"
+      >
+        <div className="w-3 h-3 rounded-full" style={{ background: '#EF4444' }} />
+        <UserPlus className="h-3.5 w-3.5" />
+      </Button>
 
       <div className="flex-1" />
 
