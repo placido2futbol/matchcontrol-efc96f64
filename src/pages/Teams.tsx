@@ -31,7 +31,7 @@ export default function Teams() {
     setKitUrl('');
     setKitHtml('');
     setFcfUrl('');
-    setPlayers([{ name: '', dorsal: '' }]);
+    setPlayers([{ name: '', dorsal: '', photo_url: '' }]);
     setModalOpen(true);
   };
 
