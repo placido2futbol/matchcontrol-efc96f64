@@ -270,6 +270,75 @@ export default function TacticalBoard() {
     }
   }, []);
 
+  // Frame recording handlers
+  const handleCaptureFrame = useCallback(() => {
+    const frame: AnimationFrame = {
+      id: generateId(),
+      players: activeScene.players.filter(p => p.onField).map(p => ({ id: p.id, x: p.x, y: p.y })),
+      ball: { ...activeScene.ball },
+      drawings: JSON.parse(JSON.stringify(activeScene.drawings)),
+    };
+    updateScene(s => ({ ...s, frames: [...(s.frames || []), frame] }));
+    setActiveFrameIndex((activeScene.frames?.length || 0));
+    toast({ title: `Frame ${(activeScene.frames?.length || 0) + 1} capturado` });
+  }, [activeScene, updateScene]);
+
+  const handleDeleteFrame = useCallback((index: number) => {
+    updateScene(s => {
+      const frames = [...(s.frames || [])];
+      frames.splice(index, 1);
+      return { ...s, frames };
+    });
+    setActiveFrameIndex(null);
+  }, [updateScene]);
+
+  const handleSelectFrame = useCallback((index: number) => {
+    const frames = activeScene.frames;
+    if (!frames || !frames[index]) return;
+    const frame = frames[index];
+    setActiveFrameIndex(index);
+    // Apply frame positions to players
+    updateScene(s => ({
+      ...s,
+      players: s.players.map(p => {
+        const fp = frame.players.find(fp => fp.id === p.id);
+        return fp ? { ...p, x: fp.x, y: fp.y } : p;
+      }),
+      ball: frame.ball,
+      drawings: frame.drawings,
+    }));
+  }, [activeScene.frames, updateScene]);
+
+  const handlePlayFrames = useCallback(() => {
+    const frames = activeScene.frames;
+    if (!frames || frames.length < 2) return;
+    setPlayingFrames(true);
+    let idx = 0;
+    handleSelectFrame(0);
+    playTimerRef.current = setInterval(() => {
+      idx++;
+      if (idx >= frames.length) {
+        idx = 0;
+      }
+      handleSelectFrame(idx);
+    }, 1200);
+  }, [activeScene.frames, handleSelectFrame]);
+
+  const handleStopFrames = useCallback(() => {
+    setPlayingFrames(false);
+    if (playTimerRef.current) {
+      clearInterval(playTimerRef.current);
+      playTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount or scene change
+  useEffect(() => {
+    return () => {
+      if (playTimerRef.current) clearInterval(playTimerRef.current);
+    };
+  }, [activeSceneId]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
