@@ -353,13 +353,14 @@ export default function TacticalBoard() {
                   className="whitespace-nowrap cursor-grab active:cursor-grabbing group relative"
                   style={{
                     color: label.color,
-                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 12 : 10,
+                    fontSize: label.fontSize === 'lg' ? 24 : label.fontSize === 'md' ? 18 : 14,
                     fontWeight: 900,
                     fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                    textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
-                    padding: label.bgColor !== 'transparent' ? '2px 8px' : '1px 4px',
+                    textShadow: '2px 2px 6px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.4)',
+                    padding: label.bgColor !== 'transparent' ? '4px 14px' : '2px 6px',
                     background: label.bgColor !== 'transparent' ? label.bgColor : 'transparent',
-                    border: label.bgColor !== 'transparent' ? '1.5px solid rgba(0,0,0,0.2)' : 'none',
+                    border: label.bgColor !== 'transparent' ? '2px solid rgba(0,0,0,0.25)' : 'none',
+                    letterSpacing: '0.5px',
                   }}
                 >
                   {label.text}
