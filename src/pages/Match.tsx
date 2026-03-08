@@ -442,7 +442,7 @@ export default function MatchPage() {
       </div>
 
       {/* Events */}
-      <EventLog events={events} />
+      <EventLog events={events} onDeleteEvent={deleteEvent} />
 
       {/* Sant Pau Stats */}
       <SantPauStats
