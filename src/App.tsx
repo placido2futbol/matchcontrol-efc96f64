@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/teams" element={<Teams />} />
             <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
             <Route path="/live/:sessionId" element={<LiveMatchPage />} />
+            <Route path="/tactical" element={<TacticalBoard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
