@@ -294,6 +294,27 @@ export default function Dashboard() {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
+              {/* Crest opacity */}
+              {bgType === 'crest' && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="gap-2 text-xs">
+                    <Sun className="h-3.5 w-3.5" />
+                    Transparencia escudo
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {OPACITY_OPTIONS.map(o => (
+                      <DropdownMenuItem
+                        key={o.value}
+                        onClick={() => setCrestOpacity(o.value)}
+                        className={`text-xs ${crestOpacity === o.value ? 'bg-primary/10 font-bold' : ''}`}
+                      >
+                        {o.label} ({o.value}%)
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+
               {/* Reset */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => {
@@ -302,13 +323,14 @@ export default function Dashboard() {
                 setAccentColor('green');
                 setFontSize('normal');
                 setCompactCards(false);
+                setCrestOpacity(15);
               }} className="gap-2 text-xs text-destructive">
                 <X className="h-3.5 w-3.5" />
                 Restablecer todo
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="sm" onClick={signOut} className={bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}>
+          <Button variant="ghost" size="sm" onClick={signOut} className={btnClass}>
             <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
           </Button>
         </div>
