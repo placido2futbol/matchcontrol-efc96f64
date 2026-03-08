@@ -52,6 +52,7 @@ export interface TacticalScene {
   labels: TextLabel[];
   ball: BallPosition;
   legend?: SceneLegend;
+  halfPitch?: boolean;
 }
 
 export type DrawingTool = 'select' | 'arrow' | 'curved-arrow' | 'line' | 'dashed' | 'free' | 'eraser' | 'label' | 'ball';
