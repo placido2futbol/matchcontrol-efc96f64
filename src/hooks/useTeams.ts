@@ -55,6 +55,7 @@ export function useTeams() {
           id: p.id,
           name: p.name,
           dorsal: p.dorsal || '',
+          photo_url: p.photo_url || '',
         })),
       });
     }
