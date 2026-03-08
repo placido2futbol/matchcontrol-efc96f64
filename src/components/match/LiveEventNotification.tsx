@@ -67,7 +67,7 @@ function NotificationCard({ event, visible }: { event: MatchEvent; visible: bool
     : isRed
       ? 'bg-destructive/95 border-destructive'
       : isSub
-        ? 'bg-accent/95 border-accent'
+        ? 'bg-blue-600/95 border-blue-500'
         : 'bg-warning/95 border-warning';
 
   const icon = isGoal ? '⚽' : isSub ? '🔄' : isYellow ? '🟨' : '🟥';
