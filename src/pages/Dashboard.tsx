@@ -199,8 +199,23 @@ export default function Dashboard() {
     : {};
 
   return (
-    <div className="min-h-screen" style={bgStyle}>
-      <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
+    <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
+      {bgType === 'crest' && bgValue && (
+        <img
+          src={bgValue}
+          alt=""
+          className="absolute inset-0 m-auto pointer-events-none select-none"
+          style={{
+            width: '40%',
+            height: 'auto',
+            objectFit: 'contain',
+            opacity: crestAlpha,
+            mixBlendMode: 'screen',
+            filter: 'brightness(1.2)',
+          }}
+        />
+      )}
+      <div className="relative max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
