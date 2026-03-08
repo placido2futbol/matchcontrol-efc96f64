@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import PitchSVG from '@/components/tactical/PitchSVG';
 import HalfPitchSVG from '@/components/tactical/HalfPitchSVG';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import soccerBallImg from '@/assets/soccer-ball.png';
-import { TacticalScene, TacticalPlayer, TextLabel } from '@/components/tactical/types';
-import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { TacticalScene, TacticalPlayer, TextLabel, AnimationFrame } from '@/components/tactical/types';
+import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Film } from 'lucide-react';
 
 export default function TacticalViewer() {
   const { id } = useParams<{ id: string }>();
