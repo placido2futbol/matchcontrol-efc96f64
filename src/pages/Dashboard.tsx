@@ -80,16 +80,45 @@ export default function Dashboard() {
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-        <Button onClick={() => navigate('/match')} className="h-12 sm:h-16 text-sm sm:text-base">
-          <Plus className="h-5 w-5 mr-2" /> Nuevo Partido
-        </Button>
-        <Button variant="outline" onClick={() => navigate('/teams')} className="h-12 sm:h-16 text-sm sm:text-base">
-          <Users className="h-5 w-5 mr-2" /> Gestión Equipos
-        </Button>
-        <Button variant="outline" onClick={() => navigate('/sant-pau-stats')} className="h-12 sm:h-16 text-sm sm:text-base">
-          <BarChart3 className="h-5 w-5 mr-2" /> Estadísticas SP
-        </Button>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <button
+          onClick={() => navigate('/match')}
+          className="group relative overflow-hidden rounded-xl bg-primary p-4 sm:p-5 text-primary-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-[0.98]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-white/20 p-3 transition-transform duration-300 group-hover:rotate-90">
+              <Plus className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide">Nuevo Partido</span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/teams')}
+          className="group relative overflow-hidden rounded-xl bg-accent p-4 sm:p-5 text-accent-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-[0.98]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-white/20 p-3 transition-transform duration-300 group-hover:scale-110">
+              <Users className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide">Gestión Equipos</span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/sant-pau-stats')}
+          className="group relative overflow-hidden rounded-xl bg-secondary p-4 sm:p-5 text-secondary-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-[0.98]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-primary/15 p-3 text-primary transition-transform duration-300 group-hover:scale-110">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide">Estadísticas SP</span>
+          </div>
+        </button>
       </div>
 
       {/* Match history */}
