@@ -205,7 +205,10 @@ export default function MatchPage() {
         );
       }
 
-      // Save match players
+      // Save match players with correct minutes calculation
+      const homeEvents = events.filter(e => e.teamSide === 'home');
+      const awayEvents = events.filter(e => e.teamSide === 'away');
+
       const allPlayers = [
         ...homePlayers.filter(p => p.playerName).map(p => ({
           match_id: match.id,
@@ -216,7 +219,7 @@ export default function MatchPage() {
           goals: p.goals,
           yellow_cards: (p.yellowCard1 ? 1 : 0) + (p.yellowCard2 ? 1 : 0),
           red_card: p.redCard,
-          minutes_played: timer.seconds > 0 ? Math.floor(timer.seconds / 60) : 0,
+          minutes_played: calcMinutesPlayed(p.playerName, p.isStarter, homeEvents, timer.seconds),
         })),
         ...awayPlayers.filter(p => p.playerName).map(p => ({
           match_id: match.id,
@@ -227,7 +230,7 @@ export default function MatchPage() {
           goals: p.goals,
           yellow_cards: (p.yellowCard1 ? 1 : 0) + (p.yellowCard2 ? 1 : 0),
           red_card: p.redCard,
-          minutes_played: timer.seconds > 0 ? Math.floor(timer.seconds / 60) : 0,
+          minutes_played: calcMinutesPlayed(p.playerName, p.isStarter, awayEvents, timer.seconds),
         })),
       ];
 
