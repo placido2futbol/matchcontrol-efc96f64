@@ -291,9 +291,11 @@ export default function TacticalBoard() {
                 onDragEnd={(x, y) => updateScene(s => ({ ...s, ball: { x, y, visible: true } }))}
                 zIndex={15}
               >
-                <div className="w-7 h-7 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
-                  <span className="text-[11px]">⚽</span>
-                </div>
+                <svg width="28" height="28" viewBox="0 0 100 100" className="drop-shadow-lg pointer-events-none">
+                  <circle cx="50" cy="50" r="48" fill="white" stroke="#222" strokeWidth="3"/>
+                  <path d="M50 2 L62 22 L88 22 L68 38 L76 62 L50 48 L24 62 L32 38 L12 22 L38 22 Z" fill="#222" opacity="0.85"/>
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="#444" strokeWidth="1.5"/>
+                </svg>
               </DraggableElement>
             )}
 
