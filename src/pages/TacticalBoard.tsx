@@ -57,19 +57,23 @@ export default function TacticalBoard() {
       return;
     }
     setSharing(true);
+    // Inject board-level crest into all scenes for sharing
+    const scenesWithCrest = scenes.map(s => ({
+      ...s,
+      showCrest: !!boardCrest,
+      crestUrl: boardCrest || undefined,
+    }));
     try {
       if (shareId) {
-        // Update existing
         await supabase.from('tactical_boards').update({
-          scenes: scenes as any,
+          scenes: scenesWithCrest as any,
           updated_at: new Date().toISOString(),
         }).eq('id', shareId);
       } else {
-        // Create new
         const { data, error } = await supabase.from('tactical_boards').insert({
           user_id: user.id,
           name: 'Pizarra Táctica',
-          scenes: scenes as any,
+          scenes: scenesWithCrest as any,
         }).select('id').single();
         if (error) throw error;
         setShareId(data.id);
