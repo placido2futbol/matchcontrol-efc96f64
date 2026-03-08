@@ -193,140 +193,160 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
         <div className="flex items-center gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Sheet>
+            <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className={`h-8 w-8 ${btnClass}`}>
                 <Settings className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-60">
-              {/* Dark mode */}
-              <DropdownMenuItem onClick={() => setDarkMode(!darkMode)} className="gap-2 text-xs">
-                {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-                {darkMode ? 'Modo claro' : 'Modo oscuro'}
-              </DropdownMenuItem>
+            </SheetTrigger>
+            <SheetContent className="w-[300px] sm:w-[340px] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle className="text-base">Opciones de tema</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-5 mt-4">
+                {/* Dark mode */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                    Modo oscuro
+                  </span>
+                  <Button variant={darkMode ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setDarkMode(!darkMode)}>
+                    {darkMode ? 'Activado' : 'Desactivado'}
+                  </Button>
+                </div>
 
-              <DropdownMenuSeparator />
-
-              {/* Accent color */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-2 text-xs">
-                  <Palette className="h-3.5 w-3.5" />
-                  Color principal
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  {ACCENT_OPTIONS.map(a => (
-                    <DropdownMenuItem
-                      key={a.value}
-                      onClick={() => setAccentColor(a.value)}
-                      className={`gap-2 text-xs ${accentColor === a.value ? 'bg-primary/10 font-bold' : ''}`}
-                    >
-                      <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ background: a.color }} />
-                      {a.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              {/* Font size */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-2 text-xs">
-                  <Type className="h-3.5 w-3.5" />
-                  Tamaño de texto
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  {[{ l: 'Pequeño', v: 'small' }, { l: 'Normal', v: 'normal' }, { l: 'Grande', v: 'large' }].map(s => (
-                    <DropdownMenuItem key={s.v} onClick={() => setFontSize(s.v)} className={`text-xs ${fontSize === s.v ? 'bg-primary/10 font-bold' : ''}`}>
-                      {s.l}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              {/* Compact cards */}
-              <DropdownMenuItem onClick={() => setCompactCards(!compactCards)} className="gap-2 text-xs">
-                {compactCards ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
-                {compactCards ? 'Tarjetas normales' : 'Tarjetas compactas'}
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              {/* Background color */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-2 text-xs">
-                  <Palette className="h-3.5 w-3.5" />
-                  Color de fondo
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  {BG_COLORS.map(c => (
-                    <DropdownMenuItem
-                      key={c.value}
-                      onClick={() => applyBg('color', c.value)}
-                      className={`gap-2 text-xs ${bgType === 'color' && bgValue === c.value ? 'bg-primary/10' : ''}`}
-                    >
-                      <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ background: c.value }} />
-                      {c.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              {/* Background crest */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-2 text-xs">
-                  <Image className="h-3.5 w-3.5" />
-                  Escudo de fondo
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="max-h-64 overflow-y-auto w-56">
-                  {FCF_EQUIPOS_DB.map(team => (
-                    <DropdownMenuItem
-                      key={team.name}
-                      onClick={() => applyBg('crest', team.crest)}
-                      className={`gap-2 text-xs ${bgType === 'crest' && bgValue === team.crest ? 'bg-primary/10' : ''}`}
-                    >
-                      <img src={team.crest} alt="" className="w-5 h-5 object-contain shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      <span className="truncate">{team.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              {/* Crest opacity */}
-              {bgType === 'crest' && (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="gap-2 text-xs">
-                    <Sun className="h-3.5 w-3.5" />
-                    Transparencia escudo
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {OPACITY_OPTIONS.map(o => (
-                      <DropdownMenuItem
-                        key={o.value}
-                        onClick={() => setCrestOpacity(o.value)}
-                        className={`text-xs ${crestOpacity === o.value ? 'bg-primary/10 font-bold' : ''}`}
-                      >
-                        {o.label} ({o.value}%)
-                      </DropdownMenuItem>
+                {/* Accent color */}
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <Palette className="h-3.5 w-3.5" /> Color principal
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {ACCENT_OPTIONS.map(a => (
+                      <button
+                        key={a.value}
+                        onClick={() => setAccentColor(a.value)}
+                        className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${accentColor === a.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-transparent'}`}
+                        style={{ background: a.color }}
+                        title={a.label}
+                      />
                     ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              )}
+                  </div>
+                </div>
 
-              {/* Reset */}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                applyBg('default', '');
-                setDarkMode(false);
-                setAccentColor('green');
-                setFontSize('normal');
-                setCompactCards(false);
-                setCrestOpacity(15);
-              }} className="gap-2 text-xs text-destructive">
-                <X className="h-3.5 w-3.5" />
-                Restablecer todo
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {/* Font size */}
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <Type className="h-3.5 w-3.5" /> Tamaño de texto
+                  </span>
+                  <div className="flex gap-1">
+                    {[{ l: 'Pequeño', v: 'small' }, { l: 'Normal', v: 'normal' }, { l: 'Grande', v: 'large' }].map(s => (
+                      <Button
+                        key={s.v}
+                        variant={fontSize === s.v ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => setFontSize(s.v)}
+                      >
+                        {s.l}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Compact cards */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    {compactCards ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                    Tarjetas compactas
+                  </span>
+                  <Button variant={compactCards ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setCompactCards(!compactCards)}>
+                    {compactCards ? 'Sí' : 'No'}
+                  </Button>
+                </div>
+
+                <hr className="border-border" />
+
+                {/* Background color */}
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <Palette className="h-3.5 w-3.5" /> Color de fondo
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {BG_COLORS.map(c => (
+                      <button
+                        key={c.value}
+                        onClick={() => applyBg('color', c.value)}
+                        className={`w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110 ${bgType === 'color' && bgValue === c.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-border'}`}
+                        style={{ background: c.value }}
+                        title={c.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Background crest */}
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <Image className="h-3.5 w-3.5" /> Escudo de fondo
+                  </span>
+                  <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {FCF_EQUIPOS_DB.map(team => (
+                      <button
+                        key={team.name}
+                        onClick={() => applyBg('crest', team.crest)}
+                        className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgType === 'crest' && bgValue === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
+                        title={team.name}
+                      >
+                        <img src={team.crest} alt={team.name} className="w-full h-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Crest opacity */}
+                {bgType === 'crest' && (
+                  <div>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                      <Sun className="h-3.5 w-3.5" /> Transparencia escudo
+                    </span>
+                    <div className="flex gap-1">
+                      {OPACITY_OPTIONS.map(o => (
+                        <Button
+                          key={o.value}
+                          variant={crestOpacity === o.value ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-7 text-[10px] flex-1 px-1"
+                          onClick={() => setCrestOpacity(o.value)}
+                        >
+                          {o.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <hr className="border-border" />
+
+                {/* Reset */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                  onClick={() => {
+                    applyBg('default', '');
+                    setDarkMode(false);
+                    setAccentColor('green');
+                    setFontSize('normal');
+                    setCompactCards(false);
+                    setCrestOpacity(15);
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Restablecer todo
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
           <Button variant="ghost" size="sm" onClick={signOut} className={btnClass}>
             <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
           </Button>
