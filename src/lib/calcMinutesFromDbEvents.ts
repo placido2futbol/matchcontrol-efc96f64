@@ -11,7 +11,7 @@
 export function calcMinutesFromDbEvents(
   playerName: string,
   isStarter: boolean,
-  events: { event_type: string; details: string | null; minute: number; team_side: string }[],
+  events: { event_type: string; details: string | null; minute: number; team_side: string; player_name?: string | null }[],
   totalSeconds: number
 ): number {
   if (!playerName) return 0;
