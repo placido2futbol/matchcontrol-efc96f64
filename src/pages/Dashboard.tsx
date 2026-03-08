@@ -102,10 +102,16 @@ export default function Dashboard() {
 
   const BG_COLORS = [
     { label: 'Verde campo', value: 'hsl(145, 55%, 20%)' },
+    { label: 'Verde esmeralda', value: 'hsl(160, 60%, 18%)' },
     { label: 'Azul oscuro', value: 'hsl(220, 40%, 15%)' },
-    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
-    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
     { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
+    { label: 'Azul noche', value: 'hsl(230, 50%, 10%)' },
+    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
+    { label: 'Gris pizarra', value: 'hsl(215, 20%, 18%)' },
+    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
+    { label: 'Granate', value: 'hsl(355, 45%, 15%)' },
+    { label: 'Morado oscuro', value: 'hsl(270, 40%, 15%)' },
+    { label: 'Marrón tierra', value: 'hsl(30, 35%, 18%)' },
     { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
   ];
 
@@ -116,6 +122,18 @@ export default function Dashboard() {
     { label: 'Naranja', value: 'orange', color: 'hsl(25, 95%, 53%)' },
     { label: 'Morado', value: 'purple', color: 'hsl(270, 60%, 50%)' },
     { label: 'Amarillo', value: 'yellow', color: 'hsl(45, 93%, 47%)' },
+    { label: 'Rosa', value: 'pink', color: 'hsl(330, 80%, 55%)' },
+    { label: 'Turquesa', value: 'teal', color: 'hsl(175, 70%, 40%)' },
+    { label: 'Índigo', value: 'indigo', color: 'hsl(240, 60%, 55%)' },
+    { label: 'Lima', value: 'lime', color: 'hsl(85, 75%, 42%)' },
+  ];
+
+  const OPACITY_OPTIONS = [
+    { label: 'Muy sutil', value: 8 },
+    { label: 'Sutil', value: 15 },
+    { label: 'Media', value: 25 },
+    { label: 'Visible', value: 40 },
+    { label: 'Fuerte', value: 60 },
   ];
 
   const fetchMatches = async () => {
