@@ -57,23 +57,29 @@ export default function LiveEventNotification({ events }: { events: MatchEvent[]
 
 function NotificationCard({ event, visible }: { event: MatchEvent; visible: boolean }) {
   const isGoal = event.type === 'goal';
-  const isYellow = event.type === 'yellow' || event.type === 'second_yellow';
-  const isRed = event.type === 'red';
+  const isYellow = event.type === 'yellow';
+  const isSecondYellow = event.type === 'second_yellow';
+  const isRed = event.type === 'red' || isSecondYellow;
+  const isSub = event.type === 'substitution';
 
   const bgClass = isGoal
     ? 'bg-primary/95 border-primary'
     : isRed
       ? 'bg-destructive/95 border-destructive'
-      : 'bg-warning/95 border-warning';
+      : isSub
+        ? 'bg-accent/95 border-accent'
+        : 'bg-warning/95 border-warning';
 
-  const icon = isGoal ? '⚽' : isYellow ? '🟨' : '🟥';
+  const icon = isGoal ? '⚽' : isSub ? '🔄' : isYellow ? '🟨' : '🟥';
   const label = isGoal
     ? '¡GOOOL!'
-    : event.type === 'second_yellow'
-      ? '2ª AMARILLA'
+    : isSecondYellow
+      ? 'DOBLE AMARILLA · ROJA'
       : isYellow
         ? 'TARJETA AMARILLA'
-        : 'TARJETA ROJA';
+        : isRed
+          ? 'TARJETA ROJA'
+          : 'CAMBIO';
 
   return (
     <div
