@@ -116,7 +116,7 @@ export default function Dashboard() {
             <div className="rounded-full bg-primary/15 p-3 text-primary transition-transform duration-300 group-hover:scale-110">
               <BarChart3 className="h-6 w-6" />
             </div>
-            <span className="font-display text-sm sm:text-base tracking-wide">Estadísticas SP</span>
+            <span className="font-display text-sm sm:text-base tracking-wide">Estadísticas</span>
           </div>
         </button>
       </div>
