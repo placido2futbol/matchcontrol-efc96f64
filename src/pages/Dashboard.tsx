@@ -48,6 +48,26 @@ export default function Dashboard() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
+    return (localStorage.getItem('mc_bg_type') as any) || 'default';
+  });
+  const [bgValue, setBgValue] = useState(() => localStorage.getItem('mc_bg_value') || '');
+
+  const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
+    setBgType(type);
+    setBgValue(value);
+    localStorage.setItem('mc_bg_type', type);
+    localStorage.setItem('mc_bg_value', value);
+  };
+
+  const BG_COLORS = [
+    { label: 'Verde campo', value: 'hsl(145, 55%, 20%)' },
+    { label: 'Azul oscuro', value: 'hsl(220, 40%, 15%)' },
+    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
+    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
+    { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
+    { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
+  ];
 
   const fetchMatches = async () => {
     if (!user) return;
