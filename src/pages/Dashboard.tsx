@@ -96,11 +96,13 @@ export default function Dashboard() {
     localStorage.setItem('mc_crest_opacity', String(crestOpacity));
   }, [crestOpacity]);
 
-  const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
-    setBgType(type);
-    setBgValue(value);
-    localStorage.setItem('mc_bg_type', type);
-    localStorage.setItem('mc_bg_value', value);
+  const selectBgColor = (value: string) => {
+    setBgColor(value);
+    localStorage.setItem('mc_bg_color', value);
+  };
+  const selectCrest = (value: string) => {
+    setBgCrest(prev => prev === value ? '' : value);
+    localStorage.setItem('mc_bg_crest', prev => prev === value ? '' : value);
   };
 
   const BG_COLORS = [
