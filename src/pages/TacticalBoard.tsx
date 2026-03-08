@@ -279,10 +279,19 @@ export default function TacticalBoard() {
               halfPitch={activeScene.halfPitch}
             />
 
-            {/* Ball */}
+            {/* Ball (draggable) */}
             {activeScene.ball.visible && (
-              <div
-                className="absolute pointer-events-none"
+              <motion.div
+                drag
+                dragMomentum={false}
+                onDragEnd={(_: any, info: any) => {
+                  if (!pitchRef.current) return;
+                  const rect = pitchRef.current.getBoundingClientRect();
+                  const x = Math.max(2, Math.min(98, ((info.point.x - rect.left) / rect.width) * 100));
+                  const y = Math.max(2, Math.min(98, ((info.point.y - rect.top) / rect.height) * 100));
+                  updateScene(s => ({ ...s, ball: { x, y, visible: true } }));
+                }}
+                className="absolute cursor-grab active:cursor-grabbing"
                 style={{
                   left: `${activeScene.ball.x}%`,
                   top: `${activeScene.ball.y}%`,
@@ -290,10 +299,10 @@ export default function TacticalBoard() {
                   zIndex: 15,
                 }}
               >
-                <div className="w-6 h-6 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
-                  <span className="text-[10px]">⚽</span>
+                <div className="w-7 h-7 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
+                  <span className="text-[11px]">⚽</span>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Scene title overlay with crest (top-right, like PPT reference) */}
