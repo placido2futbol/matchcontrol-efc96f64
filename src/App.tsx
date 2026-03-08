@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
+import ThemeBackground from "@/components/ThemeBackground";
 import Index from "./pages/Index";
 import Match from "./pages/Match";
 import Teams from "./pages/Teams";
@@ -19,24 +21,28 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/match" element={<Match />} />
-            <Route path="/match/edit/:matchId" element={<Match />} />
-            <Route path="/match/:id" element={<MatchDetailPage />} />
-            <Route path="/teams" element={<Teams />} />
-            <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
-            <Route path="/live/:sessionId" element={<LiveMatchPage />} />
-            <Route path="/tactical" element={<TacticalBoard />} />
-            <Route path="/tactical/view/:id" element={<TacticalViewer />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ThemeBackground>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/match" element={<Match />} />
+                <Route path="/match/edit/:matchId" element={<Match />} />
+                <Route path="/match/:id" element={<MatchDetailPage />} />
+                <Route path="/teams" element={<Teams />} />
+                <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
+                <Route path="/live/:sessionId" element={<LiveMatchPage />} />
+                <Route path="/tactical" element={<TacticalBoard />} />
+                <Route path="/tactical/view/:id" element={<TacticalViewer />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ThemeBackground>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
