@@ -9,6 +9,7 @@ import Match from "./pages/Match";
 import Teams from "./pages/Teams";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import SantPauGlobalStats from "./pages/SantPauGlobalStats";
+import LiveMatchPage from "./pages/LiveMatchPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
