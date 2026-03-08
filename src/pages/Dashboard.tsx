@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
   const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
+  const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
   const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
     return (localStorage.getItem('mc_bg_type') as any) || 'default';
   });
@@ -74,6 +75,10 @@ export default function Dashboard() {
       orange: '25 95%',
       purple: '270 60%',
       yellow: '45 93%',
+      pink: '330 80%',
+      teal: '175 70%',
+      indigo: '240 60%',
+      lime: '85 75%',
     };
     const val = accents[accentColor] || accents.green;
     document.documentElement.style.setProperty('--primary', `${val} ${darkMode ? '42%' : '32%'}`);
@@ -92,6 +97,10 @@ export default function Dashboard() {
     localStorage.setItem('mc_compact', String(compactCards));
   }, [compactCards]);
 
+  useEffect(() => {
+    localStorage.setItem('mc_crest_opacity', String(crestOpacity));
+  }, [crestOpacity]);
+
   const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
     setBgType(type);
     setBgValue(value);
@@ -101,10 +110,16 @@ export default function Dashboard() {
 
   const BG_COLORS = [
     { label: 'Verde campo', value: 'hsl(145, 55%, 20%)' },
+    { label: 'Verde esmeralda', value: 'hsl(160, 60%, 18%)' },
     { label: 'Azul oscuro', value: 'hsl(220, 40%, 15%)' },
-    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
-    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
     { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
+    { label: 'Azul noche', value: 'hsl(230, 50%, 10%)' },
+    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
+    { label: 'Gris pizarra', value: 'hsl(215, 20%, 18%)' },
+    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
+    { label: 'Granate', value: 'hsl(355, 45%, 15%)' },
+    { label: 'Morado oscuro', value: 'hsl(270, 40%, 15%)' },
+    { label: 'Marrón tierra', value: 'hsl(30, 35%, 18%)' },
     { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
   ];
 
@@ -115,6 +130,18 @@ export default function Dashboard() {
     { label: 'Naranja', value: 'orange', color: 'hsl(25, 95%, 53%)' },
     { label: 'Morado', value: 'purple', color: 'hsl(270, 60%, 50%)' },
     { label: 'Amarillo', value: 'yellow', color: 'hsl(45, 93%, 47%)' },
+    { label: 'Rosa', value: 'pink', color: 'hsl(330, 80%, 55%)' },
+    { label: 'Turquesa', value: 'teal', color: 'hsl(175, 70%, 40%)' },
+    { label: 'Índigo', value: 'indigo', color: 'hsl(240, 60%, 55%)' },
+    { label: 'Lima', value: 'lime', color: 'hsl(85, 75%, 42%)' },
+  ];
+
+  const OPACITY_OPTIONS = [
+    { label: 'Muy sutil', value: 8 },
+    { label: 'Sutil', value: 15 },
+    { label: 'Media', value: 25 },
+    { label: 'Visible', value: 40 },
+    { label: 'Fuerte', value: 60 },
   ];
 
   const fetchMatches = async () => {
@@ -149,10 +176,17 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
+  // Determine if we need light text (dark bg)
+  const hasDarkBg = bgType === 'color' || bgType === 'crest';
+  const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
+  const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
+  const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
+
+  const overlayOpacity = 1 - crestOpacity / 100;
   const bgStyle: React.CSSProperties = bgType === 'color'
     ? { background: bgValue }
     : bgType === 'crest'
-    ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+    ? { backgroundImage: `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${Math.min(overlayOpacity + 0.1, 0.95)})), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
     : {};
 
   return (
@@ -160,11 +194,11 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className={`font-display text-xl sm:text-2xl ${bgType !== 'default' ? 'text-white' : 'text-foreground'}`}>⚽ MatchControl</h1>
+        <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
         <div className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={`h-8 w-8 ${bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}`}>
+              <Button variant="ghost" size="icon" className={`h-8 w-8 ${btnClass}`}>
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -260,6 +294,27 @@ export default function Dashboard() {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
+              {/* Crest opacity */}
+              {bgType === 'crest' && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="gap-2 text-xs">
+                    <Sun className="h-3.5 w-3.5" />
+                    Transparencia escudo
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {OPACITY_OPTIONS.map(o => (
+                      <DropdownMenuItem
+                        key={o.value}
+                        onClick={() => setCrestOpacity(o.value)}
+                        className={`text-xs ${crestOpacity === o.value ? 'bg-primary/10 font-bold' : ''}`}
+                      >
+                        {o.label} ({o.value}%)
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+
               {/* Reset */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => {
@@ -268,13 +323,14 @@ export default function Dashboard() {
                 setAccentColor('green');
                 setFontSize('normal');
                 setCompactCards(false);
+                setCrestOpacity(15);
               }} className="gap-2 text-xs text-destructive">
                 <X className="h-3.5 w-3.5" />
                 Restablecer todo
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="sm" onClick={signOut} className={bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}>
+          <Button variant="ghost" size="sm" onClick={signOut} className={btnClass}>
             <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
           </Button>
         </div>
@@ -339,7 +395,7 @@ export default function Dashboard() {
 
       {/* Match history */}
       <div>
-        <h2 className="font-display text-lg mb-4 flex items-center gap-2 text-foreground">
+        <h2 className={`font-display text-lg mb-4 flex items-center gap-2 ${textClass}`}>
           <History className="h-5 w-5 text-primary" /> Historial de Partidos
         </h2>
         {loading ? (
