@@ -201,9 +201,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
-      {bgType === 'crest' && bgValue && (
+      {bgCrest && (
         <img
-          src={bgValue}
+          src={bgCrest}
           alt=""
           className="absolute inset-0 m-auto pointer-events-none select-none"
           style={{
@@ -211,8 +211,8 @@ export default function Dashboard() {
             height: 'auto',
             objectFit: 'contain',
             opacity: crestAlpha,
-            mixBlendMode: 'screen',
-            filter: 'brightness(1.2)',
+            mixBlendMode: bgColor ? 'multiply' : 'screen',
+            filter: bgColor ? 'none' : 'brightness(1.2)',
           }}
         />
       )}
