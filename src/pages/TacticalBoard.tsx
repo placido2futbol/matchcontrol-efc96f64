@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import soccerBallImg from '@/assets/soccer-ball.png';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,11 @@ import Toolbar from '@/components/tactical/Toolbar';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
 import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
+import FrameTimeline from '@/components/tactical/FrameTimeline';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
   TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition, SceneLegend,
-  generateId,
+  AnimationFrame, generateId,
 } from '@/components/tactical/types';
 
 function createEmptyScene(name: string = 'Nueva escena'): TacticalScene {
@@ -50,6 +51,9 @@ export default function TacticalBoard() {
   const [sharing, setSharing] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
   const [boardCrest, setBoardCrest] = useState<string | null>(null);
+  const [playingFrames, setPlayingFrames] = useState(false);
+  const [activeFrameIndex, setActiveFrameIndex] = useState<number | null>(null);
+  const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleShare = useCallback(async () => {
     if (!user) {
@@ -266,6 +270,75 @@ export default function TacticalBoard() {
     }
   }, []);
 
+  // Frame recording handlers
+  const handleCaptureFrame = useCallback(() => {
+    const frame: AnimationFrame = {
+      id: generateId(),
+      players: activeScene.players.filter(p => p.onField).map(p => ({ id: p.id, x: p.x, y: p.y })),
+      ball: { ...activeScene.ball },
+      drawings: JSON.parse(JSON.stringify(activeScene.drawings)),
+    };
+    updateScene(s => ({ ...s, frames: [...(s.frames || []), frame] }));
+    setActiveFrameIndex((activeScene.frames?.length || 0));
+    toast({ title: `Frame ${(activeScene.frames?.length || 0) + 1} capturado` });
+  }, [activeScene, updateScene]);
+
+  const handleDeleteFrame = useCallback((index: number) => {
+    updateScene(s => {
+      const frames = [...(s.frames || [])];
+      frames.splice(index, 1);
+      return { ...s, frames };
+    });
+    setActiveFrameIndex(null);
+  }, [updateScene]);
+
+  const handleSelectFrame = useCallback((index: number) => {
+    const frames = activeScene.frames;
+    if (!frames || !frames[index]) return;
+    const frame = frames[index];
+    setActiveFrameIndex(index);
+    // Apply frame positions to players
+    updateScene(s => ({
+      ...s,
+      players: s.players.map(p => {
+        const fp = frame.players.find(fp => fp.id === p.id);
+        return fp ? { ...p, x: fp.x, y: fp.y } : p;
+      }),
+      ball: frame.ball,
+      drawings: frame.drawings,
+    }));
+  }, [activeScene.frames, updateScene]);
+
+  const handlePlayFrames = useCallback(() => {
+    const frames = activeScene.frames;
+    if (!frames || frames.length < 2) return;
+    setPlayingFrames(true);
+    let idx = 0;
+    handleSelectFrame(0);
+    playTimerRef.current = setInterval(() => {
+      idx++;
+      if (idx >= frames.length) {
+        idx = 0;
+      }
+      handleSelectFrame(idx);
+    }, 1200);
+  }, [activeScene.frames, handleSelectFrame]);
+
+  const handleStopFrames = useCallback(() => {
+    setPlayingFrames(false);
+    if (playTimerRef.current) {
+      clearInterval(playTimerRef.current);
+      playTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount or scene change
+  useEffect(() => {
+    return () => {
+      if (playTimerRef.current) clearInterval(playTimerRef.current);
+    };
+  }, [activeSceneId]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -307,7 +380,20 @@ export default function TacticalBoard() {
         )}
       </div>
 
-      {/* Roster panel */}
+      {/* Frame timeline */}
+      <div className="px-3 py-1 shrink-0">
+        <FrameTimeline
+          frames={activeScene.frames || []}
+          onCaptureFrame={handleCaptureFrame}
+          onDeleteFrame={handleDeleteFrame}
+          onPreview={handlePlayFrames}
+          onStop={handleStopFrames}
+          isPlaying={playingFrames}
+          activeFrameIndex={activeFrameIndex}
+          onSelectFrame={handleSelectFrame}
+        />
+      </div>
+
       <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
         <RosterPanel onAddPlayer={handleSelectFromRoster} />
         {pendingRoster && (

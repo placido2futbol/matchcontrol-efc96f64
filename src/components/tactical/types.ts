@@ -33,10 +33,17 @@ export interface BallPosition {
   visible: boolean;
 }
 
+export interface AnimationFrame {
+  id: string;
+  players: { id: string; x: number; y: number }[];
+  ball: BallPosition;
+  drawings: DrawingPath[];
+}
+
 export interface LegendEntry {
   number: number;
   name: string;
-  borderColor?: string; // defaults to yellow
+  borderColor?: string;
 }
 
 export interface SceneLegend {
@@ -56,6 +63,7 @@ export interface TacticalScene {
   titlePos?: { x: number; y: number };
   showCrest?: boolean;
   crestUrl?: string;
+  frames?: AnimationFrame[];
 }
 
 export type DrawingTool = 'select' | 'arrow' | 'curved-arrow' | 'line' | 'dashed' | 'free' | 'eraser' | 'label' | 'ball';
