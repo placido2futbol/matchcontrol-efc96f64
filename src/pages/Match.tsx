@@ -590,18 +590,6 @@ export default function MatchPage() {
         />
       </div>
 
-      {/* Football Pitch */}
-      <FootballPitch
-        homePlayers={homePlayers}
-        awayPlayers={awayPlayers}
-        homeTeamName={homeTeam?.name || 'Local'}
-        awayTeamName={awayTeam?.name || 'Visitante'}
-        homeTeamCrest={homeTeam?.crest_url || undefined}
-        awayTeamCrest={awayTeam?.crest_url || undefined}
-        positions={playerPositions}
-        onPositionsChange={setPlayerPositions}
-      />
-
       {/* Events */}
       <EventLog events={events} onDeleteEvent={deleteEvent} />
 
@@ -613,6 +601,18 @@ export default function MatchPage() {
         awayPlayers={awayPlayers}
         events={events}
         totalSeconds={timer.seconds}
+      />
+
+      {/* Football Pitch */}
+      <FootballPitch
+        homePlayers={homePlayers}
+        awayPlayers={awayPlayers}
+        homeTeamName={homeTeam?.name || 'Local'}
+        awayTeamName={awayTeam?.name || 'Visitante'}
+        homeTeamCrest={homeTeam?.crest_url || undefined}
+        awayTeamCrest={awayTeam?.crest_url || undefined}
+        positions={playerPositions}
+        onPositionsChange={setPlayerPositions}
       />
     </div>
   );
