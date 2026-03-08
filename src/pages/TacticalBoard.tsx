@@ -352,10 +352,10 @@ export default function TacticalBoard() {
             {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
 
             {/* Club crest watermark */}
-            {activeScene.showCrest && activeScene.crestUrl && (
+            {boardCrest && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 5 }}>
                 <img
-                  src={activeScene.crestUrl}
+                  src={boardCrest}
                   alt="Escudo"
                   className="w-[45%] max-w-[280px] h-auto object-contain"
                   style={{ opacity: 0.12, filter: 'grayscale(20%)' }}
