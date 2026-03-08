@@ -87,6 +87,65 @@ export default function Teams() {
     await deleteTeam(id);
   };
 
+  const handleScrapeDorsals = async () => {
+    if (!fcfUrl) {
+      toast.error('Se necesita la URL de la FCF del equipo');
+      return;
+    }
+    setScrapingDorsals(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fcf-scrape-dorsals', {
+        body: { teamPageUrl: fcfUrl },
+      });
+
+      if (error || !data?.success) {
+        toast.error(data?.error || 'Error al obtener dorsales');
+        return;
+      }
+
+      // Find matching team in results
+      const teamResults = data.teams as { teamName: string; players: { name: string; dorsal: string }[] }[];
+      
+      // Try to match by team name
+      let matchedTeam = teamResults.find(t => 
+        t.teamName.toUpperCase() === name.toUpperCase()
+      );
+      
+      // If no exact match, try partial
+      if (!matchedTeam) {
+        matchedTeam = teamResults.find(t =>
+          name.toUpperCase().includes(t.teamName.toUpperCase().split(',')[0]) ||
+          t.teamName.toUpperCase().includes(name.toUpperCase().split(',')[0])
+        );
+      }
+
+      if (!matchedTeam || matchedTeam.players.length === 0) {
+        toast.error('No se encontraron dorsales para este equipo');
+        return;
+      }
+
+      // Update dorsals in current player list
+      const dorsalMap = new Map(matchedTeam.players.map(p => [p.name.toUpperCase().trim(), p.dorsal]));
+      
+      const updatedPlayers = players.map(p => {
+        const dorsal = dorsalMap.get(p.name.toUpperCase().trim());
+        if (dorsal && !p.dorsal) {
+          return { ...p, dorsal };
+        }
+        return p;
+      });
+
+      setPlayers(updatedPlayers);
+      const filled = updatedPlayers.filter((p, i) => p.dorsal && !players[i].dorsal).length;
+      toast.success(`Dorsales actualizados: ${filled} jugadores (de ${data.actasScraped} actas)`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al conectar con el servicio');
+    } finally {
+      setScrapingDorsals(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
       <div className="flex items-center gap-2">
