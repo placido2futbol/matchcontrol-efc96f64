@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme, BG_COLORS, ACCENT_OPTIONS, OPACITY_OPTIONS } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image, X, Moon, Sun, Type, Maximize2, Minimize2 } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,111 +47,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Theme settings from localStorage
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('mc_dark') === 'true');
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
-  const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
-  const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
-  const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
-  const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
-  const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
+  const {
+    darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
+    compactCards, setCompactCards, crestOpacity, setCrestOpacity,
+    bgColor, selectBgColor, bgCrest, selectCrest,
+    textClass, mutedTextClass, btnClass, resetAll,
+  } = useTheme();
 
-  // Apply dark mode
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('mc_dark', String(darkMode));
-  }, [darkMode]);
 
-  // Apply accent color
-  useEffect(() => {
-    const accents: Record<string, string> = {
-      green: '145 63%',
-      blue: '217 91%',
-      red: '0 72%',
-      orange: '25 95%',
-      purple: '270 60%',
-      yellow: '45 93%',
-      pink: '330 80%',
-      teal: '175 70%',
-      indigo: '240 60%',
-      lime: '85 75%',
-    };
-    const val = accents[accentColor] || accents.green;
-    document.documentElement.style.setProperty('--primary', `${val} ${darkMode ? '42%' : '32%'}`);
-    document.documentElement.style.setProperty('--ring', `${val} ${darkMode ? '42%' : '32%'}`);
-    localStorage.setItem('mc_accent', accentColor);
-  }, [accentColor, darkMode]);
 
-  // Apply font size
-  useEffect(() => {
-    const sizes: Record<string, string> = { small: '14px', normal: '16px', large: '18px' };
-    document.documentElement.style.fontSize = sizes[fontSize] || '16px';
-    localStorage.setItem('mc_fontsize', fontSize);
-  }, [fontSize]);
-
-  useEffect(() => {
-    localStorage.setItem('mc_compact', String(compactCards));
-  }, [compactCards]);
-
-  useEffect(() => {
-    localStorage.setItem('mc_crest_opacity', String(crestOpacity));
-  }, [crestOpacity]);
-
-  const selectBgColor = (value: string) => {
-    setBgColor(value);
-    localStorage.setItem('mc_bg_color', value);
-  };
-  const selectCrest = (value: string) => {
-    const newVal = bgCrest === value ? '' : value;
-    setBgCrest(newVal);
-    localStorage.setItem('mc_bg_crest', newVal);
-  };
-
-  const BG_COLORS = [
-    // Claros
-    { label: 'Blanco hueso', value: 'hsl(40, 30%, 95%)', light: true },
-    { label: 'Gris perla', value: 'hsl(220, 15%, 90%)', light: true },
-    { label: 'Beige', value: 'hsl(35, 40%, 88%)', light: true },
-    { label: 'Azul cielo', value: 'hsl(205, 60%, 85%)', light: true },
-    { label: 'Verde menta', value: 'hsl(150, 40%, 85%)', light: true },
-    { label: 'Rosa palo', value: 'hsl(350, 40%, 88%)', light: true },
-    { label: 'Lavanda', value: 'hsl(260, 35%, 88%)', light: true },
-    { label: 'Arena', value: 'hsl(45, 30%, 82%)', light: true },
-    // Medios
-    { label: 'Azul acero', value: 'hsl(215, 25%, 45%)', light: false },
-    { label: 'Verde bosque', value: 'hsl(145, 40%, 35%)', light: false },
-    { label: 'Terracota', value: 'hsl(15, 50%, 45%)', light: false },
-    { label: 'Índigo', value: 'hsl(235, 35%, 40%)', light: false },
-    { label: 'Oliva', value: 'hsl(80, 30%, 38%)', light: false },
-    { label: 'Burdeos', value: 'hsl(345, 50%, 32%)', light: false },
-    // Oscuros
-    { label: 'Verde campo', value: 'hsl(145, 55%, 20%)', light: false },
-    { label: 'Azul marino', value: 'hsl(210, 60%, 12%)', light: false },
-    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)', light: false },
-    { label: 'Morado noche', value: 'hsl(270, 40%, 15%)', light: false },
-    { label: 'Negro', value: 'hsl(0, 0%, 5%)', light: false },
-  ];
-
-  const ACCENT_OPTIONS = [
-    { label: 'Verde', value: 'green', color: 'hsl(145, 63%, 32%)' },
-    { label: 'Azul', value: 'blue', color: 'hsl(217, 91%, 50%)' },
-    { label: 'Rojo', value: 'red', color: 'hsl(0, 72%, 51%)' },
-    { label: 'Naranja', value: 'orange', color: 'hsl(25, 95%, 53%)' },
-    { label: 'Morado', value: 'purple', color: 'hsl(270, 60%, 50%)' },
-    { label: 'Amarillo', value: 'yellow', color: 'hsl(45, 93%, 47%)' },
-    { label: 'Rosa', value: 'pink', color: 'hsl(330, 80%, 55%)' },
-    { label: 'Turquesa', value: 'teal', color: 'hsl(175, 70%, 40%)' },
-    { label: 'Índigo', value: 'indigo', color: 'hsl(240, 60%, 55%)' },
-    { label: 'Lima', value: 'lime', color: 'hsl(85, 75%, 42%)' },
-  ];
-
-  const OPACITY_OPTIONS = [
-    { label: 'Muy sutil', value: 8 },
-    { label: 'Sutil', value: 15 },
-    { label: 'Media', value: 25 },
-    { label: 'Visible', value: 40 },
-    { label: 'Fuerte', value: 60 },
-  ];
 
   const fetchMatches = async () => {
     if (!user) return;
@@ -184,39 +89,9 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
-  // Determine if bg is light or dark for text contrast
-  const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
-  const isLightBg = bgColor && selectedBgColor?.light;
-  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && bgCrest);
-  const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
-  const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
-  const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
-
-  const crestAlpha = crestOpacity / 100;
-  const bgStyle: React.CSSProperties = bgColor
-    ? { background: bgColor }
-    : bgCrest
-    ? { backgroundColor: '#1a1a2e' }
-    : {};
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
-      {bgCrest && (
-        <img
-          src={bgCrest}
-          alt=""
-          className="absolute inset-0 m-auto pointer-events-none select-none"
-          style={{
-            width: '40%',
-            height: 'auto',
-            objectFit: 'contain',
-            opacity: crestAlpha,
-            mixBlendMode: bgColor ? 'multiply' : 'screen',
-            filter: bgColor ? 'none' : 'brightness(1.2)',
-          }}
-        />
-      )}
-      <div className="relative max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
@@ -315,7 +190,7 @@ export default function Dashboard() {
                 {/* Background crest */}
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                    <Image className="h-3.5 w-3.5" /> Escudo de fondo
+                    <ImageIcon className="h-3.5 w-3.5" /> Escudo de fondo
                   </span>
                   <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
                     {FCF_EQUIPOS_DB.map(team => (
@@ -360,16 +235,7 @@ export default function Dashboard() {
                   variant="outline"
                   size="sm"
                   className="w-full text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                  onClick={() => {
-                    selectBgColor('');
-                    setBgCrest('');
-                    localStorage.setItem('mc_bg_crest', '');
-                    setDarkMode(false);
-                    setAccentColor('green');
-                    setFontSize('normal');
-                    setCompactCards(false);
-                    setCrestOpacity(15);
-                  }}
+                  onClick={resetAll}
                 >
                   <X className="h-3.5 w-3.5 mr-1" />
                   Restablecer todo
@@ -579,7 +445,6 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </div>
     </div>
   );
 }
