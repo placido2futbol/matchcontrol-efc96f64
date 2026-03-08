@@ -1,18 +1,21 @@
 import { useState, useRef } from 'react';
 import { useTeams } from '@/hooks/useTeams';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { FCF_EQUIPOS_DB, FCFTeam } from '@/data/fcf-teams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import KitDisplay from '@/components/match/KitDisplay';
 
 export default function Teams() {
   const { teams, loading, saveTeam, deleteTeam } = useTeams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
@@ -189,17 +192,19 @@ export default function Teams() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (!file) return;
+                          if (!file || !user) return;
                           if (!file.type.startsWith('image/')) { toast.error('Solo imágenes'); return; }
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            const next = [...players];
-                            next[i] = { ...next[i], photo_url: reader.result as string };
-                            setPlayers(next);
-                          };
-                          reader.readAsDataURL(file);
+                          const ext = file.name.split('.').pop() || 'jpg';
+                          const path = `${user.id}/player-${Date.now()}-${i}.${ext}`;
+                          const { error } = await supabase.storage.from('player-photos').upload(path, file, { upsert: true });
+                          if (error) { toast.error('Error subiendo foto'); return; }
+                          const { data: urlData } = supabase.storage.from('player-photos').getPublicUrl(path);
+                          const next = [...players];
+                          next[i] = { ...next[i], photo_url: urlData.publicUrl };
+                          setPlayers(next);
+                          toast.success('Foto subida');
                         }}
                       />
                       {p.photo_url ? (
