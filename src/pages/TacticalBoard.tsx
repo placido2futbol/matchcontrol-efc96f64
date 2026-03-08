@@ -9,6 +9,7 @@ import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
 import SceneManager from '@/components/tactical/SceneManager';
+import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
   TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition,
   generateId,
@@ -25,12 +26,14 @@ function createEmptyScene(name: string = 'Nueva escena'): TacticalScene {
   };
 }
 
+const initialScenes = createPPTScenes();
+
 export default function TacticalBoard() {
   const navigate = useNavigate();
   const pitchRef = useRef<HTMLDivElement>(null);
 
-  const [scenes, setScenes] = useState<TacticalScene[]>([createEmptyScene('Escena 1')]);
-  const [activeSceneId, setActiveSceneId] = useState(scenes[0].id);
+  const [scenes, setScenes] = useState<TacticalScene[]>(initialScenes);
+  const [activeSceneId, setActiveSceneId] = useState(initialScenes[0].id);
   const [tool, setTool] = useState<DrawingTool>('select');
   const [drawColor, setDrawColor] = useState('#ff4444');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
