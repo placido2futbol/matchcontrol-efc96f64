@@ -157,6 +157,7 @@ export default function SantPauGlobalStats() {
 
   const getSummary = (name: string) => {
     const pd = playerData[name];
+    if (!pd) return { matches: 0, minutes: 0, goals: 0, yellows: 0, reds: 0 };
     const vals = Object.values(pd);
     return {
       matches: vals.length,
