@@ -354,7 +354,7 @@ export default function TacticalBoard() {
       </div>
 
       {/* Toolbar + Frames */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2 flex-wrap">
+      <div className="px-2 py-1 shrink-0 flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
         <Toolbar
           tool={tool}
           onToolChange={setTool}
