@@ -57,7 +57,7 @@ export default function LiveEventNotification({ events, playerPhotos = {} }: { e
   );
 }
 
-function NotificationCard({ event, visible }: { event: MatchEvent; visible: boolean }) {
+function NotificationCard({ event, visible, playerPhotoUrl }: { event: MatchEvent; visible: boolean; playerPhotoUrl?: string }) {
   const isGoal = event.type === 'goal';
   const isYellow = event.type === 'yellow';
   const isSecondYellow = event.type === 'second_yellow';
