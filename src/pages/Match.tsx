@@ -274,10 +274,12 @@ export default function MatchPage() {
     setPlayers: React.Dispatch<React.SetStateAction<MatchPlayer[]>>,
     setScore: React.Dispatch<React.SetStateAction<number>>,
     pendingSub: number | null,
-    setPendingSub: React.Dispatch<React.SetStateAction<number | null>>
+    setPendingSub: React.Dispatch<React.SetStateAction<number | null>>,
+    team: Team | null
   ) => ({
     onSelectPlayer: (slotIndex: number, playerName: string) => {
-      setPlayers(prev => prev.map(p => p.slotIndex === slotIndex ? { ...p, playerName } : p));
+      const photoUrl = team?.players.find(p => p.name === playerName)?.photo_url || '';
+      setPlayers(prev => prev.map(p => p.slotIndex === slotIndex ? { ...p, playerName, photoUrl } : p));
     },
     onDorsalChange: (slotIndex: number, dorsal: string) => {
       setPlayers(prev => prev.map(p => p.slotIndex === slotIndex ? { ...p, dorsal } : p));
@@ -361,8 +363,8 @@ export default function MatchPage() {
     },
   });
 
-  const homeHandlers = createPlayerHandlers('home', homePlayers, setHomePlayers, setHomeScore, homePendingSub, setHomePendingSub);
-  const awayHandlers = createPlayerHandlers('away', awayPlayers, setAwayPlayers, setAwayScore, awayPendingSub, setAwayPendingSub);
+  const homeHandlers = createPlayerHandlers('home', homePlayers, setHomePlayers, setHomeScore, homePendingSub, setHomePendingSub, homeTeam);
+  const awayHandlers = createPlayerHandlers('away', awayPlayers, setAwayPlayers, setAwayScore, awayPendingSub, setAwayPendingSub, awayTeam);
 
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);

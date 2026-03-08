@@ -8,6 +8,7 @@ export interface MatchPlayer {
   slotIndex: number;
   playerName: string;
   dorsal: string;
+  photoUrl?: string;
   goals: number;
   yellowCard1: boolean;
   yellowCard2: boolean;

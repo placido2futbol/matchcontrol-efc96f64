@@ -21,7 +21,7 @@ export default function Teams() {
   const [kitUrl, setKitUrl] = useState('');
   const [kitHtml, setKitHtml] = useState('');
   const [fcfUrl, setFcfUrl] = useState('');
-  const [players, setPlayers] = useState<{ name: string; dorsal: string }[]>([{ name: '', dorsal: '' }]);
+  const [players, setPlayers] = useState<{ name: string; dorsal: string; photo_url: string }[]>([{ name: '', dorsal: '', photo_url: '' }]);
   const kitFileRef = useRef<HTMLInputElement>(null);
 
   const openNew = () => {
@@ -31,7 +31,7 @@ export default function Teams() {
     setKitUrl('');
     setKitHtml('');
     setFcfUrl('');
-    setPlayers([{ name: '', dorsal: '' }]);
+    setPlayers([{ name: '', dorsal: '', photo_url: '' }]);
     setModalOpen(true);
   };
 
@@ -44,7 +44,7 @@ export default function Teams() {
     setKitUrl(t.kit_url);
     setKitHtml(t.kit_html);
     setFcfUrl(t.fcf_url);
-    setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal })) : [{ name: '', dorsal: '' }]);
+    setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' })) : [{ name: '', dorsal: '', photo_url: '' }]);
     setModalOpen(true);
   };
 
@@ -53,7 +53,7 @@ export default function Teams() {
     setCrestUrl(fcf.crest);
     setKitUrl(fcf.kit);
     setFcfUrl(fcf.fcf);
-    setPlayers(fcf.players.map(p => ({ name: p, dorsal: '' })));
+    setPlayers(fcf.players.map(p => ({ name: p, dorsal: '', photo_url: '' })));
   };
 
   const handleKitImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,9 +180,36 @@ export default function Teams() {
 
             <div>
               <label className="text-sm font-medium text-foreground">Jugadores</label>
-              <div className="space-y-1 max-h-60 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {players.map((p, i) => (
-                  <div key={i} className="flex gap-1">
+                  <div key={i} className="flex gap-1 items-center">
+                    {/* Player photo preview or upload */}
+                    <label className="shrink-0 cursor-pointer" title="Subir foto del jugador">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (!file.type.startsWith('image/')) { toast.error('Solo imágenes'); return; }
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            const next = [...players];
+                            next[i] = { ...next[i], photo_url: reader.result as string };
+                            setPlayers(next);
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                      {p.photo_url ? (
+                        <img src={p.photo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-border" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
+                          <ImagePlus className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      )}
+                    </label>
                     <Input
                       placeholder="Nombre"
                       value={p.name}
@@ -209,7 +236,7 @@ export default function Teams() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" size="sm" className="mt-1" onClick={() => setPlayers([...players, { name: '', dorsal: '' }])}>
+              <Button variant="outline" size="sm" className="mt-1" onClick={() => setPlayers([...players, { name: '', dorsal: '', photo_url: '' }])}>
                 <Plus className="h-3 w-3 mr-1" /> Añadir Jugador
               </Button>
             </div>

@@ -105,7 +105,9 @@ export default function LiveMatchPage() {
 
   return (
     <>
-    <LiveEventNotification events={state.events} />
+    <LiveEventNotification events={state.events} playerPhotos={
+      Object.fromEntries([...state.homePlayers, ...state.awayPlayers].filter(p => p.playerName && p.photoUrl).map(p => [p.playerName, p.photoUrl!]))
+    } />
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       {/* Live indicator */}
       <div className="flex items-center gap-2 justify-center">

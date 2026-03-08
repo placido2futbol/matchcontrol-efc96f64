@@ -180,6 +180,7 @@ export type Database = {
           dorsal: string | null
           id: string
           name: string
+          photo_url: string | null
           team_id: string
         }
         Insert: {
@@ -187,6 +188,7 @@ export type Database = {
           dorsal?: string | null
           id?: string
           name: string
+          photo_url?: string | null
           team_id: string
         }
         Update: {
@@ -194,6 +196,7 @@ export type Database = {
           dorsal?: string | null
           id?: string
           name?: string
+          photo_url?: string | null
           team_id?: string
         }
         Relationships: [

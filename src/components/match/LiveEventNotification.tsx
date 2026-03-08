@@ -5,12 +5,13 @@ interface Notification {
   id: number;
   event: MatchEvent;
   visible: boolean;
+  playerPhotoUrl?: string;
 }
 
 const DISPLAY_MS = 4000;
 const RELEVANT_TYPES = ['goal', 'yellow', 'second_yellow', 'red', 'substitution'];
 
-export default function LiveEventNotification({ events }: { events: MatchEvent[] }) {
+export default function LiveEventNotification({ events, playerPhotos = {} }: { events: MatchEvent[]; playerPhotos?: Record<string, string> }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const prevCountRef = useRef(events.length);
   const idRef = useRef(0);
@@ -26,6 +27,7 @@ export default function LiveEventNotification({ events }: { events: MatchEvent[]
           id: ++idRef.current,
           event,
           visible: true,
+          playerPhotoUrl: playerPhotos[event.playerName] || undefined,
         }));
         setNotifications(prev => [...prev, ...newNotifs]);
 
@@ -49,13 +51,13 @@ export default function LiveEventNotification({ events }: { events: MatchEvent[]
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col items-center justify-center gap-3">
       {notifications.map(n => (
-        <NotificationCard key={n.id} event={n.event} visible={n.visible} />
+        <NotificationCard key={n.id} event={n.event} visible={n.visible} playerPhotoUrl={n.playerPhotoUrl} />
       ))}
     </div>
   );
 }
 
-function NotificationCard({ event, visible }: { event: MatchEvent; visible: boolean }) {
+function NotificationCard({ event, visible, playerPhotoUrl }: { event: MatchEvent; visible: boolean; playerPhotoUrl?: string }) {
   const isGoal = event.type === 'goal';
   const isYellow = event.type === 'yellow';
   const isSecondYellow = event.type === 'second_yellow';
@@ -96,10 +98,14 @@ function NotificationCard({ event, visible }: { event: MatchEvent; visible: bool
         {label}
       </span>
       {/* Player initial circle as avatar placeholder */}
-      <div className="w-16 h-16 rounded-full bg-background/20 border-2 border-background/40 flex items-center justify-center">
-        <span className="text-2xl font-bold text-primary-foreground">
-          {event.playerName?.charAt(0)?.toUpperCase() || '?'}
-        </span>
+      <div className="w-16 h-16 rounded-full bg-background/20 border-2 border-background/40 flex items-center justify-center overflow-hidden">
+        {playerPhotoUrl ? (
+          <img src={playerPhotoUrl} alt={event.playerName} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-2xl font-bold text-primary-foreground">
+            {event.playerName?.charAt(0)?.toUpperCase() || '?'}
+          </span>
+        )}
       </div>
       <span className="text-base font-semibold text-primary-foreground text-center">
         {event.playerName}

@@ -17,6 +17,7 @@ export interface Player {
   id: string;
   name: string;
   dorsal: string;
+  photo_url: string;
 }
 
 export function useTeams() {
@@ -54,6 +55,7 @@ export function useTeams() {
           id: p.id,
           name: p.name,
           dorsal: p.dorsal || '',
+          photo_url: p.photo_url || '',
         })),
       });
     }
@@ -71,7 +73,7 @@ export function useTeams() {
     crestUrl: string,
     kitUrl: string,
     fcfUrl: string,
-    players: { name: string; dorsal: string }[],
+    players: { name: string; dorsal: string; photo_url?: string }[],
     editId?: string,
     kitHtml?: string
   ) => {
@@ -87,7 +89,7 @@ export function useTeams() {
       await supabase.from('players').delete().eq('team_id', editId);
       if (players.length > 0) {
         await supabase.from('players').insert(
-          players.map(p => ({ team_id: editId, name: p.name, dorsal: p.dorsal }))
+          players.map(p => ({ team_id: editId, name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' }))
         );
       }
     } else {
@@ -100,7 +102,7 @@ export function useTeams() {
 
       if (players.length > 0) {
         await supabase.from('players').insert(
-          players.map(p => ({ team_id: data.id, name: p.name, dorsal: p.dorsal }))
+          players.map(p => ({ team_id: data.id, name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' }))
         );
       }
     }
