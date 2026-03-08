@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft } from 'lucide-react';
 import PitchSVG from '@/components/tactical/PitchSVG';
+import HalfPitchSVG from '@/components/tactical/HalfPitchSVG';
 import PlayerToken from '@/components/tactical/PlayerToken';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
@@ -259,10 +260,14 @@ export default function TacticalBoard() {
           <div
             ref={pitchRef}
             className={`relative w-full rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
-            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)', cursor: pendingRoster ? 'crosshair' : undefined }}
+            style={{
+              aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
+              maxHeight: 'calc(100vh - 140px)',
+              cursor: pendingRoster ? 'crosshair' : undefined,
+            }}
             onClick={handlePitchClick}
           >
-            <PitchSVG />
+            {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
 
             <DrawingLayer
               drawings={activeScene.drawings}
@@ -270,6 +275,7 @@ export default function TacticalBoard() {
               tool={tool}
               drawColor={drawColor}
               containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+              halfPitch={activeScene.halfPitch}
             />
 
             {/* Ball */}

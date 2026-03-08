@@ -7,6 +7,7 @@ interface DrawingLayerProps {
   tool: DrawingTool;
   drawColor: string;
   containerRef: React.RefObject<HTMLDivElement>;
+  halfPitch?: boolean;
 }
 
 function getRelativePos(e: React.MouseEvent, container: HTMLDivElement) {
@@ -17,9 +18,10 @@ function getRelativePos(e: React.MouseEvent, container: HTMLDivElement) {
   };
 }
 
-const VB = { w: 1050, h: 680 };
+const VB_FULL = { w: 1050, h: 680 };
+const VB_HALF = { w: 1050, h: 750 };
 
-function renderPath(path: DrawingPath) {
+function renderPath(path: DrawingPath, VB: { w: number; h: number }) {
   const pts = path.points.map(p => ({ x: (p.x / 100) * VB.w, y: (p.y / 100) * VB.h }));
   if (pts.length < 2) return null;
 
@@ -64,7 +66,8 @@ function ArrowHead({ x, y, angle, color }: { x: number; y: number; angle: number
   return <polygon points={`${x},${y} ${x1},${y1} ${x2},${y2}`} fill={color} />;
 }
 
-export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawColor, containerRef }: DrawingLayerProps) {
+export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawColor, containerRef, halfPitch }: DrawingLayerProps) {
+  const VB = halfPitch ? VB_HALF : VB_FULL;
   const [isDrawing, setIsDrawing] = useState(false);
   const currentPath = useRef<DrawingPath | null>(null);
 
@@ -128,8 +131,8 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
       onMouseLeave={handleEnd}
       onClick={handleClick}
     >
-      {drawings.map(d => renderPath(d))}
-      {isDrawing && currentPath.current && renderPath(currentPath.current)}
+      {drawings.map(d => renderPath(d, VB))}
+      {isDrawing && currentPath.current && renderPath(currentPath.current, VB)}
     </svg>
   );
 }

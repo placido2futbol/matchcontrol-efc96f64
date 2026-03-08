@@ -14,7 +14,7 @@ const RED = '#EF4444';
 
 export function createPPTScenes(): TacticalScene[] {
   return [
-    // ===== ESCENA 1: 11 INICIAL =====
+    // ===== ESCENA 1: 11 INICIAL (campo completo) =====
     {
       id: generateId(),
       name: '11 Inicial',
@@ -36,32 +36,38 @@ export function createPPTScenes(): TacticalScene[] {
         label('11 INICIAL', 40, 5, 'lg', '#ffff00', '#ff0000'),
       ],
       ball: { x: 50, y: 50, visible: false },
+      halfPitch: false,
     },
 
-    // ===== ESCENA 2: CÓRNERS EN CONTRA =====
+    // ===== ESCENA 2: CÓRNERS EN CONTRA (medio campo, portería arriba) =====
     {
       id: generateId(),
       name: 'CÒRNERS EN CONTRA',
+      halfPitch: true,
       players: [
-        p('ABDE', 1, BLUE, 8, 5),
-        p('PORTERO', 1, PINK, 10, 12),
-        p('GARCI', 2, BLUE, 16, 22),
-        p('FELIU', 3, BLUE, 20, 22),
-        p('JUAN', 4, BLUE, 24, 22),
-        p('ARNAU', 5, BLUE, 16, 32),
-        p('BEÑAT', 6, BLUE, 20, 32),
-        p('PINO', 7, BLUE, 24, 32),
-        p('ISAAC', 8, BLUE, 22, 48),
-        p('MANU', 9, BLUE, 8, 88),
-        p('BIEL', 10, BLUE, 38, 88),
+        p('ABDE', 1, BLUE, 8, 3),           // poste corto, esquina sup-izq
+        p('PORTERO', 1, PINK, 50, 5),        // portero en portería
+        // M.ZONA (2,3,4) - línea horizontal cerca del área
+        p('GARCI', 2, BLUE, 38, 18),
+        p('FELIU', 3, BLUE, 50, 18),
+        p('JUAN', 4, BLUE, 62, 18),
+        // M.INDIVIDUAL (5,6,7) - línea horizontal debajo
+        p('ARNAU', 5, BLUE, 38, 28),
+        p('BEÑAT', 6, BLUE, 50, 28),
+        p('PINO', 7, BLUE, 62, 28),
+        // Caída - centro
+        p('ISAAC', 8, BLUE, 50, 44),
+        // Laterales abajo
+        p('MANU', 9, BLUE, 15, 88),
+        p('BIEL', 10, BLUE, 85, 88),
       ],
       drawings: [],
       labels: [
-        label('M.ZONA', 10, 18, 'sm', 'transparent', '#ffffff'),
-        label('M.INDIVIDUAL', 10, 28, 'sm', 'transparent', '#ffffff'),
-        label('CAIDA', 16, 45, 'sm', 'transparent', '#ffffff'),
+        label('M.ZONA', 22, 18, 'sm', 'transparent', '#ffffff'),
+        label('M.INDIVIDUAL', 22, 28, 'sm', 'transparent', '#ffffff'),
+        label('CAIDA', 38, 44, 'sm', 'transparent', '#ffffff'),
       ],
-      ball: { x: 3, y: 3, visible: true },
+      ball: { x: 4, y: 2, visible: true },
       legend: {
         entries: [
           { number: 2, name: 'GARCI', borderColor: '#ffff00' },
@@ -74,26 +80,34 @@ export function createPPTScenes(): TacticalScene[] {
       },
     },
 
-    // ===== ESCENA 3: FALTA LATERAL EN CONTRA =====
+    // ===== ESCENA 3: FALTA LATERAL EN CONTRA (medio campo) =====
     {
       id: generateId(),
       name: 'FALTA LATERAL EN CONTRA',
+      halfPitch: true,
       players: [
-        p('PORTERO', 1, PINK, 10, 8),
-        p('ISAAC', 2, BLUE, 12, 25),
-        p('JUAN', 2, BLUE, 22, 32),
-        p('GARCI', 3, BLUE, 26, 32),
-        p('FELIU', 4, BLUE, 30, 32),
-        p('ARNAU', 5, BLUE, 34, 32),
-        p('RIVAL', 0, RED, 14, 45),
-        p('MANU', 6, BLUE, 25, 78),
-        p('BIEL', 7, BLUE, 48, 78),
+        p('PORTERO', 1, PINK, 50, 5),        // portero arriba centro
+        p('ISAAC', 2, BLUE, 15, 18),          // izquierda arriba
+        // Barrera horizontal
+        p('JUAN', 2, BLUE, 32, 35),
+        p('GARCI', 3, BLUE, 40, 35),
+        p('FELIU', 4, BLUE, 48, 35),
+        p('ARNAU', 5, BLUE, 56, 35),
+        // Extra blue en barrera
+        p('', 0, BLUE, 64, 35),
+        p('', 0, BLUE, 72, 35),
+        p('', 0, BLUE, 78, 35),
+        // Rival con balón
+        p('RIVAL', 0, RED, 18, 48),
+        // Laterales abajo
+        p('MANU', 6, BLUE, 30, 85),
+        p('BIEL', 7, BLUE, 70, 85),
       ],
       drawings: [],
       labels: [
-        label('BARRERA', 38, 38, 'sm', 'transparent', '#ffffff'),
+        label('BARRERA', 82, 35, 'md', 'transparent', '#ffffff'),
       ],
-      ball: { x: 18, y: 42, visible: true },
+      ball: { x: 20, y: 45, visible: true },
       legend: {
         title: 'BARRERA',
         entries: [
@@ -105,26 +119,31 @@ export function createPPTScenes(): TacticalScene[] {
       },
     },
 
-    // ===== ESCENA 4: FALTA FRONTAL EN CONTRA =====
+    // ===== ESCENA 4: FALTA FRONTAL EN CONTRA (medio campo) =====
     {
       id: generateId(),
       name: 'FALTA FRONTAL EN CONTRA',
+      halfPitch: true,
       players: [
-        p('PORTERO', 1, PINK, 52, 6),
-        p('JUAN', 2, BLUE, 25, 30),
-        p('GARCI', 3, BLUE, 29, 30),
-        p('FELIU', 4, BLUE, 33, 30),
-        p('ARNAU', 5, BLUE, 37, 30),
-        p('', 0, BLUE, 44, 30),
-        p('', 0, BLUE, 48, 30),
-        p('', 0, BLUE, 52, 30),
-        p('', 0, BLUE, 10, 30),
-        p('RIVAL', 0, RED, 28, 48),
-        p('JUGADOR', 11, BLUE, 42, 92),
+        p('PORTERO', 1, PINK, 50, 5),        // portero arriba centro
+        // Barrera horizontal centrada
+        p('', 0, BLUE, 18, 35),
+        p('JUAN', 2, BLUE, 32, 35),
+        p('GARCI', 3, BLUE, 40, 35),
+        p('FELIU', 4, BLUE, 48, 35),
+        p('ARNAU', 5, BLUE, 56, 35),
+        p('', 0, BLUE, 64, 35),
+        p('', 0, BLUE, 72, 35),
+        p('', 0, BLUE, 78, 35),
+        p('', 0, BLUE, 84, 35),
+        // Rival con balón
+        p('RIVAL', 0, RED, 42, 55),
+        // Jugador atrás
+        p('JUGADOR', 11, BLUE, 50, 92),
       ],
       drawings: [],
       labels: [],
-      ball: { x: 22, y: 45, visible: true },
+      ball: { x: 38, y: 50, visible: true },
       legend: {
         title: 'BARRERA',
         entries: [
@@ -136,51 +155,58 @@ export function createPPTScenes(): TacticalScene[] {
       },
     },
 
-    // ===== ESCENA 5: FALTA FRONTAL A FAVOR =====
+    // ===== ESCENA 5: FALTA FRONTAL A FAVOR (medio campo) =====
     {
       id: generateId(),
       name: 'FALTA FRONTAL A FAVOR',
+      halfPitch: true,
       players: [
-        p('PORTERO', 1, PINK, 52, 6),
-        p('', 0, RED, 25, 22),
-        p('', 0, RED, 29, 22),
-        p('', 0, RED, 33, 22),
-        p('', 0, RED, 37, 22),
-        p('', 0, RED, 62, 22),
-        p('', 0, RED, 66, 22),
-        p('', 0, RED, 70, 22),
-        p('', 0, RED, 74, 22),
-        p('', 0, RED, 8, 38),
+        p('PORTERO', 1, PINK, 50, 5),
+        // Barrera rival
+        p('', 0, RED, 32, 25),
+        p('', 0, RED, 40, 25),
+        p('', 0, RED, 48, 25),
+        p('', 0, RED, 56, 25),
+        p('', 0, RED, 64, 25),
+        p('', 0, RED, 72, 25),
+        p('', 0, RED, 78, 25),
+        p('', 0, RED, 84, 25),
+        p('', 0, RED, 12, 40),
         p('', 0, RED, 50, 92),
-        p('LANZADOR 1', 0, BLUE, 32, 42),
-        p('LANZADOR 2', 0, BLUE, 42, 42),
-        p('COBERTURA', 0, BLUE, 38, 58),
+        // Nuestros lanzadores
+        p('LANZADOR 1', 0, BLUE, 42, 42),
+        p('LANZADOR 2', 0, BLUE, 54, 42),
+        p('COBERTURA', 0, BLUE, 48, 58),
       ],
       drawings: [],
       labels: [],
-      ball: { x: 36, y: 40, visible: true },
+      ball: { x: 46, y: 40, visible: true },
     },
 
-    // ===== ESCENA 6: CÓRNER A FAVOR 2 CONTRA 1 =====
+    // ===== ESCENA 6: CÓRNER A FAVOR (medio campo) =====
     {
       id: generateId(),
       name: 'CORNER A FAVOR 2 CONTRA 1',
+      halfPitch: true,
       players: [
-        p('PORTERO', 1, PINK, 50, 6),
-        p('ISAAC', 2, BLUE, 6, 8),
-        p('JUAN', 3, BLUE, 14, 8),
-        p('MANU', 4, BLUE, 30, 12),
-        p('FELIU', 2, BLUE, 42, 30),
-        p('BIEL', 3, BLUE, 46, 30),
-        p('PINO', 4, BLUE, 50, 30),
-        p('ARNAU', 5, BLUE, 32, 48),
-        p('PEÑA', 6, BLUE, 50, 48),
-        p('GARCI', 7, BLUE, 36, 82),
-        p('BEÑAT', 8, BLUE, 52, 82),
+        p('PORTERO', 1, PINK, 55, 5),        // portero rival
+        p('ISAAC', 2, BLUE, 4, 5),            // lanzador esquina
+        p('JUAN', 3, BLUE, 16, 5),            // corto
+        p('MANU', 4, BLUE, 40, 10),           // cerca portería
+        // Rematadores
+        p('FELIU', 2, BLUE, 48, 28),
+        p('BIEL', 3, BLUE, 56, 28),
+        p('PINO', 4, BLUE, 64, 28),
+        // Coberturas
+        p('ARNAU', 5, BLUE, 38, 48),
+        p('PEÑA', 6, BLUE, 62, 48),
+        // Atrás
+        p('GARCI', 7, BLUE, 38, 82),
+        p('BEÑAT', 8, BLUE, 62, 82),
       ],
       drawings: [],
       labels: [],
-      ball: { x: 4, y: 4, visible: true },
+      ball: { x: 3, y: 2, visible: true },
       legend: {
         entries: [
           { number: 2, name: 'FELIU' },
@@ -190,28 +216,32 @@ export function createPPTScenes(): TacticalScene[] {
       },
     },
 
-    // ===== ESCENA 7: CÓRNER CON PANTALLA =====
+    // ===== ESCENA 7: CÓRNER CON PANTALLA (medio campo) =====
     {
       id: generateId(),
       name: 'CORNER CON PANTALLA DE 3',
+      halfPitch: true,
       players: [
-        p('PORTERO', 1, PINK, 50, 6),
-        p('JUAN', 2, BLUE, 20, 10),
-        p('MANU', 3, BLUE, 48, 10),
-        p('ISAAC', 4, BLUE, 78, 6),
-        p('BEÑAT', 2, BLUE, 40, 32),
-        p('FELIU', 3, BLUE, 44, 32),
-        p('BIEL', 4, BLUE, 48, 32),
-        p('JUGADOR', 5, BLUE, 28, 45),
-        p('JUGADOR', 6, BLUE, 46, 45),
-        p('BIEL', 7, BLUE, 30, 58),
-        p('ARNAU', 8, BLUE, 50, 58),
-        p('GARCI', 9, BLUE, 36, 90),
-        p('BEÑAT', 10, BLUE, 56, 90),
+        p('PORTERO', 1, PINK, 55, 5),        // portero rival
+        p('JUAN', 2, BLUE, 30, 10),
+        p('MANU', 3, BLUE, 55, 10),
+        p('ISAAC', 4, BLUE, 92, 5),           // lanzador esquina derecha
+        // Pantalla (2,3,4)
+        p('BEÑAT', 2, BLUE, 50, 28),
+        p('FELIU', 3, BLUE, 58, 28),
+        p('BIEL', 4, BLUE, 66, 28),
+        // Coberturas
+        p('JUGADOR', 5, BLUE, 35, 42),
+        p('JUGADOR', 6, BLUE, 60, 42),
+        p('BIEL', 7, BLUE, 35, 55),
+        p('ARNAU', 8, BLUE, 60, 55),
+        // Atrás
+        p('GARCI', 9, BLUE, 38, 88),
+        p('BEÑAT', 10, BLUE, 68, 88),
       ],
       drawings: [],
       labels: [],
-      ball: { x: 82, y: 4, visible: true },
+      ball: { x: 96, y: 2, visible: true },
       legend: {
         entries: [
           { number: 2, name: 'BEÑAT' },
