@@ -105,6 +105,60 @@ export default function MatchPage() {
     setEvents(prev => [...prev, ev]);
   }, []);
 
+  const deleteEvent = useCallback((index: number) => {
+    setEvents(prev => {
+      const ev = prev[index];
+      if (!ev) return prev;
+
+      // Undo goal score
+      if (ev.type === 'goal') {
+        if (ev.teamSide === 'home') setHomeScore(s => Math.max(0, s - 1));
+        else setAwayScore(s => Math.max(0, s - 1));
+
+        // Undo player goal count
+        const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
+        setPlayers(players =>
+          players.map(p =>
+            p.playerName === ev.playerName ? { ...p, goals: Math.max(0, p.goals - 1) } : p
+          )
+        );
+      }
+
+      // Undo yellow card
+      if (ev.type === 'yellow') {
+        const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
+        setPlayers(players =>
+          players.map(p => {
+            if (p.playerName !== ev.playerName) return p;
+            // Remove first yellow if second isn't set, otherwise remove based on state
+            if (p.yellowCard2 && p.yellowCard1) return { ...p, yellowCard1: false, redCard: false };
+            return { ...p, yellowCard1: false, redCard: false };
+          })
+        );
+      }
+
+      if (ev.type === 'second_yellow') {
+        const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
+        setPlayers(players =>
+          players.map(p =>
+            p.playerName === ev.playerName ? { ...p, yellowCard2: false, redCard: false } : p
+          )
+        );
+      }
+
+      if (ev.type === 'red') {
+        const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
+        setPlayers(players =>
+          players.map(p =>
+            p.playerName === ev.playerName ? { ...p, redCard: false } : p
+          )
+        );
+      }
+
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
   const createPlayerHandlers = (
     side: 'home' | 'away',
     players: MatchPlayer[],
@@ -388,7 +442,7 @@ export default function MatchPage() {
       </div>
 
       {/* Events */}
-      <EventLog events={events} />
+      <EventLog events={events} onDeleteEvent={deleteEvent} />
 
       {/* Sant Pau Stats */}
       <SantPauStats
