@@ -19,28 +19,55 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { urls } = await req.json();
+    const { teamPageUrl, actaUrls } = await req.json();
 
-    if (!urls || !Array.isArray(urls) || urls.length === 0) {
+    let urls: string[] = actaUrls || [];
+
+    // If a team page URL is provided, scrape it to find acta links
+    if (teamPageUrl && teamPageUrl.includes('fcf.cat/equip/')) {
+      try {
+        const pageResponse = await fetch(teamPageUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+        });
+        const pageHtml = await pageResponse.text();
+
+        // Extract acta URLs from the team page
+        const actaRegex = /href="(https:\/\/www\.fcf\.cat\/acta\/[^"]+)"/g;
+        let match;
+        const found = new Set<string>();
+        while ((match = actaRegex.exec(pageHtml)) !== null) {
+          found.add(match[1]);
+        }
+        urls = [...urls, ...found];
+        console.log(`Found ${found.size} acta URLs from team page`);
+      } catch (e) {
+        console.error('Error fetching team page:', e);
+      }
+    }
+
+    if (urls.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Se requiere un array de URLs de actas' }),
+        JSON.stringify({ success: false, error: 'No se encontraron actas' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Deduplicate
+    urls = [...new Set(urls)];
+
     // Aggregate dorsals from all actas
-    const dorsalMap: Record<string, Record<string, string>> = {}; // teamName -> { playerName -> dorsal }
+    const dorsalMap: Record<string, Record<string, string>> = {};
 
     for (const url of urls) {
       if (!url.includes('fcf.cat/acta/')) continue;
 
       try {
+        console.log(`Scraping acta: ${url}`);
         const response = await fetch(url, {
           headers: { 'User-Agent': 'Mozilla/5.0' },
         });
         const html = await response.text();
 
-        // Extract both teams from the acta
         const teams = parseActa(html);
         for (const team of teams) {
           if (!dorsalMap[team.teamName]) {
@@ -57,14 +84,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Convert to array format
     const result: TeamDorsals[] = Object.entries(dorsalMap).map(([teamName, players]) => ({
       teamName,
       players: Object.entries(players).map(([name, dorsal]) => ({ name, dorsal })),
     }));
 
     return new Response(
-      JSON.stringify({ success: true, teams: result }),
+      JSON.stringify({ success: true, teams: result, actasScraped: urls.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -79,7 +105,7 @@ Deno.serve(async (req) => {
 function parseActa(html: string): TeamDorsals[] {
   const teams: TeamDorsals[] = [];
 
-  // Extract team names from acta-title: "Acta | TEAM A - TEAM B"
+  // Extract team names from acta-title
   const titleMatch = html.match(/class="apex"[^>]*>([^<]+)/);
   if (!titleMatch) return teams;
 
@@ -89,13 +115,9 @@ function parseActa(html: string): TeamDorsals[] {
   const homeTeamName = titleParts[0].trim();
   const awayTeamName = titleParts.slice(1).join(' - ').trim();
 
-  // The HTML has two main col-md-4 sections with player tables
-  // First one is home team, second one (after Àrbitres/Gols section) is away team
-  
-  // Split HTML into sections by col-md-4
+  // Split HTML by col-md-4 sections
   const sections = html.split('col-md-4 p-0_ml');
-  
-  // Section index 1 = home team, section index 3 = away team (index 2 is referees/goals middle column)
+
   if (sections.length >= 2) {
     const homePlayers = extractPlayersFromSection(sections[1]);
     teams.push({ teamName: homeTeamName, players: homePlayers });
@@ -111,10 +133,8 @@ function parseActa(html: string): TeamDorsals[] {
 
 function extractPlayersFromSection(sectionHtml: string): PlayerDorsal[] {
   const players: PlayerDorsal[] = [];
-  
-  // Match pattern: <span class="num-samarreta-acta2">DORSAL</span> ... player name in <a> tag
   const regex = /num-samarreta-acta2">\s*(\d+)\s*<\/span>[\s\S]*?<a[^>]*>([^<]+)<\/a>/g;
-  
+
   let match;
   while ((match = regex.exec(sectionHtml)) !== null) {
     const dorsal = match[1].trim();
