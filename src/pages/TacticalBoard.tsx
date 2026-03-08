@@ -12,7 +12,7 @@ import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
-  TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition,
+  TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition, SceneLegend,
   generateId,
 } from '@/components/tactical/types';
 
@@ -289,6 +289,109 @@ export default function TacticalBoard() {
               </div>
             )}
 
+            {/* Scene title overlay with crest (top-right, like PPT reference) */}
+            {activeScene.name !== '11 Inicial' && (
+              <div
+                className="absolute select-none pointer-events-none"
+                style={{
+                  right: '1%',
+                  top: '2%',
+                  zIndex: 35,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 4,
+                }}
+              >
+                {/* Team crest */}
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
+                  alt="Escudo Sant Pau"
+                  className="w-12 h-12 object-contain drop-shadow-lg"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                {/* Title block */}
+                <div
+                  style={{
+                    background: '#ffff00',
+                    padding: '6px 14px',
+                    fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                    fontSize: 15,
+                    fontWeight: 900,
+                    color: '#000',
+                    lineHeight: 1.2,
+                    textAlign: 'center',
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+                    border: '2px solid rgba(0,0,0,0.2)',
+                    maxWidth: 160,
+                  }}
+                >
+                  {activeScene.name}
+                </div>
+              </div>
+            )}
+
+            {/* Legend overlay on the pitch (right side, like PPT reference) */}
+            {activeScene.legend && activeScene.legend.entries.length > 0 && (
+              <div
+                className="absolute select-none pointer-events-none"
+                style={{
+                  right: '2%',
+                  top: activeScene.legend.title ? '30%' : '25%',
+                  zIndex: 35,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  alignItems: 'flex-end',
+                }}
+              >
+                {activeScene.legend.title && (
+                  <div
+                    style={{
+                      fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                      fontSize: 16,
+                      fontWeight: 900,
+                      color: '#ffffff',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                      marginBottom: 4,
+                    }}
+                  >
+                    {activeScene.legend.title}
+                  </div>
+                )}
+                {activeScene.legend.entries.map((entry, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <span
+                      style={{
+                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                        fontSize: 22,
+                        fontWeight: 900,
+                        color: '#ffffff',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {entry.number}
+                    </span>
+                    <div
+                      style={{
+                        background: entry.borderColor === '#cc0000' ? 'transparent' : '#ffff00',
+                        border: `2px solid ${entry.borderColor || '#ffff00'}`,
+                        padding: '2px 10px',
+                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                        fontSize: 14,
+                        fontWeight: 900,
+                        color: '#cc0000',
+                        minWidth: 80,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {entry.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Text labels */}
             {activeScene.labels.map(label => (
               <div
@@ -301,43 +404,21 @@ export default function TacticalBoard() {
                   zIndex: 12,
                 }}
               >
-                <div
-                  className="relative"
+                <span
+                  className="whitespace-nowrap cursor-default"
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
+                    color: label.color,
+                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 11 : 10,
+                    fontWeight: 900,
+                    fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                    textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
+                    padding: label.bgColor !== 'transparent' ? '2px 8px' : '1px 4px',
+                    background: label.bgColor !== 'transparent' ? label.bgColor : 'transparent',
+                    border: label.bgColor !== 'transparent' ? '1.5px solid rgba(0,0,0,0.2)' : 'none',
                   }}
                 >
-                  {label.fontSize === 'lg' && label.bgColor !== 'transparent' && (
-                    <div
-                      className="absolute inset-0 rounded-md"
-                      style={{
-                        background: label.bgColor,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                        border: '2.5px solid rgba(0,0,0,0.3)',
-                        transform: 'scale(1.08, 1.2)',
-                      }}
-                    />
-                  )}
-                  <span
-                    className="relative whitespace-nowrap cursor-default"
-                    style={{
-                      color: label.fontSize === 'lg' ? '#000' : label.color,
-                      fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 11 : 9,
-                      fontWeight: 900,
-                      fontFamily: "'Russo One', sans-serif",
-                      letterSpacing: label.fontSize === 'lg' ? '0.5px' : '0',
-                      textShadow: label.fontSize === 'lg' ? 'none' : '0 1px 3px rgba(0,0,0,0.5)',
-                      padding: label.fontSize === 'lg' ? '4px 12px' : '1px 4px',
-                      background: label.fontSize === 'lg' ? 'transparent' : (label.bgColor !== 'transparent' ? label.bgColor : 'transparent'),
-                      border: label.fontSize !== 'lg' && label.bgColor !== 'transparent' ? '1.5px solid rgba(0,0,0,0.2)' : 'none',
-                      borderRadius: label.fontSize !== 'lg' ? 3 : 0,
-                    }}
-                  >
-                    {label.text}
-                  </span>
-                </div>
+                  {label.text}
+                </span>
                 {tool === 'eraser' && (
                   <button
                     className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
