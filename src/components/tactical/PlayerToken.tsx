@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
 import { TacticalPlayer } from './types';
 
 interface PlayerTokenProps {
@@ -10,17 +10,41 @@ interface PlayerTokenProps {
 }
 
 export default function PlayerToken({ player, containerRef, onDragEnd, onClick, isSelected }: PlayerTokenProps) {
-  const handleDragEnd = (_: any, info: any) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(2, Math.min(98, ((info.point.x - rect.left) / rect.width) * 100));
-    const y = Math.max(2, Math.min(98, ((info.point.y - rect.top) / rect.height) * 100));
-    const snappedX = Math.round(x / 2) * 2;
-    const snappedY = Math.round(y / 2) * 2;
-    onDragEnd(player.id, snappedX, snappedY);
+  const isDragging = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+  const startPlayerPos = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    isDragging.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    startPlayerPos.current = { x: player.x, y: player.y };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  // Determine if color is light to use dark text
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!startPos.current || !containerRef.current) return;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) isDragging.current = true;
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!containerRef.current) return;
+    if (isDragging.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const dx = e.clientX - startPos.current.x;
+      const dy = e.clientY - startPos.current.y;
+      const newX = Math.max(1, Math.min(99, startPlayerPos.current.x + (dx / rect.width) * 100));
+      const newY = Math.max(1, Math.min(99, startPlayerPos.current.y + (dy / rect.height) * 100));
+      onDragEnd(player.id, Math.round(newX), Math.round(newY));
+    } else {
+      onClick(player);
+    }
+    isDragging.current = false;
+  };
+
   const isLightColor = (hex: string) => {
     const c = hex.replace('#', '');
     const r = parseInt(c.substring(0, 2), 16);
@@ -33,22 +57,18 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
   const borderColor = isSelected ? '#ffffff' : darkenColor(player.color, 30);
 
   return (
-    <motion.div
-      drag
-      dragMomentum={false}
-      onDragEnd={handleDragEnd}
-      onClick={(e) => { e.stopPropagation(); onClick(player); }}
-      className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing select-none"
+    <div
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing select-none touch-none"
       style={{
         left: `${player.x}%`,
         top: `${player.y}%`,
         transform: 'translate(-50%, -50%)',
         zIndex: isSelected ? 30 : 20,
       }}
-      whileHover={{ scale: 1.12 }}
-      whileTap={{ scale: 0.95 }}
     >
-      {/* Circle */}
       <div
         className="relative flex items-center justify-center rounded-full transition-shadow"
         style={{
@@ -66,7 +86,6 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
       >
         {player.number}
       </div>
-      {/* Name label */}
       <div
         className="mt-0.5 px-2 py-px font-bold whitespace-nowrap"
         style={{
@@ -82,7 +101,7 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
       >
         {player.name.length > 12 ? player.name.substring(0, 12) + '.' : player.name.toUpperCase()}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
