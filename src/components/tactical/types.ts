@@ -33,6 +33,17 @@ export interface BallPosition {
   visible: boolean;
 }
 
+export interface LegendEntry {
+  number: number;
+  name: string;
+  borderColor?: string; // defaults to yellow
+}
+
+export interface SceneLegend {
+  title?: string;
+  entries: LegendEntry[];
+}
+
 export interface TacticalScene {
   id: string;
   name: string;
@@ -40,6 +51,7 @@ export interface TacticalScene {
   drawings: DrawingPath[];
   labels: TextLabel[];
   ball: BallPosition;
+  legend?: SceneLegend;
 }
 
 export type DrawingTool = 'select' | 'arrow' | 'curved-arrow' | 'line' | 'dashed' | 'free' | 'eraser' | 'label' | 'ball';

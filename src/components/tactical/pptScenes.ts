@@ -1,4 +1,4 @@
-import { TacticalScene, TacticalPlayer, TextLabel, generateId } from './types';
+import { TacticalScene, TacticalPlayer, TextLabel, SceneLegend, generateId } from './types';
 
 function p(name: string, number: number, color: string, x: number, y: number, team: 'home' | 'away' = 'home'): TacticalPlayer {
   return { id: generateId(), name, number, position: '', team, color, x, y, onField: true };
