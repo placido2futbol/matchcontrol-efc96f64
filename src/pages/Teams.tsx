@@ -44,7 +44,7 @@ export default function Teams() {
     setKitUrl(t.kit_url);
     setKitHtml(t.kit_html);
     setFcfUrl(t.fcf_url);
-    setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal })) : [{ name: '', dorsal: '' }]);
+    setPlayers(t.players.length > 0 ? t.players.map(p => ({ name: p.name, dorsal: p.dorsal, photo_url: p.photo_url || '' })) : [{ name: '', dorsal: '', photo_url: '' }]);
     setModalOpen(true);
   };
 
