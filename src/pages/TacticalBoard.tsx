@@ -318,7 +318,11 @@ export default function TacticalBoard() {
                 onDragEnd={(x, y) => updateScene(s => ({ ...s, titlePos: { x, y } }))}
                 zIndex={35}
               >
-                <div className="flex items-center gap-1 relative group">
+                <div
+                  className="flex items-center gap-1"
+                  onDoubleClick={(e) => { e.stopPropagation(); updateScene(s => ({ ...s, titlePos: { x: -100, y: -100 } })); }}
+                  title="Doble clic para ocultar"
+                >
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
                     alt="Escudo Sant Pau"
@@ -343,13 +347,6 @@ export default function TacticalBoard() {
                   >
                     {activeScene.name}
                   </div>
-                  <button
-                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
-                    onClick={(e) => { e.stopPropagation(); updateScene(s => ({ ...s, titlePos: { x: -100, y: -100 } })); }}
-                    title="Ocultar título"
-                  >
-                    ×
-                  </button>
                 </div>
               </DraggableElement>
             )}
