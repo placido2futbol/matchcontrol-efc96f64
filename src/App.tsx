@@ -12,6 +12,7 @@ import SantPauGlobalStats from "./pages/SantPauGlobalStats";
 import LiveMatchPage from "./pages/LiveMatchPage";
 import NotFound from "./pages/NotFound";
 import TacticalBoard from "./pages/TacticalBoard";
+import TacticalViewer from "./pages/TacticalViewer";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
             <Route path="/live/:sessionId" element={<LiveMatchPage />} />
             <Route path="/tactical" element={<TacticalBoard />} />
+            <Route path="/tactical/view/:id" element={<TacticalViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
