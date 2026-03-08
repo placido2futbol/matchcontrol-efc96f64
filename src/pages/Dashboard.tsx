@@ -47,14 +47,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Theme settings from localStorage
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('mc_dark') === 'true');
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
-  const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
-  const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
-  const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
-  const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
-  const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
+  const {
+    darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
+    compactCards, setCompactCards, crestOpacity, setCrestOpacity,
+    bgColor, selectBgColor, bgCrest, selectCrest,
+    textClass, mutedTextClass, btnClass, resetAll,
+  } = useTheme();
 
   // Apply dark mode
   useEffect(() => {
