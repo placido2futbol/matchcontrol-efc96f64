@@ -321,8 +321,8 @@ export default function Dashboard() {
                     {FCF_EQUIPOS_DB.map(team => (
                       <button
                         key={team.name}
-                        onClick={() => applyBg('crest', team.crest)}
-                        className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgType === 'crest' && bgValue === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
+                        onClick={() => selectCrest(team.crest)}
+                        className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgCrest === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
                         title={team.name}
                       >
                         <img src={team.crest} alt={team.name} className="w-full h-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
