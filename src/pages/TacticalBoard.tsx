@@ -54,6 +54,7 @@ export default function TacticalBoard() {
   const [playingFrames, setPlayingFrames] = useState(false);
   const [activeFrameIndex, setActiveFrameIndex] = useState<number | null>(null);
   const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [frameSpeed, setFrameSpeed] = useState(1500);
 
   const handleShare = useCallback(async () => {
     if (!user) {
@@ -320,8 +321,8 @@ export default function TacticalBoard() {
       idx = (idx + 1) % frames.length;
       setActiveFrameIndex(idx);
       applyFrameOverlay(frames[idx]);
-    }, 1500);
-  }, [activeScene.frames, applyFrameOverlay]);
+    }, frameSpeed);
+  }, [activeScene.frames, applyFrameOverlay, frameSpeed]);
 
   const handleStopFrames = useCallback(() => {
     setPlayingFrames(false);
@@ -377,6 +378,8 @@ export default function TacticalBoard() {
           isPlaying={playingFrames}
           activeFrameIndex={activeFrameIndex}
           onSelectFrame={handleSelectFrame}
+          speed={frameSpeed}
+          onSpeedChange={(s) => { setFrameSpeed(s); if (playingFrames) { handleStopFrames(); } }}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
