@@ -361,7 +361,9 @@ export default function Dashboard() {
                   size="sm"
                   className="w-full text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
                   onClick={() => {
-                    applyBg('default', '');
+                    selectBgColor('');
+                    setBgCrest('');
+                    localStorage.setItem('mc_bg_crest', '');
                     setDarkMode(false);
                     setAccentColor('green');
                     setFontSize('normal');
