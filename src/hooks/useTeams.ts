@@ -17,6 +17,7 @@ export interface Player {
   id: string;
   name: string;
   dorsal: string;
+  photo_url: string;
 }
 
 export function useTeams() {
