@@ -181,23 +181,23 @@ export default function MatchDetail() {
           <CardHeader className="py-3">
             <CardTitle className="text-sm font-display">Incidencias</CardTitle>
           </CardHeader>
-          <CardContent className="py-2">
-            <table className="w-full text-xs border border-border">
+          <CardContent className="py-2 overflow-x-auto">
+            <table className="w-full text-[10px] sm:text-xs border border-border" style={{ minWidth: '320px' }}>
               <thead>
                 <tr className="bg-muted">
-                  <th className="p-1 text-muted-foreground">Min</th>
-                  <th className="p-1 text-muted-foreground">Equipo</th>
-                  <th className="p-1 text-muted-foreground">Tipo</th>
-                  <th className="p-1 text-muted-foreground">Detalle</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Min</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Equipo</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Tipo</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Detalle</th>
                 </tr>
               </thead>
               <tbody>
                 {events.map(ev => (
                   <tr key={ev.id} className="border-b border-border">
-                    <td className="p-1 text-center text-foreground">{ev.minute}'</td>
-                    <td className="p-1 text-foreground">{ev.team_side === 'home' ? match.home_team_name : match.away_team_name}</td>
-                    <td className="p-1">{typeLabels[ev.event_type] || ev.event_type}</td>
-                    <td className="p-1 text-foreground">{ev.player_name} {ev.details && `(${ev.details})`}</td>
+                    <td className="p-0.5 sm:p-1 text-center text-foreground">{ev.minute}'</td>
+                    <td className="p-0.5 sm:p-1 text-foreground">{ev.team_side === 'home' ? match.home_team_name : match.away_team_name}</td>
+                    <td className="p-0.5 sm:p-1">{typeLabels[ev.event_type] || ev.event_type}</td>
+                    <td className="p-0.5 sm:p-1 text-foreground">{ev.player_name} {ev.details && `(${ev.details})`}</td>
                   </tr>
                 ))}
               </tbody>
