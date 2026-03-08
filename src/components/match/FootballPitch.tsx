@@ -88,15 +88,19 @@ function PlayerDot({
       }}
       onPointerDown={!readOnly && onDragStart ? (e) => onDragStart(player.slotIndex, e) : undefined}
     >
-      {/* Circle with dorsal */}
+      {/* Circle with photo or dorsal */}
       <div
-        className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold shadow-lg border-2 ${
+        className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold shadow-lg border-2 overflow-hidden ${
           isHome
             ? 'bg-destructive text-destructive-foreground border-destructive-foreground/30'
             : 'bg-accent text-accent-foreground border-accent-foreground/30'
         }`}
       >
-        {player.dorsal || (player.slotIndex % 100) + 1}
+        {player.photoUrl ? (
+          <img src={player.photoUrl} alt={player.playerName} className="w-full h-full object-cover" />
+        ) : (
+          player.dorsal || (player.slotIndex % 100) + 1
+        )}
       </div>
       {/* Name */}
       <span className="text-[8px] sm:text-[10px] font-semibold text-white whitespace-nowrap mt-0.5 px-1 py-0 rounded bg-black/60 leading-tight">

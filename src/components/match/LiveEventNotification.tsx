@@ -5,6 +5,7 @@ interface Notification {
   id: number;
   event: MatchEvent;
   visible: boolean;
+  playerPhotoUrl?: string;
 }
 
 const DISPLAY_MS = 4000;
