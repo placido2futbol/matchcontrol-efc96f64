@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Save, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { calcMinutesFromDbEvents } from '@/lib/calcMinutesFromDbEvents';
+import { toast } from 'sonner';
 
 const SANT_PAU_KEY = "SANT PAU D'ORDAL";
 
