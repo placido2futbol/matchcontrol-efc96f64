@@ -490,3 +490,60 @@ function isLight(hex: string): boolean {
   const b = parseInt(c.substring(4, 6), 16);
   return (r * 299 + g * 587 + b * 114) / 1000 > 160;
 }
+
+// Generic draggable element using pointer events (works reliably for ball, labels, etc.)
+function DraggableElement({ x, y, containerRef, onDragEnd, zIndex, children }: {
+  x: number;
+  y: number;
+  containerRef: React.RefObject<HTMLDivElement>;
+  onDragEnd: (x: number, y: number) => void;
+  zIndex: number;
+  children: React.ReactNode;
+}) {
+  const startPos = useRef({ x: 0, y: 0 });
+  const startElPos = useRef({ x: 0, y: 0 });
+  const dragging = useRef(false);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dragging.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    startElPos.current = { x, y };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const dx = Math.abs(e.clientX - startPos.current.x);
+    const dy = Math.abs(e.clientY - startPos.current.y);
+    if (dx > 2 || dy > 2) dragging.current = true;
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!containerRef.current || !dragging.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    const newX = Math.max(1, Math.min(99, startElPos.current.x + (dx / rect.width) * 100));
+    const newY = Math.max(1, Math.min(99, startElPos.current.y + (dy / rect.height) * 100));
+    onDragEnd(Math.round(newX), Math.round(newY));
+    dragging.current = false;
+  };
+
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      className="absolute select-none cursor-grab active:cursor-grabbing touch-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: 'translate(-50%, -50%)',
+        zIndex,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
