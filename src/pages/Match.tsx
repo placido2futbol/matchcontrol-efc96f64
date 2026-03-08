@@ -369,6 +369,74 @@ export default function MatchPage() {
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
 
+  const [importingFcf, setImportingFcf] = useState(false);
+
+  const handleImportFCF = async () => {
+    if (!homeTeam?.fcf_url && !awayTeam?.fcf_url) {
+      toast.error('Al menos uno de los equipos debe tener URL de la FCF configurada.');
+      return;
+    }
+
+    setImportingFcf(true);
+    try {
+      const teamUrl = homeTeam?.fcf_url || awayTeam?.fcf_url;
+      const { data, error } = await supabase.functions.invoke('fcf-scrape-match', {
+        body: { 
+          teamPageUrl: teamUrl,
+          homeTeamName: homeTeam?.name,
+          awayTeamName: awayTeam?.name 
+        },
+      });
+
+      if (error || !data?.success) {
+        toast.error(data?.error || 'Error al obtener el acta');
+        return;
+      }
+
+      if (data.matchData) {
+        // Map players from the scraped data
+        if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
+          const newHomePlayers = [...homePlayers];
+          data.matchData.homePlayers.forEach((p: any, i: number) => {
+            if (i < newHomePlayers.length) {
+              newHomePlayers[i] = {
+                ...newHomePlayers[i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: p.isStarter
+              };
+            }
+          });
+          setHomePlayers(newHomePlayers);
+        }
+
+        if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
+          const newAwayPlayers = [...awayPlayers];
+          data.matchData.awayPlayers.forEach((p: any, i: number) => {
+            if (i < newAwayPlayers.length) {
+              newAwayPlayers[i] = {
+                ...newAwayPlayers[i],
+                playerName: p.name,
+                dorsal: p.dorsal,
+                isStarter: p.isStarter
+              };
+            }
+          });
+          setAwayPlayers(newAwayPlayers);
+        }
+        
+        toast.success('Acta importada correctamente');
+      } else {
+        toast.error('No se encontró el acta para este partido');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Error de conexión');
+    } finally {
+      setImportingFcf(false);
+    }
+  };
+
   const saveMatch = async (status: 'in_progress' | 'finished') => {
     if (!user) return;
     setSaving(true);
