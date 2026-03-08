@@ -51,6 +51,9 @@ export default function TacticalBoard() {
   const [sharing, setSharing] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
   const [boardCrest, setBoardCrest] = useState<string | null>(null);
+  const [playingFrames, setPlayingFrames] = useState(false);
+  const [activeFrameIndex, setActiveFrameIndex] = useState<number | null>(null);
+  const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleShare = useCallback(async () => {
     if (!user) {
