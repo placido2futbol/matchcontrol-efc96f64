@@ -53,7 +53,7 @@ export default function Teams() {
     setCrestUrl(fcf.crest);
     setKitUrl(fcf.kit);
     setFcfUrl(fcf.fcf);
-    setPlayers(fcf.players.map(p => ({ name: p, dorsal: '' })));
+    setPlayers(fcf.players.map(p => ({ name: p, dorsal: '', photo_url: '' })));
   };
 
   const handleKitImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
