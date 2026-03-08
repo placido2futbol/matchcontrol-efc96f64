@@ -54,8 +54,8 @@ export default function PlayerRow({
           value={player.playerName || '__none__'}
           onValueChange={(v) => onSelectPlayer(player.slotIndex, v === '__none__' ? '' : v)}
         >
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="Selecciona" />
+          <SelectTrigger className="h-7 sm:h-8 text-xs min-w-[90px]">
+            <SelectValue placeholder="Jugador" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__none__">-- Selecciona --</SelectItem>
@@ -72,50 +72,53 @@ export default function PlayerRow({
         </Select>
       </td>
       {showDorsal && (
-        <td className="p-1">
+        <td className="p-0.5 sm:p-1">
           <Input
             value={player.dorsal}
             onChange={e => onDorsalChange(player.slotIndex, e.target.value)}
             placeholder="Nº"
-            className="h-8 w-14 text-xs text-center"
+            className="h-7 sm:h-8 w-10 sm:w-14 text-xs text-center"
           />
         </td>
       )}
-      <td className="p-1 text-center">
+      <td className="p-0.5 sm:p-1 text-center">
         <Checkbox
           checked={player.yellowCard1}
           onCheckedChange={(v) => onYellowCard1(player.slotIndex, !!v)}
+          className="h-4 w-4"
         />
       </td>
-      <td className="p-1 text-center">
+      <td className="p-0.5 sm:p-1 text-center">
         <Checkbox
           checked={player.yellowCard2}
           onCheckedChange={(v) => onYellowCard2(player.slotIndex, !!v)}
+          className="h-4 w-4"
         />
       </td>
-      <td className="p-1 text-center">
+      <td className="p-0.5 sm:p-1 text-center">
         <Checkbox
           checked={player.redCard}
           onCheckedChange={(v) => onRedCard(player.slotIndex, !!v)}
+          className="h-4 w-4"
         />
       </td>
-      <td className="p-1">
-        <div className="flex items-center justify-center gap-1">
-          <Button size="xs" variant="destructive" onClick={() => onGoal(player.slotIndex, -1)}>
+      <td className="p-0.5 sm:p-1">
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+          <Button size="xs" variant="destructive" onClick={() => onGoal(player.slotIndex, -1)} className="h-6 w-6 sm:h-7 sm:w-7 p-0">
             <Minus className="h-3 w-3" />
           </Button>
-          <span className="px-2 text-sm font-bold text-foreground">{player.goals}</span>
-          <Button size="xs" variant="success" onClick={() => onGoal(player.slotIndex, 1)}>
+          <span className="px-1 sm:px-2 text-xs sm:text-sm font-bold text-foreground">{player.goals}</span>
+          <Button size="xs" variant="success" onClick={() => onGoal(player.slotIndex, 1)} className="h-6 w-6 sm:h-7 sm:w-7 p-0">
             <Plus className="h-3 w-3" />
           </Button>
         </div>
       </td>
-      <td className="p-1">
-        <div className="flex gap-1">
-          <Button size="xs" variant="success" onClick={() => onSub(player.slotIndex, 'in')}>
+      <td className="p-0.5 sm:p-1">
+        <div className="flex gap-0.5 sm:gap-1">
+          <Button size="xs" variant="success" onClick={() => onSub(player.slotIndex, 'in')} className="h-6 w-6 sm:h-7 sm:w-7 p-0">
             <ArrowDownToLine className="h-3 w-3" />
           </Button>
-          <Button size="xs" variant="warning" onClick={() => onSub(player.slotIndex, 'out')}>
+          <Button size="xs" variant="warning" onClick={() => onSub(player.slotIndex, 'out')} className="h-6 w-6 sm:h-7 sm:w-7 p-0">
             <ArrowUpFromLine className="h-3 w-3" />
           </Button>
         </div>

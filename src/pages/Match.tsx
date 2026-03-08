@@ -470,25 +470,29 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-4">
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 space-y-4">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="ghost" onClick={() => navigate('/')}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
-        </Button>
-        <h1 className="font-display text-xl text-foreground">
-          {existingMatchId ? 'Editar Partido' : 'Nuevo Partido'}
-        </h1>
-        <div className="ml-auto flex gap-2">
-          <Button variant="outline" onClick={handleCopyLink}>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+          </Button>
+          <h1 className="font-display text-lg sm:text-xl text-foreground">
+            {existingMatchId ? 'Editar Partido' : 'Nuevo Partido'}
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <Button variant="outline" size="sm" onClick={handleCopyLink}>
             {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
-            {copied ? 'Copiado' : 'Compartir en directo'}
+            <span className="hidden xs:inline">{copied ? 'Copiado' : 'Compartir'}</span>
           </Button>
-          <Button variant="outline" onClick={() => saveMatch('in_progress')} disabled={saving}>
-            <Save className="h-4 w-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar Partido'}
+          <Button variant="outline" size="sm" onClick={() => saveMatch('in_progress')} disabled={saving}>
+            <Save className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">{saving ? 'Guardando...' : 'Guardar'}</span>
+            <span className="sm:hidden">{saving ? '...' : 'Guardar'}</span>
           </Button>
-          <Button onClick={() => saveMatch('finished')} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Flag className="h-4 w-4 mr-1" /> Finalizar Partido
+          <Button size="sm" onClick={() => saveMatch('finished')} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Flag className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Finalizar Partido</span>
+            <span className="sm:hidden">Finalizar</span>
           </Button>
         </div>
       </div>

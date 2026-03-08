@@ -130,15 +130,17 @@ export default function MatchDetail() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4 print:p-2">
-      <div className="flex items-center gap-2 print:hidden">
-        <Button variant="ghost" onClick={() => navigate('/')}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
-        </Button>
-        <h1 className="font-display text-xl text-foreground">
-          <FileText className="inline h-5 w-5 mr-1" /> Detalle del Partido
-        </h1>
-        <Button variant="outline" className="ml-auto" onClick={handlePrint}>
+    <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4 print:p-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 print:hidden">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+          </Button>
+          <h1 className="font-display text-lg sm:text-xl text-foreground">
+            <FileText className="inline h-5 w-5 mr-1" /> Detalle del Partido
+          </h1>
+        </div>
+        <Button variant="outline" size="sm" className="sm:ml-auto w-fit" onClick={handlePrint}>
           <Printer className="h-4 w-4 mr-1" /> Imprimir / PDF
         </Button>
       </div>

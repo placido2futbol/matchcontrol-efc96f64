@@ -70,24 +70,24 @@ export default function Dashboard() {
   const matchToDelete = matches.find(m => m.id === deleteId);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-foreground">⚽ MatchControl</h1>
+        <h1 className="font-display text-xl sm:text-2xl text-foreground">⚽ MatchControl</h1>
         <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut className="h-4 w-4 mr-1" /> Salir
+          <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Salir</span>
         </Button>
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-3 gap-3">
-        <Button onClick={() => navigate('/match')} className="h-16 text-base">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+        <Button onClick={() => navigate('/match')} className="h-12 sm:h-16 text-sm sm:text-base">
           <Plus className="h-5 w-5 mr-2" /> Nuevo Partido
         </Button>
-        <Button variant="outline" onClick={() => navigate('/teams')} className="h-16 text-base">
+        <Button variant="outline" onClick={() => navigate('/teams')} className="h-12 sm:h-16 text-sm sm:text-base">
           <Users className="h-5 w-5 mr-2" /> Gestión Equipos
         </Button>
-        <Button variant="outline" onClick={() => navigate('/sant-pau-stats')} className="h-16 text-base">
+        <Button variant="outline" onClick={() => navigate('/sant-pau-stats')} className="h-12 sm:h-16 text-sm sm:text-base">
           <BarChart3 className="h-5 w-5 mr-2" /> Estadísticas SP
         </Button>
       </div>
