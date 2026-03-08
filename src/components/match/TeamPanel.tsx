@@ -33,8 +33,7 @@ export default function TeamPanel({
   onRedCard,
   onSub,
 }: TeamPanelProps) {
-  const isSantPau = SANT_PAU_PATTERN.test(title);
-  const showDorsal = !isSantPau;
+  const showDorsal = true;
 
   const renderTable = (players: MatchPlayer[], label: string) => (
     <div className="mb-4">
