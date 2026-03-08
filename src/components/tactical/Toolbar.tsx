@@ -2,14 +2,16 @@ import { DrawingTool } from './types';
 import { Button } from '@/components/ui/button';
 import {
   MousePointer2, ArrowRight, Spline, Minus, MoreHorizontal, Pencil, Eraser, Trash2,
-  Maximize, Type, Circle, UserPlus, Shield
+  Maximize, Type, Circle, UserPlus, Shield, X
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
 
 interface ToolbarProps {
   tool: DrawingTool;
@@ -21,7 +23,8 @@ interface ToolbarProps {
   onAddAwayPlayer: () => void;
   onFullscreen: () => void;
   showCrest?: boolean;
-  onToggleCrest?: () => void;
+  crestUrl?: string;
+  onSelectCrest?: (url: string | null) => void;
 }
 
 const TOOLS: { tool: DrawingTool; icon: React.ReactNode; label: string }[] = [
@@ -41,7 +44,7 @@ const COLORS = ['#ffffff', '#ff4444', '#4488ff', '#ffcc00', '#00cc66', '#ff8800'
 export default function Toolbar({
   tool, onToolChange, drawColor, onDrawColorChange,
   onClearDrawings, onAddHomePlayer, onAddAwayPlayer, onFullscreen,
-  showCrest, onToggleCrest,
+  showCrest, crestUrl, onSelectCrest,
 }: ToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 bg-card border border-border rounded-xl shadow-lg">
@@ -109,17 +112,50 @@ export default function Toolbar({
         <UserPlus className="h-3.5 w-3.5" />
       </Button>
 
-      {/* Crest toggle */}
-      {onToggleCrest && (
-        <Button
-          variant="outline"
-          size="icon"
-          className={`h-8 w-8 ${showCrest ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-muted text-foreground border-border hover:bg-accent'}`}
-          onClick={onToggleCrest}
-          title={showCrest ? 'Ocultar escudo' : 'Mostrar escudo en campo'}
-        >
-          <Shield className="h-4 w-4" />
-        </Button>
+      {/* Crest dropdown */}
+      {onSelectCrest && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`h-8 w-8 ${showCrest ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-muted text-foreground border-border hover:bg-accent'}`}
+              title="Escudo en campo"
+            >
+              {showCrest && crestUrl ? (
+                <img src={crestUrl} alt="" className="w-5 h-5 object-contain" />
+              ) : (
+                <Shield className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto w-64">
+            {showCrest && (
+              <>
+                <DropdownMenuItem onClick={() => onSelectCrest(null)} className="text-destructive gap-2 text-xs">
+                  <X className="h-3.5 w-3.5" />
+                  Quitar escudo
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            {FCF_EQUIPOS_DB.map(team => (
+              <DropdownMenuItem
+                key={team.name}
+                onClick={() => onSelectCrest(team.crest)}
+                className={`gap-2 text-xs ${crestUrl === team.crest ? 'bg-primary/10' : ''}`}
+              >
+                <img
+                  src={team.crest}
+                  alt={team.name}
+                  className="w-6 h-6 object-contain shrink-0"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <span className="truncate">{team.name}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       <div className="flex-1" />

@@ -287,7 +287,14 @@ export default function TacticalBoard() {
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
           showCrest={activeScene.showCrest}
-          onToggleCrest={() => updateScene(s => ({ ...s, showCrest: !s.showCrest }))}
+          crestUrl={activeScene.crestUrl}
+          onSelectCrest={(url) => {
+            if (url === null) {
+              updateScene(s => ({ ...s, showCrest: false, crestUrl: undefined }));
+            } else {
+              updateScene(s => ({ ...s, showCrest: true, crestUrl: url }));
+            }
+          }}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
@@ -350,10 +357,10 @@ export default function TacticalBoard() {
             {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
 
             {/* Club crest watermark */}
-            {activeScene.showCrest && (
+            {activeScene.showCrest && activeScene.crestUrl && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 5 }}>
                 <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
+                  src={activeScene.crestUrl}
                   alt="Escudo"
                   className="w-[45%] max-w-[280px] h-auto object-contain"
                   style={{ opacity: 0.12, filter: 'grayscale(20%)' }}
