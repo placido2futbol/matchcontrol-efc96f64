@@ -77,27 +77,32 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 3: FALTA LATERAL EN CONTRA =====
     {
       id: generateId(),
-      name: 'Falta lateral en contra',
+      name: 'FALTA LATERAL EN CONTRA',
       players: [
         p('PORTERO', 1, PINK, 10, 8),
         p('ISAAC', 2, BLUE, 12, 25),
-        // Barrera numerada
         p('JUAN', 2, BLUE, 22, 32),
         p('GARCI', 3, BLUE, 26, 32),
         p('FELIU', 4, BLUE, 30, 32),
         p('ARNAU', 5, BLUE, 34, 32),
-        // Rival con balón
         p('RIVAL', 0, RED, 14, 45),
-        // Laterales atrás
         p('MANU', 6, BLUE, 25, 78),
         p('BIEL', 7, BLUE, 48, 78),
       ],
       drawings: [],
       labels: [
-        label('FALTA LATERAL EN CONTRA', 78, 6, 'lg'),
         label('BARRERA', 38, 38, 'sm', 'transparent', '#ffffff'),
       ],
       ball: { x: 18, y: 42, visible: true },
+      legend: {
+        title: 'BARRERA',
+        entries: [
+          { number: 2, name: 'JUAN' },
+          { number: 3, name: 'GARCI' },
+          { number: 4, name: 'FELIU' },
+          { number: 5, name: 'ARNAU' },
+        ],
+      },
     },
 
     // ===== ESCENA 4: FALTA FRONTAL EN CONTRA =====
