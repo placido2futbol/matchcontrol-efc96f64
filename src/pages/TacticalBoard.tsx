@@ -226,7 +226,17 @@ export default function TacticalBoard() {
 
       {/* Roster panel */}
       <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
-        <RosterPanel onAddPlayer={handleAddFromRoster} />
+        <RosterPanel onAddPlayer={handleSelectFromRoster} />
+        {pendingRoster && (
+          <div className="flex items-center gap-2 py-1 px-2 mt-1 rounded-lg bg-primary/10 border border-primary/30 animate-fade-in">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: pendingRoster.color || '#3B82F6' }}>
+              {pendingRoster.number}
+            </div>
+            <span className="text-xs font-semibold text-primary">{pendingRoster.name}</span>
+            <span className="text-[10px] text-muted-foreground">← Haz clic en el campo para colocarlo</span>
+            <button onClick={() => setPendingRoster(null)} className="ml-auto text-[10px] text-muted-foreground hover:text-destructive">✕</button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
