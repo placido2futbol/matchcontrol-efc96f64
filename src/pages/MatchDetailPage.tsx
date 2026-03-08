@@ -98,45 +98,49 @@ export default function MatchDetail() {
   const renderPlayerTable = (teamPlayers: MatchPlayerRow[], label: string) => (
     <div>
       <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
-      <table className="w-full text-xs border border-border">
-        <thead>
-          <tr className="bg-muted">
-            <th className="p-1 text-left text-muted-foreground">Nº</th>
-            <th className="p-1 text-left text-muted-foreground">Jugador</th>
-            <th className="p-1 text-center text-muted-foreground">Titular</th>
-            <th className="p-1 text-center text-muted-foreground">Goles</th>
-            <th className="p-1 text-center text-muted-foreground">Amarillas</th>
-            <th className="p-1 text-center text-muted-foreground">Roja</th>
-            <th className="p-1 text-center text-muted-foreground">Min</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teamPlayers.map(p => (
-            <tr key={p.id} className="border-b border-border">
-              <td className="p-1 text-muted-foreground">{p.dorsal || '-'}</td>
-              <td className="p-1 text-foreground">{p.player_name}</td>
-              <td className="p-1 text-center">{p.is_starter ? '✓' : ''}</td>
-              <td className="p-1 text-center font-bold">{p.goals || ''}</td>
-              <td className="p-1 text-center">{p.yellow_cards || ''}</td>
-              <td className="p-1 text-center">{p.red_card ? '🟥' : ''}</td>
-              <td className="p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
+      <div className="overflow-x-auto -mx-2 px-2">
+        <table className="w-full text-[10px] sm:text-xs border border-border" style={{ minWidth: '360px' }}>
+          <thead>
+            <tr className="bg-muted">
+              <th className="p-0.5 sm:p-1 text-left text-muted-foreground">Nº</th>
+              <th className="p-0.5 sm:p-1 text-left text-muted-foreground">Jugador</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Tit</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Gol</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">TA</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">TR</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Min</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teamPlayers.map(p => (
+              <tr key={p.id} className="border-b border-border">
+                <td className="p-0.5 sm:p-1 text-muted-foreground">{p.dorsal || '-'}</td>
+                <td className="p-0.5 sm:p-1 text-foreground">{p.player_name}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.is_starter ? '✓' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center font-bold">{p.goals || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.yellow_cards || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.red_card ? '🟥' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4 print:p-2">
-      <div className="flex items-center gap-2 print:hidden">
-        <Button variant="ghost" onClick={() => navigate('/')}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
-        </Button>
-        <h1 className="font-display text-xl text-foreground">
-          <FileText className="inline h-5 w-5 mr-1" /> Detalle del Partido
-        </h1>
-        <Button variant="outline" className="ml-auto" onClick={handlePrint}>
+    <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4 print:p-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 print:hidden">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+          </Button>
+          <h1 className="font-display text-lg sm:text-xl text-foreground">
+            <FileText className="inline h-5 w-5 mr-1" /> Detalle del Partido
+          </h1>
+        </div>
+        <Button variant="outline" size="sm" className="sm:ml-auto w-fit" onClick={handlePrint}>
           <Printer className="h-4 w-4 mr-1" /> Imprimir / PDF
         </Button>
       </div>
@@ -148,16 +152,16 @@ export default function MatchDetail() {
 
       {/* Score */}
       <Card>
-        <CardContent className="py-6 text-center">
+        <CardContent className="py-4 sm:py-6 text-center">
           <div className="text-xs text-muted-foreground mb-1">
             {match.match_date || 'Sin fecha'} {match.match_time || ''}
           </div>
-          <div className="flex items-center justify-center gap-4">
-            <span className="font-bold text-foreground">{match.home_team_name}</span>
-            <span className="font-display text-3xl text-foreground">
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <span className="font-bold text-sm sm:text-base text-foreground truncate max-w-[100px] sm:max-w-none">{match.home_team_name}</span>
+            <span className="font-display text-2xl sm:text-3xl text-foreground whitespace-nowrap">
               {match.home_score} - {match.away_score}
             </span>
-            <span className="font-bold text-foreground">{match.away_team_name}</span>
+            <span className="font-bold text-sm sm:text-base text-foreground truncate max-w-[100px] sm:max-w-none">{match.away_team_name}</span>
           </div>
           {match.halftime_result && (
             <div className="text-xs text-muted-foreground mt-1">Descanso: {match.halftime_result}</div>
@@ -177,23 +181,23 @@ export default function MatchDetail() {
           <CardHeader className="py-3">
             <CardTitle className="text-sm font-display">Incidencias</CardTitle>
           </CardHeader>
-          <CardContent className="py-2">
-            <table className="w-full text-xs border border-border">
+          <CardContent className="py-2 overflow-x-auto">
+            <table className="w-full text-[10px] sm:text-xs border border-border" style={{ minWidth: '320px' }}>
               <thead>
                 <tr className="bg-muted">
-                  <th className="p-1 text-muted-foreground">Min</th>
-                  <th className="p-1 text-muted-foreground">Equipo</th>
-                  <th className="p-1 text-muted-foreground">Tipo</th>
-                  <th className="p-1 text-muted-foreground">Detalle</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Min</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Equipo</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Tipo</th>
+                  <th className="p-0.5 sm:p-1 text-muted-foreground">Detalle</th>
                 </tr>
               </thead>
               <tbody>
                 {events.map(ev => (
                   <tr key={ev.id} className="border-b border-border">
-                    <td className="p-1 text-center text-foreground">{ev.minute}'</td>
-                    <td className="p-1 text-foreground">{ev.team_side === 'home' ? match.home_team_name : match.away_team_name}</td>
-                    <td className="p-1">{typeLabels[ev.event_type] || ev.event_type}</td>
-                    <td className="p-1 text-foreground">{ev.player_name} {ev.details && `(${ev.details})`}</td>
+                    <td className="p-0.5 sm:p-1 text-center text-foreground">{ev.minute}'</td>
+                    <td className="p-0.5 sm:p-1 text-foreground">{ev.team_side === 'home' ? match.home_team_name : match.away_team_name}</td>
+                    <td className="p-0.5 sm:p-1">{typeLabels[ev.event_type] || ev.event_type}</td>
+                    <td className="p-0.5 sm:p-1 text-foreground">{ev.player_name} {ev.details && `(${ev.details})`}</td>
                   </tr>
                 ))}
               </tbody>
