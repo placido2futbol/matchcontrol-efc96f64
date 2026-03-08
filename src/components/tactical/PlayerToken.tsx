@@ -7,6 +7,8 @@ interface PlayerTokenProps {
   onDragEnd: (id: string, x: number, y: number) => void;
   onClick: (player: TacticalPlayer) => void;
   isSelected: boolean;
+  animating?: boolean;
+  overridePos?: { x: number; y: number };
 }
 
 export default function PlayerToken({ player, containerRef, onDragEnd, onClick, isSelected }: PlayerTokenProps) {
