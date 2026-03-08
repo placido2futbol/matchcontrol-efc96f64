@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
   const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
+  const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
   const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
     return (localStorage.getItem('mc_bg_type') as any) || 'default';
   });
