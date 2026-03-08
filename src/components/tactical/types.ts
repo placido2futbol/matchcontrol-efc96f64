@@ -53,6 +53,7 @@ export interface TacticalScene {
   ball: BallPosition;
   legend?: SceneLegend;
   halfPitch?: boolean;
+  titlePos?: { x: number; y: number };
 }
 
 export type DrawingTool = 'select' | 'arrow' | 'curved-arrow' | 'line' | 'dashed' | 'free' | 'eraser' | 'label' | 'ball';
