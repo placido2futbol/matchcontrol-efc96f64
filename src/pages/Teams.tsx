@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, X, ImagePlus, Loader2, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import KitDisplay from '@/components/match/KitDisplay';
@@ -26,6 +26,7 @@ export default function Teams() {
   const [fcfUrl, setFcfUrl] = useState('');
   const [players, setPlayers] = useState<{ name: string; dorsal: string; photo_url: string }[]>([{ name: '', dorsal: '', photo_url: '' }]);
   const kitFileRef = useRef<HTMLInputElement>(null);
+  const [scrapingDorsals, setScrapingDorsals] = useState(false);
 
   const openNew = () => {
     setEditId(undefined);
@@ -84,6 +85,65 @@ export default function Teams() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Seguro que quieres eliminar este equipo?')) return;
     await deleteTeam(id);
+  };
+
+  const handleScrapeDorsals = async () => {
+    if (!fcfUrl) {
+      toast.error('Se necesita la URL de la FCF del equipo');
+      return;
+    }
+    setScrapingDorsals(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fcf-scrape-dorsals', {
+        body: { teamPageUrl: fcfUrl },
+      });
+
+      if (error || !data?.success) {
+        toast.error(data?.error || 'Error al obtener dorsales');
+        return;
+      }
+
+      // Find matching team in results
+      const teamResults = data.teams as { teamName: string; players: { name: string; dorsal: string }[] }[];
+      
+      // Try to match by team name
+      let matchedTeam = teamResults.find(t => 
+        t.teamName.toUpperCase() === name.toUpperCase()
+      );
+      
+      // If no exact match, try partial
+      if (!matchedTeam) {
+        matchedTeam = teamResults.find(t =>
+          name.toUpperCase().includes(t.teamName.toUpperCase().split(',')[0]) ||
+          t.teamName.toUpperCase().includes(name.toUpperCase().split(',')[0])
+        );
+      }
+
+      if (!matchedTeam || matchedTeam.players.length === 0) {
+        toast.error('No se encontraron dorsales para este equipo');
+        return;
+      }
+
+      // Update dorsals in current player list
+      const dorsalMap = new Map(matchedTeam.players.map(p => [p.name.toUpperCase().trim(), p.dorsal]));
+      
+      const updatedPlayers = players.map(p => {
+        const dorsal = dorsalMap.get(p.name.toUpperCase().trim());
+        if (dorsal && !p.dorsal) {
+          return { ...p, dorsal };
+        }
+        return p;
+      });
+
+      setPlayers(updatedPlayers);
+      const filled = updatedPlayers.filter((p, i) => p.dorsal && !players[i].dorsal).length;
+      toast.success(`Dorsales actualizados: ${filled} jugadores (de ${data.actasScraped} actas)`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al conectar con el servicio');
+    } finally {
+      setScrapingDorsals(false);
+    }
   };
 
   return (
@@ -188,7 +248,24 @@ export default function Teams() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground">Jugadores</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-foreground">Jugadores</label>
+                {fcfUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleScrapeDorsals}
+                    disabled={scrapingDorsals}
+                    className="text-xs h-7"
+                  >
+                    {scrapingDorsals ? (
+                      <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Buscando...</>
+                    ) : (
+                      <><Download className="h-3 w-3 mr-1" /> Importar dorsales (FCF)</>
+                    )}
+                  </Button>
+                )}
+              </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {players.map((p, i) => (
                   <div key={i} className="flex gap-1 items-center">
