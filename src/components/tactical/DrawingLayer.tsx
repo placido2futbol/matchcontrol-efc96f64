@@ -21,7 +21,7 @@ function getRelativePos(e: React.MouseEvent, container: HTMLDivElement) {
 const VB_FULL = { w: 1050, h: 680 };
 const VB_HALF = { w: 1050, h: 750 };
 
-function renderPath(path: DrawingPath) {
+function renderPath(path: DrawingPath, VB: { w: number; h: number }) {
   const pts = path.points.map(p => ({ x: (p.x / 100) * VB.w, y: (p.y / 100) * VB.h }));
   if (pts.length < 2) return null;
 
