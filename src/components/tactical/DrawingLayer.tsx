@@ -7,6 +7,7 @@ interface DrawingLayerProps {
   tool: DrawingTool;
   drawColor: string;
   containerRef: React.RefObject<HTMLDivElement>;
+  halfPitch?: boolean;
 }
 
 function getRelativePos(e: React.MouseEvent, container: HTMLDivElement) {
