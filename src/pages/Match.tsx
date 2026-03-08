@@ -294,7 +294,11 @@ export default function MatchPage() {
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
         <h1 className="font-display text-xl text-foreground">Nuevo Partido</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" onClick={handleCopyLink}>
+            {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
+            {copied ? 'Copiado' : 'Compartir en directo'}
+          </Button>
           <Button onClick={saveMatch} disabled={saving}>
             <Save className="h-4 w-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar Partido'}
           </Button>
