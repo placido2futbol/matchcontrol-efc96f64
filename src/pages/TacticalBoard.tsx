@@ -213,6 +213,11 @@ export default function TacticalBoard() {
         />
       </div>
 
+      {/* Roster panel */}
+      <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
+        <RosterPanel onAddPlayer={handleAddFromRoster} />
+      </div>
+
       {/* Main content */}
       <div className="flex-1 flex gap-2 p-2 min-h-0">
         {/* Left sidebar - Scenes */}
