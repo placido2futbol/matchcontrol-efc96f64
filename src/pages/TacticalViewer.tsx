@@ -279,7 +279,7 @@ export default function TacticalViewer() {
                   top: `${pos.y}%`,
                   transform: 'translate(-50%, -50%)',
                   zIndex: 20,
-                  transition: playingFrames ? 'left 0.8s ease, top 0.8s ease' : undefined,
+                  transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
                 }}
               >
                 <div
