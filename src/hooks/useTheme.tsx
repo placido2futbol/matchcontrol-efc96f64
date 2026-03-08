@@ -80,6 +80,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
   const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
   const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
+  const [bgCustomImage, _setBgCustomImage] = useState(() => localStorage.getItem('mc_bg_custom_image') || '');
+
+  const setBgCustomImage = (value: string) => {
+    _setBgCustomImage(value);
+    localStorage.setItem('mc_bg_custom_image', value);
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
