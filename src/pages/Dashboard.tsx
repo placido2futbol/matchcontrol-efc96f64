@@ -253,7 +253,7 @@ export default function Dashboard() {
                 {(bgCrest || bgCustomImage) && (
                   <div>
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                      <Sun className="h-3.5 w-3.5" /> Transparencia escudo
+                      <Sun className="h-3.5 w-3.5" /> Transparencia imagen
                     </span>
                     <div className="flex gap-1">
                       {OPACITY_OPTIONS.map(o => (
