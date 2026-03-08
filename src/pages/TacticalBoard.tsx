@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -168,6 +167,10 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, labels: s.labels.filter(l => l.id !== id) }));
   }, [updateScene]);
 
+  const handleLabelDragEnd = useCallback((id: string, x: number, y: number) => {
+    updateScene(s => ({ ...s, labels: s.labels.map(l => l.id === id ? { ...l, x, y } : l) }));
+  }, [updateScene]);
+
   // Scenes
   const handleAddScene = useCallback(() => {
     const newScene = createEmptyScene(`Escena ${scenes.length + 1}`);
@@ -281,28 +284,17 @@ export default function TacticalBoard() {
 
             {/* Ball (draggable) */}
             {activeScene.ball.visible && (
-              <motion.div
-                drag
-                dragMomentum={false}
-                onDragEnd={(_: any, info: any) => {
-                  if (!pitchRef.current) return;
-                  const rect = pitchRef.current.getBoundingClientRect();
-                  const x = Math.max(2, Math.min(98, ((info.point.x - rect.left) / rect.width) * 100));
-                  const y = Math.max(2, Math.min(98, ((info.point.y - rect.top) / rect.height) * 100));
-                  updateScene(s => ({ ...s, ball: { x, y, visible: true } }));
-                }}
-                className="absolute cursor-grab active:cursor-grabbing"
-                style={{
-                  left: `${activeScene.ball.x}%`,
-                  top: `${activeScene.ball.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 15,
-                }}
+              <DraggableElement
+                x={activeScene.ball.x}
+                y={activeScene.ball.y}
+                containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+                onDragEnd={(x, y) => updateScene(s => ({ ...s, ball: { x, y, visible: true } }))}
+                zIndex={15}
               >
                 <div className="w-7 h-7 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
                   <span className="text-[11px]">⚽</span>
                 </div>
-              </motion.div>
+              </DraggableElement>
             )}
 
             {/* Scene title overlay with crest (top-right, like PPT reference) */}
@@ -347,23 +339,21 @@ export default function TacticalBoard() {
             )}
 
 
-            {/* Text labels */}
+            {/* Text labels (draggable) */}
             {activeScene.labels.map(label => (
-              <div
+              <DraggableElement
                 key={label.id}
-                className="absolute select-none group"
-                style={{
-                  left: `${label.x}%`,
-                  top: `${label.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 12,
-                }}
+                x={label.x}
+                y={label.y}
+                containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+                onDragEnd={(x, y) => handleLabelDragEnd(label.id, x, y)}
+                zIndex={12}
               >
                 <span
-                  className="whitespace-nowrap cursor-default"
+                  className="whitespace-nowrap cursor-grab active:cursor-grabbing group relative"
                   style={{
                     color: label.color,
-                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 11 : 10,
+                    fontSize: label.fontSize === 'lg' ? 16 : label.fontSize === 'md' ? 12 : 10,
                     fontWeight: 900,
                     fontFamily: "'Russo One', 'Arial Black', sans-serif",
                     textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
@@ -373,16 +363,16 @@ export default function TacticalBoard() {
                   }}
                 >
                   {label.text}
+                  {tool === 'eraser' && (
+                    <button
+                      className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); handleRemoveLabel(label.id); }}
+                    >
+                      ×
+                    </button>
+                  )}
                 </span>
-                {tool === 'eraser' && (
-                  <button
-                    className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-destructive text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => { e.stopPropagation(); handleRemoveLabel(label.id); }}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
+              </DraggableElement>
             ))}
 
             {/* Label input popup */}
@@ -499,4 +489,61 @@ function isLight(hex: string): boolean {
   const g = parseInt(c.substring(2, 4), 16);
   const b = parseInt(c.substring(4, 6), 16);
   return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+}
+
+// Generic draggable element using pointer events (works reliably for ball, labels, etc.)
+function DraggableElement({ x, y, containerRef, onDragEnd, zIndex, children }: {
+  x: number;
+  y: number;
+  containerRef: React.RefObject<HTMLDivElement>;
+  onDragEnd: (x: number, y: number) => void;
+  zIndex: number;
+  children: React.ReactNode;
+}) {
+  const startPos = useRef({ x: 0, y: 0 });
+  const startElPos = useRef({ x: 0, y: 0 });
+  const dragging = useRef(false);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dragging.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    startElPos.current = { x, y };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const dx = Math.abs(e.clientX - startPos.current.x);
+    const dy = Math.abs(e.clientY - startPos.current.y);
+    if (dx > 2 || dy > 2) dragging.current = true;
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!containerRef.current || !dragging.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    const newX = Math.max(1, Math.min(99, startElPos.current.x + (dx / rect.width) * 100));
+    const newY = Math.max(1, Math.min(99, startElPos.current.y + (dy / rect.height) * 100));
+    onDragEnd(Math.round(newX), Math.round(newY));
+    dragging.current = false;
+  };
+
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      className="absolute select-none cursor-grab active:cursor-grabbing touch-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: 'translate(-50%, -50%)',
+        zIndex,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
