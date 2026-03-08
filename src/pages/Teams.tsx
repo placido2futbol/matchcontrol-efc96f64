@@ -15,6 +15,7 @@ import KitDisplay from '@/components/match/KitDisplay';
 
 export default function Teams() {
   const { teams, loading, saveTeam, deleteTeam } = useTeams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
