@@ -8,6 +8,7 @@ import PlayerToken from '@/components/tactical/PlayerToken';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
+import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
