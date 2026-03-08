@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { calcMinutesFromDbEvents } from '@/lib/calcMinutesFromDbEvents';
 
 const SANT_PAU_KEY = "SANT PAU D'ORDAL";
 
@@ -14,6 +15,7 @@ interface MatchInfo {
   away_team_name: string;
   home_score: number;
   away_score: number;
+  total_seconds: number;
 }
 
 interface PlayerMatchStats {
@@ -27,6 +29,15 @@ interface PlayerAccum {
   [matchId: string]: PlayerMatchStats;
 }
 
+interface EventRow {
+  match_id: string;
+  event_type: string;
+  details: string | null;
+  minute: number;
+  team_side: string;
+  player_name: string | null;
+}
+
 export default function SantPauGlobalStats() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -37,10 +48,9 @@ export default function SantPauGlobalStats() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      // Get all matches where Sant Pau played
       const { data: allMatches } = await supabase
         .from('matches')
-        .select('id, match_date, home_team_name, away_team_name, home_score, away_score')
+        .select('id, match_date, home_team_name, away_team_name, home_score, away_score, total_seconds')
         .eq('user_id', user.id)
         .order('match_date', { ascending: true });
 
@@ -48,7 +58,7 @@ export default function SantPauGlobalStats() {
         m =>
           m.home_team_name.toUpperCase().includes(SANT_PAU_KEY) ||
           m.away_team_name.toUpperCase().includes(SANT_PAU_KEY)
-      );
+      ) as MatchInfo[];
 
       if (spMatches.length === 0) {
         setMatches([]);
@@ -58,26 +68,57 @@ export default function SantPauGlobalStats() {
 
       setMatches(spMatches);
 
-      // Get all match_players for those matches on Sant Pau's side
       const matchIds = spMatches.map(m => m.id);
-      const { data: players } = await supabase
-        .from('match_players')
-        .select('match_id, player_name, minutes_played, goals, yellow_cards, red_card, team_side')
-        .in('match_id', matchIds);
 
-      // Build lookup: which side is Sant Pau for each match
+      // Fetch players and events in parallel
+      const [{ data: players }, { data: events }] = await Promise.all([
+        supabase
+          .from('match_players')
+          .select('match_id, player_name, goals, yellow_cards, red_card, team_side, is_starter')
+          .in('match_id', matchIds),
+        supabase
+          .from('match_events')
+          .select('match_id, event_type, details, minute, team_side, player_name')
+          .in('match_id', matchIds)
+          .order('minute'),
+      ]);
+
+      // Build side map and total_seconds map
       const sideMap: Record<string, string> = {};
+      const secondsMap: Record<string, number> = {};
       spMatches.forEach(m => {
         sideMap[m.id] = m.home_team_name.toUpperCase().includes(SANT_PAU_KEY) ? 'home' : 'away';
+        secondsMap[m.id] = m.total_seconds;
       });
 
-      // Accumulate
+      // Group events by match_id and side
+      const eventsByMatch: Record<string, EventRow[]> = {};
+      (events || []).forEach(e => {
+        const key = e.match_id;
+        if (!eventsByMatch[key]) eventsByMatch[key] = [];
+        eventsByMatch[key].push(e as EventRow);
+      });
+
+      // Accumulate player stats with recalculated minutes
       const accum: Record<string, PlayerAccum> = {};
       (players || []).forEach(p => {
-        if (p.team_side !== sideMap[p.match_id]) return;
+        const santPauSide = sideMap[p.match_id];
+        if (p.team_side !== santPauSide) return;
+
+        const matchEvents = (eventsByMatch[p.match_id] || []).filter(
+          e => e.team_side === santPauSide
+        );
+
+        const minutes = calcMinutesFromDbEvents(
+          p.player_name,
+          p.is_starter,
+          matchEvents,
+          secondsMap[p.match_id]
+        );
+
         if (!accum[p.player_name]) accum[p.player_name] = {};
         accum[p.player_name][p.match_id] = {
-          minutes_played: p.minutes_played,
+          minutes_played: minutes,
           goals: p.goals,
           yellow_cards: p.yellow_cards,
           red_card: p.red_card,
