@@ -98,32 +98,34 @@ export default function MatchDetail() {
   const renderPlayerTable = (teamPlayers: MatchPlayerRow[], label: string) => (
     <div>
       <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
-      <table className="w-full text-xs border border-border">
-        <thead>
-          <tr className="bg-muted">
-            <th className="p-1 text-left text-muted-foreground">Nº</th>
-            <th className="p-1 text-left text-muted-foreground">Jugador</th>
-            <th className="p-1 text-center text-muted-foreground">Titular</th>
-            <th className="p-1 text-center text-muted-foreground">Goles</th>
-            <th className="p-1 text-center text-muted-foreground">Amarillas</th>
-            <th className="p-1 text-center text-muted-foreground">Roja</th>
-            <th className="p-1 text-center text-muted-foreground">Min</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teamPlayers.map(p => (
-            <tr key={p.id} className="border-b border-border">
-              <td className="p-1 text-muted-foreground">{p.dorsal || '-'}</td>
-              <td className="p-1 text-foreground">{p.player_name}</td>
-              <td className="p-1 text-center">{p.is_starter ? '✓' : ''}</td>
-              <td className="p-1 text-center font-bold">{p.goals || ''}</td>
-              <td className="p-1 text-center">{p.yellow_cards || ''}</td>
-              <td className="p-1 text-center">{p.red_card ? '🟥' : ''}</td>
-              <td className="p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
+      <div className="overflow-x-auto -mx-2 px-2">
+        <table className="w-full text-[10px] sm:text-xs border border-border" style={{ minWidth: '360px' }}>
+          <thead>
+            <tr className="bg-muted">
+              <th className="p-0.5 sm:p-1 text-left text-muted-foreground">Nº</th>
+              <th className="p-0.5 sm:p-1 text-left text-muted-foreground">Jugador</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Tit</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Gol</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">TA</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">TR</th>
+              <th className="p-0.5 sm:p-1 text-center text-muted-foreground">Min</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teamPlayers.map(p => (
+              <tr key={p.id} className="border-b border-border">
+                <td className="p-0.5 sm:p-1 text-muted-foreground">{p.dorsal || '-'}</td>
+                <td className="p-0.5 sm:p-1 text-foreground">{p.player_name}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.is_starter ? '✓' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center font-bold">{p.goals || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.yellow_cards || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{p.red_card ? '🟥' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
