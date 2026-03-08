@@ -183,15 +183,75 @@ export default function SantPauGlobalStats() {
     return isHome ? `${m.home_score}-${m.away_score}` : `${m.away_score}-${m.home_score}`;
   };
 
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  const handleExportCSV = useCallback(() => {
+    const rows: string[][] = [];
+    // Header
+    const header = ['Jugador', ...matches.map(m => {
+      const opponent = m.home_team_name.toUpperCase().includes(SANT_PAU_KEY) ? m.away_team_name : m.home_team_name;
+      return `${m.match_date || '??'} vs ${opponent}`;
+    }), 'Partidos', 'Minutos', 'Goles', 'Amarillas', 'Rojas'];
+    rows.push(header);
+
+    playerNames.forEach(name => {
+      const summary = getSummary(name);
+      const row = [
+        name,
+        ...matches.map(m => {
+          const ps = playerData[name]?.[m.id];
+          if (!ps) return '—';
+          const parts = [`${ps.minutes_played}'`];
+          if (ps.goals > 0) parts.push(`${ps.goals}G`);
+          if (ps.yellow_cards > 0) parts.push(`${ps.yellow_cards}A`);
+          if (ps.red_card) parts.push('R');
+          return parts.join(' ');
+        }),
+        String(summary.matches),
+        String(summary.minutes),
+        String(summary.goals),
+        String(summary.yellows),
+        String(summary.reds),
+      ];
+      rows.push(row);
+    });
+
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sant-pau-stats-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Archivo CSV descargado');
+  }, [matches, playerNames, playerData]);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   return (
     <div className="max-w-full mx-auto p-4 space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
         <Button variant="ghost" onClick={() => navigate('/')}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
-        <h1 className="font-display text-xl text-foreground">
+        <h1 className="font-display text-xl text-foreground flex-1">
           📊 Estadísticas Sant Pau d'Ordal
         </h1>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={matches.length === 0}>
+            <Save className="h-4 w-4 mr-1" /> Guardar CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint} disabled={matches.length === 0}>
+            <Printer className="h-4 w-4 mr-1" /> Imprimir
+          </Button>
+        </div>
+      </div>
+
+      <div className="hidden print:block text-center mb-4">
+        <h1 className="text-lg font-bold">📊 Estadísticas Sant Pau d'Ordal</h1>
       </div>
 
       {loading ? (
