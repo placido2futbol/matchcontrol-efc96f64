@@ -374,6 +374,29 @@ export default function TacticalViewer() {
           </select>
         )}
 
+        {/* Frame animation button */}
+        {hasFrames && (
+          <>
+            <div className="w-px h-6 mx-1" style={{ background: '#3d3d5c' }} />
+            <button
+              onClick={playingFrames ? stopFramePlayback : startFramePlayback}
+              className="p-2 rounded-full transition flex items-center gap-1"
+              style={playingFrames
+                ? { background: '#f97316', color: '#fff', border: '1px solid #ea580c' }
+                : { background: '#2d2d4a', color: '#e0e0e0', border: '1px solid #3d3d5c' }
+              }
+              title={playingFrames ? 'Parar animación' : 'Reproducir movimientos'}
+            >
+              <Film className="w-4 h-4" />
+            </button>
+            {playingFrames && (
+              <span className="text-[10px] font-bold" style={{ color: '#f97316' }}>
+                {currentFrameIdx + 1}/{sceneFrames.length}
+              </span>
+            )}
+          </>
+        )}
+
         <button
           onClick={() => { setActiveIndex(0); setAutoPlay(false); }}
           className="p-2 rounded-full transition"
