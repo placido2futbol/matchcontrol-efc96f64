@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { useTimer } from '@/hooks/useTimer';
@@ -11,10 +11,11 @@ import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Share2, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
+import { useLiveBroadcast, LiveMatchState } from '@/hooks/useLiveMatch';
 
 function createSlots(count: number, startIndex: number, isStarter: boolean): MatchPlayer[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -36,6 +37,10 @@ export default function MatchPage() {
   const { teams } = useTeams();
   const timer = useTimer();
   const navigate = useNavigate();
+
+  const sessionId = useMemo(() => crypto.randomUUID(), []);
+  const { broadcast } = useLiveBroadcast(sessionId);
+  const [copied, setCopied] = useState(false);
 
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
@@ -61,6 +66,40 @@ export default function MatchPage() {
 
   const homeTeam = teams.find(t => t.id === homeTeamId) || null;
   const awayTeam = teams.find(t => t.id === awayTeamId) || null;
+
+  // Broadcast live state on every change
+  useEffect(() => {
+    const state: LiveMatchState = {
+      homeTeamName: homeTeam?.name || 'Local',
+      awayTeamName: awayTeam?.name || 'Visitante',
+      homeScore,
+      awayScore,
+      timerSeconds: timer.seconds,
+      timerRunning: timer.running,
+      timerLastUpdate: Date.now(),
+      events,
+      homePlayers,
+      awayPlayers,
+      halftimeResult,
+      matchDate,
+      matchTime,
+      homeTeamCrest: homeTeam?.crest_url || undefined,
+      awayTeamCrest: awayTeam?.crest_url || undefined,
+      homeTeamKitHtml: homeTeam?.kit_html || undefined,
+      awayTeamKitHtml: awayTeam?.kit_html || undefined,
+      homeTeamKitUrl: homeTeam?.kit_url || undefined,
+      awayTeamKitUrl: awayTeam?.kit_url || undefined,
+    };
+    broadcast(state);
+  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam]);
+
+  const liveUrl = `${window.location.origin}/live/${sessionId}`;
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(liveUrl);
+    setCopied(true);
+    toast.success('Enlace copiado');
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const addEvent = useCallback((ev: MatchEvent) => {
     setEvents(prev => [...prev, ev]);
@@ -255,7 +294,11 @@ export default function MatchPage() {
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
         <h1 className="font-display text-xl text-foreground">Nuevo Partido</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" onClick={handleCopyLink}>
+            {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
+            {copied ? 'Copiado' : 'Compartir en directo'}
+          </Button>
           <Button onClick={saveMatch} disabled={saving}>
             <Save className="h-4 w-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar Partido'}
           </Button>
