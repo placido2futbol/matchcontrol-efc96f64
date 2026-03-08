@@ -462,8 +462,21 @@ export default function TacticalBoard() {
               halfPitch={activeScene.halfPitch}
             />
 
-            {/* Ball (draggable) */}
-            {activeScene.ball.visible && (
+            {/* Ball - show animated position during playback, or normal draggable */}
+            {playingFrames && animBall?.visible ? (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${animBall.x}%`,
+                  top: `${animBall.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 15,
+                  transition: 'left 1s ease-in-out, top 1s ease-in-out',
+                }}
+              >
+                <img src={soccerBallImg} alt="Balón" className="w-7 h-7 drop-shadow-lg" draggable={false} />
+              </div>
+            ) : activeScene.ball.visible && (
               <DraggableElement
                 x={activeScene.ball.x}
                 y={activeScene.ball.y}
