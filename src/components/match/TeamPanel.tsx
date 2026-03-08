@@ -1,7 +1,5 @@
 import PlayerRow, { MatchPlayer } from './PlayerRow';
 
-const SANT_PAU_PATTERN = /SANT PAU D'ORDAL/i;
-
 interface TeamPanelProps {
   title: string;
   teamSide: 'home' | 'away';
