@@ -101,8 +101,9 @@ export default function Dashboard() {
     localStorage.setItem('mc_bg_color', value);
   };
   const selectCrest = (value: string) => {
-    setBgCrest(prev => prev === value ? '' : value);
-    localStorage.setItem('mc_bg_crest', prev => prev === value ? '' : value);
+    const newVal = bgCrest === value ? '' : value;
+    setBgCrest(newVal);
+    localStorage.setItem('mc_bg_crest', newVal);
   };
 
   const BG_COLORS = [
