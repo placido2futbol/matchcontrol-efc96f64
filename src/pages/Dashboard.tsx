@@ -235,16 +235,7 @@ export default function Dashboard() {
                   variant="outline"
                   size="sm"
                   className="w-full text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                  onClick={() => {
-                    selectBgColor('');
-                    setBgCrest('');
-                    localStorage.setItem('mc_bg_crest', '');
-                    setDarkMode(false);
-                    setAccentColor('green');
-                    setFontSize('normal');
-                    setCompactCards(false);
-                    setCrestOpacity(15);
-                  }}
+                  onClick={resetAll}
                 >
                   <X className="h-3.5 w-3.5 mr-1" />
                   Restablecer todo
