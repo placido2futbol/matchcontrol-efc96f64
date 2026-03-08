@@ -1,0 +1,1 @@
+DELETE FROM match_events WHERE id IN ('1ae286f9-cb9c-40f6-93a3-ae2e6685030d', '5801a48a-eb66-4fb8-ad84-53826bff13a5');
