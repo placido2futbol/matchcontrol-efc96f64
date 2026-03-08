@@ -111,16 +111,35 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, drawings: [] }));
   }, [updateScene]);
 
-  // Ball & Label placement
+  // Ball, Label & Roster placement
   const handlePitchClick = useCallback((e: React.MouseEvent) => {
-    if (tool === 'select') {
-      setSelectedPlayerId(null);
-      return;
-    }
     if (!pitchRef.current) return;
     const rect = pitchRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // Place pending roster player
+    if (pendingRoster) {
+      const newPlayer: TacticalPlayer = {
+        id: generateId(),
+        name: pendingRoster.name || 'Player',
+        number: pendingRoster.number || 1,
+        position: pendingRoster.position || '',
+        team: pendingRoster.team || 'home',
+        color: pendingRoster.color || '#3B82F6',
+        x: Math.round(x / 2) * 2,
+        y: Math.round(y / 2) * 2,
+        onField: true,
+      };
+      updateScene(s => ({ ...s, players: [...s.players, newPlayer] }));
+      setPendingRoster(null);
+      return;
+    }
+
+    if (tool === 'select') {
+      setSelectedPlayerId(null);
+      return;
+    }
 
     if (tool === 'ball') {
       updateScene(s => ({ ...s, ball: { x, y, visible: true } }));
@@ -128,7 +147,7 @@ export default function TacticalBoard() {
     } else if (tool === 'label') {
       setLabelInput({ x, y });
     }
-  }, [tool, updateScene]);
+  }, [tool, updateScene, pendingRoster]);
 
   const handleAddLabel = useCallback(() => {
     if (!labelInput || !labelText.trim()) { setLabelInput(null); setLabelText(''); return; }
