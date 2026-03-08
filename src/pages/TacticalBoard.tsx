@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import soccerBallImg from '@/assets/soccer-ball.png';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
