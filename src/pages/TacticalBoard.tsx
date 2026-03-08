@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft } from 'lucide-react';
 import PitchSVG from '@/components/tactical/PitchSVG';
+import HalfPitchSVG from '@/components/tactical/HalfPitchSVG';
 import PlayerToken from '@/components/tactical/PlayerToken';
 import DrawingLayer from '@/components/tactical/DrawingLayer';
 import Toolbar from '@/components/tactical/Toolbar';
