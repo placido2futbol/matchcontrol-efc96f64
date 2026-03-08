@@ -378,6 +378,8 @@ export default function TacticalBoard() {
           isPlaying={playingFrames}
           activeFrameIndex={activeFrameIndex}
           onSelectFrame={handleSelectFrame}
+          speed={frameSpeed}
+          onSpeedChange={(s) => { setFrameSpeed(s); if (playingFrames) { handleStopFrames(); } }}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
