@@ -14,6 +14,7 @@ import { MatchPlayer } from '@/components/match/PlayerRow';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
 
 function createSlots(count: number, startIndex: number, isStarter: boolean): MatchPlayer[] {
   return Array.from({ length: count }, (_, i) => ({
