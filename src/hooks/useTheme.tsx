@@ -61,6 +61,8 @@ interface ThemeContextType {
   selectBgColor: (v: string) => void;
   bgCrest: string;
   selectCrest: (v: string) => void;
+  bgCustomImage: string;
+  setBgCustomImage: (v: string) => void;
   // Derived
   textClass: string;
   mutedTextClass: string;
