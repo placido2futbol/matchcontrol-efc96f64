@@ -188,5 +188,6 @@ export default function LiveMatchPage() {
         MatchControl — Visualización en directo
       </div>
     </div>
+    </>
   );
 }
