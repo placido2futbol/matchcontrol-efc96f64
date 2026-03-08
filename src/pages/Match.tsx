@@ -33,6 +33,35 @@ function createSlots(count: number, startIndex: number, isStarter: boolean): Mat
   }));
 }
 
+function uniquePlayersByName(players: { name: string }[]) {
+  const seen = new Set<string>();
+  return players.filter((p) => {
+    const key = p.name.trim().toUpperCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function normalizeImportedPlayers(players: Array<{ name: string; dorsal: string; isStarter: boolean }>) {
+  const seen = new Set<string>();
+  const starters: Array<{ name: string; dorsal: string }> = [];
+  const subs: Array<{ name: string; dorsal: string }> = [];
+
+  for (const p of players) {
+    const name = p.name?.trim();
+    if (!name) continue;
+    const key = name.toUpperCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const target = p.isStarter ? starters : subs;
+    target.push({ name, dorsal: p.dorsal || '' });
+  }
+
+  return { starters: starters.slice(0, 11), subs: subs.slice(0, 9) };
+}
+
 export default function MatchPage() {
   const { user } = useAuth();
   const { teams } = useTeams();
