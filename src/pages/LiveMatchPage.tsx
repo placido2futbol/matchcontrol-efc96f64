@@ -31,13 +31,13 @@ function LiveTimer({ seconds, running, lastUpdate }: { seconds: number; running:
   return <span>{m}:{s}</span>;
 }
 
-function LivePlayerTable({ players, label }: { players: MatchPlayer[]; label: string }) {
+function LivePlayerSection({ players, sectionLabel }: { players: MatchPlayer[]; sectionLabel: string }) {
   const active = players.filter(p => p.playerName);
   if (active.length === 0) return null;
 
   return (
-    <div>
-      <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
+    <div className="mb-2">
+      <h5 className="text-xs font-semibold text-muted-foreground mb-1">{sectionLabel}</h5>
       <table className="w-full text-xs border border-border">
         <thead>
           <tr className="bg-muted">
@@ -58,6 +58,21 @@ function LivePlayerTable({ players, label }: { players: MatchPlayer[]; label: st
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function LivePlayerTable({ players, label }: { players: MatchPlayer[]; label: string }) {
+  const starters = players.filter(p => p.isStarter);
+  const subs = players.filter(p => !p.isStarter);
+
+  if (!starters.some(p => p.playerName) && !subs.some(p => p.playerName)) return null;
+
+  return (
+    <div>
+      <h4 className="font-bold text-sm mb-2 text-foreground">{label}</h4>
+      <LivePlayerSection players={starters} sectionLabel="Titulares" />
+      <LivePlayerSection players={subs} sectionLabel="Suplentes" />
     </div>
   );
 }
