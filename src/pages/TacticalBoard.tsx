@@ -297,45 +297,42 @@ export default function TacticalBoard() {
               </DraggableElement>
             )}
 
-            {/* Scene title overlay with crest (top-right, like PPT reference) */}
+            {/* Scene title overlay with crest (draggable) */}
             {activeScene.name !== '11 Inicial' && (
-              <div
-                className="absolute select-none pointer-events-none"
-                style={{
-                  right: '1%',
-                  top: '2%',
-                  zIndex: 35,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 4,
-                }}
+              <DraggableElement
+                x={activeScene.titlePos?.x ?? 88}
+                y={activeScene.titlePos?.y ?? 6}
+                containerRef={pitchRef as React.RefObject<HTMLDivElement>}
+                onDragEnd={(x, y) => updateScene(s => ({ ...s, titlePos: { x, y } }))}
+                zIndex={35}
               >
-                {/* Team crest */}
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
-                  alt="Escudo Sant Pau"
-                  className="w-12 h-12 object-contain drop-shadow-lg"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                {/* Title block */}
-                <div
-                  style={{
-                    background: '#ffff00',
-                    padding: '6px 14px',
-                    fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                    fontSize: 15,
-                    fontWeight: 900,
-                    color: '#000',
-                    lineHeight: 1.2,
-                    textAlign: 'center',
-                    boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
-                    border: '2px solid rgba(0,0,0,0.2)',
-                    maxWidth: 160,
-                  }}
-                >
-                  {activeScene.name}
+                <div className="flex items-center gap-1">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
+                    alt="Escudo Sant Pau"
+                    className="w-10 h-10 object-contain drop-shadow-lg pointer-events-none"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div
+                    className="pointer-events-none"
+                    style={{
+                      background: '#ffff00',
+                      padding: '5px 12px',
+                      fontFamily: "'Russo One', 'Arial Black', sans-serif",
+                      fontSize: 14,
+                      fontWeight: 900,
+                      color: '#000',
+                      lineHeight: 1.2,
+                      textAlign: 'center',
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+                      border: '2px solid rgba(0,0,0,0.2)',
+                      maxWidth: 160,
+                    }}
+                  >
+                    {activeScene.name}
+                  </div>
                 </div>
-              </div>
+              </DraggableElement>
             )}
 
 
