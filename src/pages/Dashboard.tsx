@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2 } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,19 +117,34 @@ export default function Dashboard() {
                         {m.home_score} - {m.away_score}
                       </span>
                       <span className="font-bold text-sm text-foreground">{m.away_team_name}</span>
+                      {m.status === 'in_progress' && (
+                        <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">En curso</span>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {m.match_date || 'Sin fecha'} {m.match_time || ''} · {m.status === 'finished' ? 'Finalizado' : 'En curso'}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                    onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1 shrink-0">
+                    {m.status === 'in_progress' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-primary hover:text-primary hover:bg-primary/10"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/match/edit/${m.id}`); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}

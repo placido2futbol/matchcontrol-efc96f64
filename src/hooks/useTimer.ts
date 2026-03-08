@@ -30,5 +30,5 @@ export function useTimer() {
     return `${m}:${s}`;
   }, []);
 
-  return { seconds, running, toggle, reset, formatTime };
+  return { seconds, setSeconds, running, toggle, reset, formatTime };
 }

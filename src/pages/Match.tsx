@@ -11,8 +11,8 @@ import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
-import { Save, ArrowLeft, Share2, Copy, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Save, ArrowLeft, Share2, Check, Flag } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
 import { useLiveBroadcast, LiveMatchState } from '@/hooks/useLiveMatch';
@@ -37,16 +37,19 @@ export default function MatchPage() {
   const { teams } = useTeams();
   const timer = useTimer();
   const navigate = useNavigate();
+  const { matchId } = useParams<{ matchId?: string }>();
 
   const sessionId = useMemo(() => crypto.randomUUID(), []);
   const { broadcast } = useLiveBroadcast(sessionId);
   const [copied, setCopied] = useState(false);
 
+  const [existingMatchId, setExistingMatchId] = useState<string | null>(matchId || null);
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
   const [matchTime, setMatchTime] = useState('');
   const [halftimeResult, setHalftimeResult] = useState('');
+  const [loadingMatch, setLoadingMatch] = useState(!!matchId);
 
   const [homePlayers, setHomePlayers] = useState<MatchPlayer[]>([
     ...createSlots(11, 0, true),
@@ -66,6 +69,107 @@ export default function MatchPage() {
 
   const homeTeam = teams.find(t => t.id === homeTeamId) || null;
   const awayTeam = teams.find(t => t.id === awayTeamId) || null;
+
+  // Load existing match for editing
+  useEffect(() => {
+    if (!matchId || !user) return;
+    const load = async () => {
+      setLoadingMatch(true);
+      const { data: match } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId)
+        .single();
+
+      if (!match) {
+        toast.error('Partido no encontrado');
+        navigate('/');
+        return;
+      }
+
+      setExistingMatchId(match.id);
+      setHomeTeamId(match.home_team_id || '');
+      setAwayTeamId(match.away_team_id || '');
+      setMatchDate(match.match_date || '');
+      setMatchTime(match.match_time || '');
+      setHalftimeResult(match.halftime_result || '');
+      setHomeScore(match.home_score);
+      setAwayScore(match.away_score);
+      timer.setSeconds(match.total_seconds);
+
+      // Load events
+      const { data: dbEvents } = await supabase
+        .from('match_events')
+        .select('*')
+        .eq('match_id', matchId)
+        .order('minute', { ascending: true });
+
+      if (dbEvents) {
+        setEvents(dbEvents.map(e => ({
+          minute: e.minute * 60, // stored as minutes, convert to seconds
+          type: e.event_type as MatchEvent['type'],
+          teamSide: e.team_side as 'home' | 'away',
+          playerName: e.player_name || '',
+          details: e.details || undefined,
+        })));
+      }
+
+      // Load players
+      const { data: dbPlayers } = await supabase
+        .from('match_players')
+        .select('*')
+        .eq('match_id', matchId);
+
+      if (dbPlayers) {
+        const homePl = dbPlayers.filter(p => p.team_side === 'home');
+        const awayPl = dbPlayers.filter(p => p.team_side === 'away');
+
+        const mapPlayers = (players: typeof dbPlayers, startStarter: number, startSub: number): MatchPlayer[] => {
+          const starters = players.filter(p => p.is_starter);
+          const subs = players.filter(p => !p.is_starter);
+          const slots: MatchPlayer[] = [];
+
+          for (let i = 0; i < 11; i++) {
+            const p = starters[i];
+            slots.push({
+              slotIndex: startStarter + i,
+              playerName: p?.player_name || '',
+              dorsal: p?.dorsal || '',
+              goals: p?.goals || 0,
+              yellowCard1: (p?.yellow_cards || 0) >= 1,
+              yellowCard2: (p?.yellow_cards || 0) >= 2,
+              redCard: p?.red_card || false,
+              isStarter: true,
+              subIn: false,
+              subOut: false,
+            });
+          }
+          for (let i = 0; i < 9; i++) {
+            const p = subs[i];
+            slots.push({
+              slotIndex: startSub + i,
+              playerName: p?.player_name || '',
+              dorsal: p?.dorsal || '',
+              goals: p?.goals || 0,
+              yellowCard1: (p?.yellow_cards || 0) >= 1,
+              yellowCard2: (p?.yellow_cards || 0) >= 2,
+              redCard: p?.red_card || false,
+              isStarter: false,
+              subIn: false,
+              subOut: false,
+            });
+          }
+          return slots;
+        };
+
+        setHomePlayers(mapPlayers(homePl, 0, 11));
+        setAwayPlayers(mapPlayers(awayPl, 100, 111));
+      }
+
+      setLoadingMatch(false);
+    };
+    load();
+  }, [matchId, user]);
 
   // Broadcast live state on every change
   useEffect(() => {
@@ -110,12 +214,9 @@ export default function MatchPage() {
       const ev = prev[index];
       if (!ev) return prev;
 
-      // Undo goal score
       if (ev.type === 'goal') {
         if (ev.teamSide === 'home') setHomeScore(s => Math.max(0, s - 1));
         else setAwayScore(s => Math.max(0, s - 1));
-
-        // Undo player goal count
         const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
         setPlayers(players =>
           players.map(p =>
@@ -124,14 +225,11 @@ export default function MatchPage() {
         );
       }
 
-      // Undo yellow card
       if (ev.type === 'yellow') {
         const setPlayers = ev.teamSide === 'home' ? setHomePlayers : setAwayPlayers;
         setPlayers(players =>
           players.map(p => {
             if (p.playerName !== ev.playerName) return p;
-            // Remove first yellow if second isn't set, otherwise remove based on state
-            if (p.yellowCard2 && p.yellowCard1) return { ...p, yellowCard1: false, redCard: false };
             return { ...p, yellowCard1: false, redCard: false };
           })
         );
@@ -231,7 +329,6 @@ export default function MatchPage() {
       if (type === 'in' && pendingSub !== null) {
         const outPlayer = players.find(p => p.slotIndex === pendingSub);
         const inPlayer = players.find(p => p.slotIndex === slotIndex);
-        // Swap players
         setPlayers(prev => {
           const outP = prev.find(p => p.slotIndex === pendingSub)!;
           const inP = prev.find(p => p.slotIndex === slotIndex)!;
@@ -259,36 +356,56 @@ export default function MatchPage() {
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
 
-  const saveMatch = async () => {
+  const saveMatch = async (status: 'in_progress' | 'finished') => {
     if (!user) return;
     setSaving(true);
     try {
-      const { data: match, error } = await supabase
-        .from('matches')
-        .insert({
-          user_id: user.id,
-          match_date: matchDate || null,
-          match_time: matchTime || null,
-          home_team_id: homeTeamId || null,
-          away_team_id: awayTeamId || null,
-          home_team_name: homeTeam?.name || 'Local',
-          away_team_name: awayTeam?.name || 'Visitante',
-          home_score: homeScore,
-          away_score: awayScore,
-          halftime_result: halftimeResult,
-          status: 'finished',
-          total_seconds: timer.seconds,
-        })
-        .select()
-        .single();
+      const matchData = {
+        user_id: user.id,
+        match_date: matchDate || null,
+        match_time: matchTime || null,
+        home_team_id: homeTeamId || null,
+        away_team_id: awayTeamId || null,
+        home_team_name: homeTeam?.name || 'Local',
+        away_team_name: awayTeam?.name || 'Visitante',
+        home_score: homeScore,
+        away_score: awayScore,
+        halftime_result: halftimeResult,
+        status,
+        total_seconds: timer.seconds,
+      };
 
-      if (error || !match) throw error;
+      let matchIdToUse: string;
+
+      if (existingMatchId) {
+        // Update existing match
+        const { error } = await supabase
+          .from('matches')
+          .update(matchData)
+          .eq('id', existingMatchId);
+        if (error) throw error;
+        matchIdToUse = existingMatchId;
+
+        // Delete old events and players to re-insert
+        await supabase.from('match_events').delete().eq('match_id', matchIdToUse);
+        await supabase.from('match_players').delete().eq('match_id', matchIdToUse);
+      } else {
+        // Insert new match
+        const { data: match, error } = await supabase
+          .from('matches')
+          .insert(matchData)
+          .select()
+          .single();
+        if (error || !match) throw error;
+        matchIdToUse = match.id;
+        setExistingMatchId(match.id);
+      }
 
       // Save events
       if (events.length > 0) {
         await supabase.from('match_events').insert(
           events.map(ev => ({
-            match_id: match.id,
+            match_id: matchIdToUse,
             minute: Math.floor(ev.minute / 60),
             event_type: ev.type,
             team_side: ev.teamSide,
@@ -298,13 +415,13 @@ export default function MatchPage() {
         );
       }
 
-      // Save match players with correct minutes calculation
+      // Save match players
       const homeEvents = events.filter(e => e.teamSide === 'home');
       const awayEvents = events.filter(e => e.teamSide === 'away');
 
       const allPlayers = [
         ...homePlayers.filter(p => p.playerName).map(p => ({
-          match_id: match.id,
+          match_id: matchIdToUse,
           player_name: p.playerName,
           dorsal: p.dorsal || '',
           team_side: 'home' as const,
@@ -315,7 +432,7 @@ export default function MatchPage() {
           minutes_played: calcMinutesPlayed(p.playerName, p.isStarter, homeEvents, timer.seconds),
         })),
         ...awayPlayers.filter(p => p.playerName).map(p => ({
-          match_id: match.id,
+          match_id: matchIdToUse,
           player_name: p.playerName,
           dorsal: p.dorsal || '',
           team_side: 'away' as const,
@@ -331,14 +448,26 @@ export default function MatchPage() {
         await supabase.from('match_players').insert(allPlayers);
       }
 
-      toast.success('Partido guardado correctamente');
-      navigate('/');
+      if (status === 'finished') {
+        toast.success('Partido finalizado y guardado');
+        navigate('/');
+      } else {
+        toast.success('Partido guardado (puedes seguir editándolo)');
+      }
     } catch (err: any) {
       toast.error('Error guardando partido: ' + err.message);
     } finally {
       setSaving(false);
     }
   };
+
+  if (loadingMatch) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 flex items-center justify-center min-h-[50vh]">
+        <p className="text-muted-foreground">Cargando partido...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-4">
@@ -347,14 +476,19 @@ export default function MatchPage() {
         <Button variant="ghost" onClick={() => navigate('/')}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
-        <h1 className="font-display text-xl text-foreground">Nuevo Partido</h1>
+        <h1 className="font-display text-xl text-foreground">
+          {existingMatchId ? 'Editar Partido' : 'Nuevo Partido'}
+        </h1>
         <div className="ml-auto flex gap-2">
           <Button variant="outline" onClick={handleCopyLink}>
             {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
             {copied ? 'Copiado' : 'Compartir en directo'}
           </Button>
-          <Button onClick={saveMatch} disabled={saving}>
+          <Button variant="outline" onClick={() => saveMatch('in_progress')} disabled={saving}>
             <Save className="h-4 w-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar Partido'}
+          </Button>
+          <Button onClick={() => saveMatch('finished')} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Flag className="h-4 w-4 mr-1" /> Finalizar Partido
           </Button>
         </div>
       </div>
