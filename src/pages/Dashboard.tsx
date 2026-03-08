@@ -168,7 +168,59 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-60">
+              {/* Dark mode */}
+              <DropdownMenuItem onClick={() => setDarkMode(!darkMode)} className="gap-2 text-xs">
+                {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                {darkMode ? 'Modo claro' : 'Modo oscuro'}
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Accent color */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Palette className="h-3.5 w-3.5" />
+                  Color principal
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {ACCENT_OPTIONS.map(a => (
+                    <DropdownMenuItem
+                      key={a.value}
+                      onClick={() => setAccentColor(a.value)}
+                      className={`gap-2 text-xs ${accentColor === a.value ? 'bg-primary/10 font-bold' : ''}`}
+                    >
+                      <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ background: a.color }} />
+                      {a.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Font size */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Type className="h-3.5 w-3.5" />
+                  Tamaño de texto
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {[{ l: 'Pequeño', v: 'small' }, { l: 'Normal', v: 'normal' }, { l: 'Grande', v: 'large' }].map(s => (
+                    <DropdownMenuItem key={s.v} onClick={() => setFontSize(s.v)} className={`text-xs ${fontSize === s.v ? 'bg-primary/10 font-bold' : ''}`}>
+                      {s.l}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Compact cards */}
+              <DropdownMenuItem onClick={() => setCompactCards(!compactCards)} className="gap-2 text-xs">
+                {compactCards ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
+                {compactCards ? 'Tarjetas normales' : 'Tarjetas compactas'}
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Background color */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="gap-2 text-xs">
                   <Palette className="h-3.5 w-3.5" />
@@ -187,6 +239,8 @@ export default function Dashboard() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+
+              {/* Background crest */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="gap-2 text-xs">
                   <Image className="h-3.5 w-3.5" />
@@ -205,13 +259,19 @@ export default function Dashboard() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+
+              {/* Reset */}
               <DropdownMenuSeparator />
-              {bgType !== 'default' && (
-                <DropdownMenuItem onClick={() => applyBg('default', '')} className="gap-2 text-xs text-destructive">
-                  <X className="h-3.5 w-3.5" />
-                  Quitar fondo personalizado
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => {
+                applyBg('default', '');
+                setDarkMode(false);
+                setAccentColor('green');
+                setFontSize('normal');
+                setCompactCards(false);
+              }} className="gap-2 text-xs text-destructive">
+                <X className="h-3.5 w-3.5" />
+                Restablecer todo
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="sm" onClick={signOut} className={bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}>
