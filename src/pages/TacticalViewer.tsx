@@ -173,7 +173,7 @@ export default function TacticalViewer() {
           )}
           {/* Drawings */}
           <DrawingLayer
-            drawings={scene.drawings}
+            drawings={currentDrawings}
             onDrawingsChange={() => {}}
             tool="select"
             drawColor="#ff0000"
@@ -182,14 +182,15 @@ export default function TacticalViewer() {
           />
 
           {/* Ball */}
-          {scene.ball.visible && (
+          {currentBall?.visible && (
             <div
               className="absolute pointer-events-none"
               style={{
-                left: `${scene.ball.x}%`,
-                top: `${scene.ball.y}%`,
+                left: `${currentBall.x}%`,
+                top: `${currentBall.y}%`,
                 transform: 'translate(-50%, -50%)',
                 zIndex: 15,
+                transition: playingFrames ? 'left 0.8s ease, top 0.8s ease' : undefined,
               }}
             >
               <img src={soccerBallImg} alt="Balón" className="w-7 h-7 drop-shadow-lg" draggable={false} />
@@ -267,51 +268,55 @@ export default function TacticalViewer() {
           ))}
 
           {/* Players */}
-          {scene.players.filter((p: TacticalPlayer) => p.onField).map((p: TacticalPlayer) => (
-            <div
-              key={p.id}
-              className="absolute flex flex-col items-center pointer-events-none"
-              style={{
-                left: `${p.x}%`,
-                top: `${p.y}%`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: 20,
-              }}
-            >
+          {scene.players.filter((p: TacticalPlayer) => p.onField).map((p: TacticalPlayer) => {
+            const pos = getPlayerPosition(p);
+            return (
               <div
-                className="flex items-center justify-center rounded-full"
+                key={p.id}
+                className="absolute flex flex-col items-center pointer-events-none"
                 style={{
-                  width: 40,
-                  height: 40,
-                  background: p.color,
-                  color: isLight(p.color) ? '#1a1a2e' : '#ffffff',
-                  border: `3px solid ${darken(p.color, 30)}`,
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.35)',
-                  fontWeight: 800,
-                  fontSize: 16,
+                  left: `${pos.x}%`,
+                  top: `${pos.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 20,
+                  transition: playingFrames ? 'left 0.8s ease, top 0.8s ease' : undefined,
                 }}
               >
-                {p.number}
-              </div>
-              {p.name && (
                 <div
-                  className="mt-0.5 px-2 py-px font-bold whitespace-nowrap"
+                  className="flex items-center justify-center rounded-full"
                   style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    color: '#cc0000',
-                    fontSize: 11,
-                    lineHeight: '14px',
-                    border: '1px solid rgba(0,0,0,0.15)',
-                    maxWidth: 90,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    width: 40,
+                    height: 40,
+                    background: p.color,
+                    color: isLight(p.color) ? '#1a1a2e' : '#ffffff',
+                    border: `3px solid ${darken(p.color, 30)}`,
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.35)',
+                    fontWeight: 800,
+                    fontSize: 16,
                   }}
                 >
-                  {p.name.length > 12 ? p.name.substring(0, 12) + '.' : p.name.toUpperCase()}
+                  {p.number}
                 </div>
-              )}
-            </div>
-          ))}
+                {p.name && (
+                  <div
+                    className="mt-0.5 px-2 py-px font-bold whitespace-nowrap"
+                    style={{
+                      background: 'rgba(255,255,255,0.92)',
+                      color: '#cc0000',
+                      fontSize: 11,
+                      lineHeight: '14px',
+                      border: '1px solid rgba(0,0,0,0.15)',
+                      maxWidth: 90,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {p.name.length > 12 ? p.name.substring(0, 12) + '.' : p.name.toUpperCase()}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
