@@ -67,6 +67,40 @@ export default function MatchPage() {
   const homeTeam = teams.find(t => t.id === homeTeamId) || null;
   const awayTeam = teams.find(t => t.id === awayTeamId) || null;
 
+  // Broadcast live state on every change
+  useEffect(() => {
+    const state: LiveMatchState = {
+      homeTeamName: homeTeam?.name || 'Local',
+      awayTeamName: awayTeam?.name || 'Visitante',
+      homeScore,
+      awayScore,
+      timerSeconds: timer.seconds,
+      timerRunning: timer.running,
+      timerLastUpdate: Date.now(),
+      events,
+      homePlayers,
+      awayPlayers,
+      halftimeResult,
+      matchDate,
+      matchTime,
+      homeTeamCrest: homeTeam?.crest_url || undefined,
+      awayTeamCrest: awayTeam?.crest_url || undefined,
+      homeTeamKitHtml: homeTeam?.kit_html || undefined,
+      awayTeamKitHtml: awayTeam?.kit_html || undefined,
+      homeTeamKitUrl: homeTeam?.kit_url || undefined,
+      awayTeamKitUrl: awayTeam?.kit_url || undefined,
+    };
+    broadcast(state);
+  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam]);
+
+  const liveUrl = `${window.location.origin}/live/${sessionId}`;
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(liveUrl);
+    setCopied(true);
+    toast.success('Enlace copiado');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const addEvent = useCallback((ev: MatchEvent) => {
     setEvents(prev => [...prev, ev]);
   }, []);
