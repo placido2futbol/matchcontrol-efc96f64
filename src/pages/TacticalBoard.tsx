@@ -258,8 +258,8 @@ export default function TacticalBoard() {
         <div className="flex-1 flex items-center justify-center min-w-0">
           <div
             ref={pitchRef}
-            className="relative w-full rounded-xl overflow-hidden shadow-2xl"
-            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)' }}
+            className={`relative w-full rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
+            style={{ aspectRatio: '1050/680', maxHeight: 'calc(100vh - 140px)', cursor: pendingRoster ? 'crosshair' : undefined }}
             onClick={handlePitchClick}
           >
             <PitchSVG />
