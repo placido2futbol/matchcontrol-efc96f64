@@ -168,6 +168,10 @@ export default function TacticalBoard() {
     updateScene(s => ({ ...s, labels: s.labels.filter(l => l.id !== id) }));
   }, [updateScene]);
 
+  const handleLabelDragEnd = useCallback((id: string, x: number, y: number) => {
+    updateScene(s => ({ ...s, labels: s.labels.map(l => l.id === id ? { ...l, x, y } : l) }));
+  }, [updateScene]);
+
   // Scenes
   const handleAddScene = useCallback(() => {
     const newScene = createEmptyScene(`Escena ${scenes.length + 1}`);
