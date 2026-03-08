@@ -12,7 +12,7 @@ import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
-  TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition,
+  TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition, SceneLegend,
   generateId,
 } from '@/components/tactical/types';
 
