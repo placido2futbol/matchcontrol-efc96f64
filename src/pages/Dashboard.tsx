@@ -97,6 +97,10 @@ export default function Dashboard() {
     localStorage.setItem('mc_compact', String(compactCards));
   }, [compactCards]);
 
+  useEffect(() => {
+    localStorage.setItem('mc_crest_opacity', String(crestOpacity));
+  }, [crestOpacity]);
+
   const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
     setBgType(type);
     setBgValue(value);
