@@ -72,7 +72,7 @@ export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
     }
 
     function loadFromStatic() {
-      const spTeam = fcfTeams.find(t =>
+      const spTeam = FCF_EQUIPOS_DB.find(t =>
         t.name.toUpperCase().includes(SANT_PAU_KEY)
       );
       if (spTeam) {
