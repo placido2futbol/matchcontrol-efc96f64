@@ -52,10 +52,8 @@ export default function Dashboard() {
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
   const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
   const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
-  const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
-    return (localStorage.getItem('mc_bg_type') as any) || 'default';
-  });
-  const [bgValue, setBgValue] = useState(() => localStorage.getItem('mc_bg_value') || '');
+  const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
+  const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
 
   // Apply dark mode
   useEffect(() => {
@@ -98,11 +96,14 @@ export default function Dashboard() {
     localStorage.setItem('mc_crest_opacity', String(crestOpacity));
   }, [crestOpacity]);
 
-  const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
-    setBgType(type);
-    setBgValue(value);
-    localStorage.setItem('mc_bg_type', type);
-    localStorage.setItem('mc_bg_value', value);
+  const selectBgColor = (value: string) => {
+    setBgColor(value);
+    localStorage.setItem('mc_bg_color', value);
+  };
+  const selectCrest = (value: string) => {
+    const newVal = bgCrest === value ? '' : value;
+    setBgCrest(newVal);
+    localStorage.setItem('mc_bg_crest', newVal);
   };
 
   const BG_COLORS = [
@@ -184,25 +185,25 @@ export default function Dashboard() {
   const matchToDelete = matches.find(m => m.id === deleteId);
 
   // Determine if bg is light or dark for text contrast
-  const selectedBgColor = BG_COLORS.find(c => c.value === bgValue);
-  const isLightBg = bgType === 'color' && selectedBgColor?.light;
-  const hasDarkBg = (bgType === 'color' && !isLightBg) || bgType === 'crest';
+  const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
+  const isLightBg = bgColor && selectedBgColor?.light;
+  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && bgCrest);
   const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
 
   const crestAlpha = crestOpacity / 100;
-  const bgStyle: React.CSSProperties = bgType === 'color'
-    ? { background: bgValue }
-    : bgType === 'crest'
+  const bgStyle: React.CSSProperties = bgColor
+    ? { background: bgColor }
+    : bgCrest
     ? { backgroundColor: '#1a1a2e' }
     : {};
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
-      {bgType === 'crest' && bgValue && (
+      {bgCrest && (
         <img
-          src={bgValue}
+          src={bgCrest}
           alt=""
           className="absolute inset-0 m-auto pointer-events-none select-none"
           style={{
@@ -210,8 +211,8 @@ export default function Dashboard() {
             height: 'auto',
             objectFit: 'contain',
             opacity: crestAlpha,
-            mixBlendMode: 'screen',
-            filter: 'brightness(1.2)',
+            mixBlendMode: bgColor ? 'multiply' : 'screen',
+            filter: bgColor ? 'none' : 'brightness(1.2)',
           }}
         />
       )}
@@ -302,8 +303,8 @@ export default function Dashboard() {
                     {BG_COLORS.map(c => (
                       <button
                         key={c.value}
-                        onClick={() => applyBg('color', c.value)}
-                        className={`w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110 ${bgType === 'color' && bgValue === c.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-border'}`}
+                        onClick={() => selectBgColor(bgColor === c.value ? '' : c.value)}
+                        className={`w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110 ${bgColor === c.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-border'}`}
                         style={{ background: c.value }}
                         title={c.label}
                       />
@@ -320,8 +321,8 @@ export default function Dashboard() {
                     {FCF_EQUIPOS_DB.map(team => (
                       <button
                         key={team.name}
-                        onClick={() => applyBg('crest', team.crest)}
-                        className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgType === 'crest' && bgValue === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
+                        onClick={() => selectCrest(team.crest)}
+                        className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgCrest === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
                         title={team.name}
                       >
                         <img src={team.crest} alt={team.name} className="w-full h-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -331,7 +332,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Crest opacity */}
-                {bgType === 'crest' && (
+                {bgCrest && (
                   <div>
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
                       <Sun className="h-3.5 w-3.5" /> Transparencia escudo
@@ -360,7 +361,9 @@ export default function Dashboard() {
                   size="sm"
                   className="w-full text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
                   onClick={() => {
-                    applyBg('default', '');
+                    selectBgColor('');
+                    setBgCrest('');
+                    localStorage.setItem('mc_bg_crest', '');
                     setDarkMode(false);
                     setAccentColor('green');
                     setFontSize('normal');
