@@ -29,11 +29,16 @@ export function calcMinutesFromDbEvents(
     return details.includes(`Sale ${playerName}`) || details.includes(`Entra ${playerName}`);
   });
 
-  // No sub events for this player → played full match or 0
+  // No sub events for this player
   if (playerSubs.length === 0) {
-    // If listed as a match player, they played the full match if no subs involve them
-    // We assume all listed players participated; is_starter just indicates slot position
-    return totalMinutes;
+    // If no substitution events mention this player at all, check if they're
+    // a starter (played full match) or a sub who never entered (0 minutes).
+    // We also check all events to see if they scored/got carded — if so they played.
+    const hasOtherEvents = events.some(
+      e => e.event_type !== 'substitution' && e.player_name === playerName
+    );
+    if (isStarter || hasOtherEvents) return totalMinutes;
+    return 0;
   }
 
   // Build timeline
