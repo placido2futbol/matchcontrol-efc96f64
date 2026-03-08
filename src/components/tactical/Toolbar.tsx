@@ -47,7 +47,7 @@ export default function Toolbar({
   showCrest, crestUrl, onSelectCrest,
 }: ToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 bg-card border border-border rounded-xl shadow-lg">
+    <div className="flex items-center gap-1 p-1.5 bg-card border border-border rounded-xl shadow-lg shrink-0">
       {/* Drawing tools */}
       <div className="flex items-center gap-0.5 border-r border-border pr-2 mr-1">
         {TOOLS.map(t => (

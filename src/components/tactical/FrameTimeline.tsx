@@ -18,7 +18,7 @@ export default function FrameTimeline({
   isPlaying, activeFrameIndex, onSelectFrame,
 }: FrameTimelineProps) {
   return (
-    <div className="flex items-center gap-1.5 p-2 bg-card border border-border rounded-xl shadow-md">
+    <div className="flex items-center gap-1 p-1.5 bg-card border border-border rounded-xl shadow-md shrink-0">
       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mr-1">Frames</span>
 
       {/* Frame indicators */}
