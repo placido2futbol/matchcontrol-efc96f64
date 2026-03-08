@@ -303,8 +303,8 @@ export default function Dashboard() {
                     {BG_COLORS.map(c => (
                       <button
                         key={c.value}
-                        onClick={() => applyBg('color', c.value)}
-                        className={`w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110 ${bgType === 'color' && bgValue === c.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-border'}`}
+                        onClick={() => selectBgColor(bgColor === c.value ? '' : c.value)}
+                        className={`w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110 ${bgColor === c.value ? 'border-foreground scale-110 ring-2 ring-foreground/20' : 'border-border'}`}
                         style={{ background: c.value }}
                         title={c.label}
                       />
