@@ -40,6 +40,7 @@ export default function TacticalBoard() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [labelInput, setLabelInput] = useState<{ x: number; y: number } | null>(null);
   const [labelText, setLabelText] = useState('');
+  const [pendingRoster, setPendingRoster] = useState<Partial<TacticalPlayer> | null>(null);
 
   const activeScene = scenes.find(s => s.id === activeSceneId)!;
   const fieldPlayers = activeScene.players.filter(p => p.onField);
