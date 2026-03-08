@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { useTimer } from '@/hooks/useTimer';
@@ -11,10 +11,11 @@ import TeamPanel from '@/components/match/TeamPanel';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Share2, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
+import { useLiveBroadcast, LiveMatchState } from '@/hooks/useLiveMatch';
 
 function createSlots(count: number, startIndex: number, isStarter: boolean): MatchPlayer[] {
   return Array.from({ length: count }, (_, i) => ({
