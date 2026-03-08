@@ -380,7 +380,20 @@ export default function TacticalBoard() {
         )}
       </div>
 
-      {/* Roster panel */}
+      {/* Frame timeline */}
+      <div className="px-3 py-1 shrink-0">
+        <FrameTimeline
+          frames={activeScene.frames || []}
+          onCaptureFrame={handleCaptureFrame}
+          onDeleteFrame={handleDeleteFrame}
+          onPreview={handlePlayFrames}
+          onStop={handleStopFrames}
+          isPlaying={playingFrames}
+          activeFrameIndex={activeFrameIndex}
+          onSelectFrame={handleSelectFrame}
+        />
+      </div>
+
       <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
         <RosterPanel onAddPlayer={handleSelectFromRoster} />
         {pendingRoster && (
