@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image, X } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image, X, Moon, Sun, Type, Maximize2, Minimize2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,10 +48,49 @@ export default function Dashboard() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Theme settings from localStorage
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('mc_dark') === 'true');
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
+  const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
+  const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
   const [bgType, setBgType] = useState<'default' | 'color' | 'crest'>(() => {
     return (localStorage.getItem('mc_bg_type') as any) || 'default';
   });
   const [bgValue, setBgValue] = useState(() => localStorage.getItem('mc_bg_value') || '');
+
+  // Apply dark mode
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('mc_dark', String(darkMode));
+  }, [darkMode]);
+
+  // Apply accent color
+  useEffect(() => {
+    const accents: Record<string, string> = {
+      green: '145 63%',
+      blue: '217 91%',
+      red: '0 72%',
+      orange: '25 95%',
+      purple: '270 60%',
+      yellow: '45 93%',
+    };
+    const val = accents[accentColor] || accents.green;
+    document.documentElement.style.setProperty('--primary', `${val} ${darkMode ? '42%' : '32%'}`);
+    document.documentElement.style.setProperty('--ring', `${val} ${darkMode ? '42%' : '32%'}`);
+    localStorage.setItem('mc_accent', accentColor);
+  }, [accentColor, darkMode]);
+
+  // Apply font size
+  useEffect(() => {
+    const sizes: Record<string, string> = { small: '14px', normal: '16px', large: '18px' };
+    document.documentElement.style.fontSize = sizes[fontSize] || '16px';
+    localStorage.setItem('mc_fontsize', fontSize);
+  }, [fontSize]);
+
+  useEffect(() => {
+    localStorage.setItem('mc_compact', String(compactCards));
+  }, [compactCards]);
 
   const applyBg = (type: 'default' | 'color' | 'crest', value: string) => {
     setBgType(type);
@@ -67,6 +106,15 @@ export default function Dashboard() {
     { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
     { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
     { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
+  ];
+
+  const ACCENT_OPTIONS = [
+    { label: 'Verde', value: 'green', color: 'hsl(145, 63%, 32%)' },
+    { label: 'Azul', value: 'blue', color: 'hsl(217, 91%, 50%)' },
+    { label: 'Rojo', value: 'red', color: 'hsl(0, 72%, 51%)' },
+    { label: 'Naranja', value: 'orange', color: 'hsl(25, 95%, 53%)' },
+    { label: 'Morado', value: 'purple', color: 'hsl(270, 60%, 50%)' },
+    { label: 'Amarillo', value: 'yellow', color: 'hsl(45, 93%, 47%)' },
   ];
 
   const fetchMatches = async () => {
@@ -120,7 +168,59 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-60">
+              {/* Dark mode */}
+              <DropdownMenuItem onClick={() => setDarkMode(!darkMode)} className="gap-2 text-xs">
+                {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                {darkMode ? 'Modo claro' : 'Modo oscuro'}
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Accent color */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Palette className="h-3.5 w-3.5" />
+                  Color principal
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {ACCENT_OPTIONS.map(a => (
+                    <DropdownMenuItem
+                      key={a.value}
+                      onClick={() => setAccentColor(a.value)}
+                      className={`gap-2 text-xs ${accentColor === a.value ? 'bg-primary/10 font-bold' : ''}`}
+                    >
+                      <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ background: a.color }} />
+                      {a.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Font size */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                  <Type className="h-3.5 w-3.5" />
+                  Tamaño de texto
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {[{ l: 'Pequeño', v: 'small' }, { l: 'Normal', v: 'normal' }, { l: 'Grande', v: 'large' }].map(s => (
+                    <DropdownMenuItem key={s.v} onClick={() => setFontSize(s.v)} className={`text-xs ${fontSize === s.v ? 'bg-primary/10 font-bold' : ''}`}>
+                      {s.l}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Compact cards */}
+              <DropdownMenuItem onClick={() => setCompactCards(!compactCards)} className="gap-2 text-xs">
+                {compactCards ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
+                {compactCards ? 'Tarjetas normales' : 'Tarjetas compactas'}
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Background color */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="gap-2 text-xs">
                   <Palette className="h-3.5 w-3.5" />
@@ -139,6 +239,8 @@ export default function Dashboard() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+
+              {/* Background crest */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="gap-2 text-xs">
                   <Image className="h-3.5 w-3.5" />
@@ -157,13 +259,19 @@ export default function Dashboard() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+
+              {/* Reset */}
               <DropdownMenuSeparator />
-              {bgType !== 'default' && (
-                <DropdownMenuItem onClick={() => applyBg('default', '')} className="gap-2 text-xs text-destructive">
-                  <X className="h-3.5 w-3.5" />
-                  Quitar fondo personalizado
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => {
+                applyBg('default', '');
+                setDarkMode(false);
+                setAccentColor('green');
+                setFontSize('normal');
+                setCompactCards(false);
+              }} className="gap-2 text-xs text-destructive">
+                <X className="h-3.5 w-3.5" />
+                Restablecer todo
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="sm" onClick={signOut} className={bgType !== 'default' ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}>
@@ -256,7 +364,7 @@ export default function Dashboard() {
                 <div
                   key={m.id}
                   onClick={() => navigate(`/match/${m.id}`)}
-                  className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card p-4 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isLive ? 'border-accent/50 ring-1 ring-accent/20' : 'hover:border-primary/30'}`}
+                  className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card ${compactCards ? 'p-2.5' : 'p-4'} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isLive ? 'border-accent/50 ring-1 ring-accent/20' : 'hover:border-primary/30'}`}
                 >
                   {isLive && (
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-warning to-accent animate-pulse" />
