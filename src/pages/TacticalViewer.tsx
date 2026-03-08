@@ -83,10 +83,14 @@ export default function TacticalViewer() {
       <div className="flex-1 flex items-center justify-center p-2 min-h-0">
         <div
           ref={pitchRef}
-          className="relative w-full rounded-xl overflow-hidden shadow-2xl"
+          className="relative rounded-xl overflow-hidden shadow-2xl"
           style={{
             aspectRatio: scene.halfPitch ? '1050/750' : '1050/680',
             maxHeight: 'calc(100vh - 80px)',
+            maxWidth: scene.halfPitch
+              ? 'min(100%, calc((100vh - 80px) * 1050 / 750))'
+              : 'min(100%, calc((100vh - 80px) * 1050 / 680))',
+            width: '100%',
           }}
         >
           {scene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
