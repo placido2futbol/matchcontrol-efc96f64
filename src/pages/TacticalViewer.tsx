@@ -252,20 +252,20 @@ export default function TacticalViewer() {
       </div>
 
       {/* Controls bar */}
-      <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-sm">
-        <button onClick={goPrev} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition">
+      <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-3 bg-black/70 backdrop-blur-sm">
+        <button onClick={goPrev} className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition">
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-center">
           {scenes.map((s, i) => (
             <button
               key={s.id}
               onClick={() => { setActiveIndex(i); setAutoPlay(false); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                 i === activeIndex
-                  ? 'bg-white text-black shadow-lg scale-105'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
+                  ? 'bg-white text-black shadow-lg scale-105 border-white'
+                  : 'bg-white/20 text-white hover:bg-white/30 border-white/30'
               }`}
             >
               {s.name.length > 15 ? s.name.substring(0, 15) + '…' : s.name}
@@ -273,15 +273,15 @@ export default function TacticalViewer() {
           ))}
         </div>
 
-        <button onClick={goNext} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition">
+        <button onClick={goNext} className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition">
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className="w-px h-6 bg-white/30 mx-1" />
 
         <button
           onClick={() => setAutoPlay(!autoPlay)}
-          className={`p-2 rounded-full transition ${autoPlay ? 'bg-yellow-500 text-black' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+          className={`p-2 rounded-full border transition ${autoPlay ? 'bg-yellow-400 text-black border-yellow-300' : 'bg-white/20 hover:bg-white/30 text-white border-white/30'}`}
           title={autoPlay ? 'Pausar' : 'Auto-play'}
         >
           {autoPlay ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
@@ -291,7 +291,7 @@ export default function TacticalViewer() {
           <select
             value={autoInterval}
             onChange={(e) => setAutoInterval(Number(e.target.value))}
-            className="bg-white/10 text-white text-xs rounded px-2 py-1 border border-white/20"
+            className="bg-white/20 text-white text-xs font-bold rounded px-2 py-1 border border-white/30"
           >
             <option value={3} className="text-black">3s</option>
             <option value={5} className="text-black">5s</option>
@@ -302,7 +302,7 @@ export default function TacticalViewer() {
 
         <button
           onClick={() => { setActiveIndex(0); setAutoPlay(false); }}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+          className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition"
           title="Reiniciar"
         >
           <RotateCcw className="w-4 h-4" />
