@@ -66,7 +66,8 @@ function ArrowHead({ x, y, angle, color }: { x: number; y: number; angle: number
   return <polygon points={`${x},${y} ${x1},${y1} ${x2},${y2}`} fill={color} />;
 }
 
-export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawColor, containerRef }: DrawingLayerProps) {
+export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawColor, containerRef, halfPitch }: DrawingLayerProps) {
+  const VB = halfPitch ? VB_HALF : VB_FULL;
   const [isDrawing, setIsDrawing] = useState(false);
   const currentPath = useRef<DrawingPath | null>(null);
 
