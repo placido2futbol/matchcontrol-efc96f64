@@ -1,7 +1,5 @@
 import PlayerRow, { MatchPlayer } from './PlayerRow';
 
-const SANT_PAU_PATTERN = /SANT PAU D'ORDAL/i;
-
 interface TeamPanelProps {
   title: string;
   teamSide: 'home' | 'away';
@@ -35,8 +33,7 @@ export default function TeamPanel({
   onRedCard,
   onSub,
 }: TeamPanelProps) {
-  const isSantPau = SANT_PAU_PATTERN.test(title);
-  const showDorsal = !isSantPau;
+  const showDorsal = true;
 
   const renderTable = (players: MatchPlayer[], label: string) => (
     <div className="mb-4">
