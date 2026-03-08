@@ -346,67 +346,6 @@ export default function TacticalBoard() {
               </div>
             )}
 
-            {/* Legend overlay on the pitch (right side, like PPT reference) */}
-            {activeScene.legend && activeScene.legend.entries.length > 0 && (
-              <div
-                className="absolute select-none pointer-events-none"
-                style={{
-                  right: '2%',
-                  top: activeScene.legend.title ? '30%' : '25%',
-                  zIndex: 35,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  alignItems: 'flex-end',
-                }}
-              >
-                {activeScene.legend.title && (
-                  <div
-                    style={{
-                      fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                      fontSize: 16,
-                      fontWeight: 900,
-                      color: '#ffffff',
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                      marginBottom: 4,
-                    }}
-                  >
-                    {activeScene.legend.title}
-                  </div>
-                )}
-                {activeScene.legend.entries.map((entry, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <span
-                      style={{
-                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                        fontSize: 22,
-                        fontWeight: 900,
-                        color: '#ffffff',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {entry.number}
-                    </span>
-                    <div
-                      style={{
-                        background: entry.borderColor === '#cc0000' ? 'transparent' : '#ffff00',
-                        border: `2px solid ${entry.borderColor || '#ffff00'}`,
-                        padding: '2px 10px',
-                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                        fontSize: 14,
-                        fontWeight: 900,
-                        color: '#cc0000',
-                        minWidth: 80,
-                        textAlign: 'center',
-                      }}
-                    >
-                      {entry.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Text labels */}
             {activeScene.labels.map(label => (
