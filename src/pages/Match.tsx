@@ -713,7 +713,7 @@ export default function MatchPage() {
           teamSide="home"
           starters={homePlayers.filter(p => p.isStarter)}
           subs={homePlayers.filter(p => !p.isStarter)}
-          availablePlayers={homeTeam?.players.map(p => p.name) || []}
+          availablePlayers={homeAvailablePlayers}
           selectedPlayers={homeSelected}
           pendingSubSlot={homePendingSub}
           {...homeHandlers}
