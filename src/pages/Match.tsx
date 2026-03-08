@@ -38,6 +38,10 @@ export default function MatchPage() {
   const timer = useTimer();
   const navigate = useNavigate();
 
+  const sessionId = useMemo(() => crypto.randomUUID(), []);
+  const { broadcast } = useLiveBroadcast(sessionId);
+  const [copied, setCopied] = useState(false);
+
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
