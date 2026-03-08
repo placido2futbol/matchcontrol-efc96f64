@@ -106,18 +106,28 @@ export default function Dashboard() {
   };
 
   const BG_COLORS = [
-    { label: 'Verde campo', value: 'hsl(145, 55%, 20%)' },
-    { label: 'Verde esmeralda', value: 'hsl(160, 60%, 18%)' },
-    { label: 'Azul oscuro', value: 'hsl(220, 40%, 15%)' },
-    { label: 'Azul marino', value: 'hsl(210, 60%, 12%)' },
-    { label: 'Azul noche', value: 'hsl(230, 50%, 10%)' },
-    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)' },
-    { label: 'Gris pizarra', value: 'hsl(215, 20%, 18%)' },
-    { label: 'Burdeos', value: 'hsl(345, 50%, 20%)' },
-    { label: 'Granate', value: 'hsl(355, 45%, 15%)' },
-    { label: 'Morado oscuro', value: 'hsl(270, 40%, 15%)' },
-    { label: 'Marrón tierra', value: 'hsl(30, 35%, 18%)' },
-    { label: 'Negro', value: 'hsl(0, 0%, 5%)' },
+    // Claros
+    { label: 'Blanco hueso', value: 'hsl(40, 30%, 95%)', light: true },
+    { label: 'Gris perla', value: 'hsl(220, 15%, 90%)', light: true },
+    { label: 'Beige', value: 'hsl(35, 40%, 88%)', light: true },
+    { label: 'Azul cielo', value: 'hsl(205, 60%, 85%)', light: true },
+    { label: 'Verde menta', value: 'hsl(150, 40%, 85%)', light: true },
+    { label: 'Rosa palo', value: 'hsl(350, 40%, 88%)', light: true },
+    { label: 'Lavanda', value: 'hsl(260, 35%, 88%)', light: true },
+    { label: 'Arena', value: 'hsl(45, 30%, 82%)', light: true },
+    // Medios
+    { label: 'Azul acero', value: 'hsl(215, 25%, 45%)', light: false },
+    { label: 'Verde bosque', value: 'hsl(145, 40%, 35%)', light: false },
+    { label: 'Terracota', value: 'hsl(15, 50%, 45%)', light: false },
+    { label: 'Índigo', value: 'hsl(235, 35%, 40%)', light: false },
+    { label: 'Oliva', value: 'hsl(80, 30%, 38%)', light: false },
+    { label: 'Burdeos', value: 'hsl(345, 50%, 32%)', light: false },
+    // Oscuros
+    { label: 'Verde campo', value: 'hsl(145, 55%, 20%)', light: false },
+    { label: 'Azul marino', value: 'hsl(210, 60%, 12%)', light: false },
+    { label: 'Gris carbón', value: 'hsl(0, 0%, 12%)', light: false },
+    { label: 'Morado noche', value: 'hsl(270, 40%, 15%)', light: false },
+    { label: 'Negro', value: 'hsl(0, 0%, 5%)', light: false },
   ];
 
   const ACCENT_OPTIONS = [
@@ -173,8 +183,10 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
-  // Determine if we need light text (dark bg)
-  const hasDarkBg = bgType === 'color' || bgType === 'crest';
+  // Determine if bg is light or dark for text contrast
+  const selectedBgColor = BG_COLORS.find(c => c.value === bgValue);
+  const isLightBg = bgType === 'color' && selectedBgColor?.light;
+  const hasDarkBg = (bgType === 'color' && !isLightBg) || bgType === 'crest';
   const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
