@@ -183,8 +183,10 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
-  // Determine if we need light text (dark bg)
-  const hasDarkBg = bgType === 'color' || bgType === 'crest';
+  // Determine if bg is light or dark for text contrast
+  const selectedBgColor = BG_COLORS.find(c => c.value === bgValue);
+  const isLightBg = bgType === 'color' && selectedBgColor?.light;
+  const hasDarkBg = (bgType === 'color' && !isLightBg) || bgType === 'crest';
   const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
