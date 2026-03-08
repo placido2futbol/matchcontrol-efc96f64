@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import soccerBallImg from '@/assets/soccer-ball.png';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,11 @@ import Toolbar from '@/components/tactical/Toolbar';
 import PlayerEditor from '@/components/tactical/PlayerEditor';
 import RosterPanel from '@/components/tactical/RosterPanel';
 import SceneManager from '@/components/tactical/SceneManager';
+import FrameTimeline from '@/components/tactical/FrameTimeline';
 import { createPPTScenes } from '@/components/tactical/pptScenes';
 import {
   TacticalPlayer, TacticalScene, DrawingTool, DrawingPath, TextLabel, BallPosition, SceneLegend,
-  generateId,
+  AnimationFrame, generateId,
 } from '@/components/tactical/types';
 
 function createEmptyScene(name: string = 'Nueva escena'): TacticalScene {
