@@ -110,7 +110,13 @@ export default function Teams() {
                 key={fcf.fcf}
                 variant="outline"
                 size="sm"
-                onClick={() => { loadFromFCF(fcf); setEditId(undefined); setModalOpen(true); }}
+                onClick={() => {
+                  loadFromFCF(fcf);
+                  // Check if team already exists to update instead of creating new
+                  const existing = teams.find(t => t.name === fcf.name || t.fcf_url === fcf.fcf);
+                  setEditId(existing?.id);
+                  setModalOpen(true);
+                }}
                 className="text-xs"
               >
                 {fcf.crest && <img src={fcf.crest} alt="" className="w-4 h-4 mr-1" />}
