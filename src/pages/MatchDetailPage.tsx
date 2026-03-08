@@ -152,16 +152,16 @@ export default function MatchDetail() {
 
       {/* Score */}
       <Card>
-        <CardContent className="py-6 text-center">
+        <CardContent className="py-4 sm:py-6 text-center">
           <div className="text-xs text-muted-foreground mb-1">
             {match.match_date || 'Sin fecha'} {match.match_time || ''}
           </div>
-          <div className="flex items-center justify-center gap-4">
-            <span className="font-bold text-foreground">{match.home_team_name}</span>
-            <span className="font-display text-3xl text-foreground">
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <span className="font-bold text-sm sm:text-base text-foreground truncate max-w-[100px] sm:max-w-none">{match.home_team_name}</span>
+            <span className="font-display text-2xl sm:text-3xl text-foreground whitespace-nowrap">
               {match.home_score} - {match.away_score}
             </span>
-            <span className="font-bold text-foreground">{match.away_team_name}</span>
+            <span className="font-bold text-sm sm:text-base text-foreground truncate max-w-[100px] sm:max-w-none">{match.away_team_name}</span>
           </div>
           {match.halftime_result && (
             <div className="text-xs text-muted-foreground mt-1">Descanso: {match.halftime_result}</div>
