@@ -24,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/match" element={<Match />} />
+            <Route path="/match/edit/:matchId" element={<Match />} />
             <Route path="/match/:id" element={<MatchDetailPage />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
