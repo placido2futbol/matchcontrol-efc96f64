@@ -170,6 +170,18 @@ export default function LiveMatchPage() {
         </div>
       </div>
 
+      {/* Football Pitch */}
+      <FootballPitch
+        homePlayers={state.homePlayers}
+        awayPlayers={state.awayPlayers}
+        homeTeamName={state.homeTeamName}
+        awayTeamName={state.awayTeamName}
+        homeTeamCrest={state.homeTeamCrest}
+        awayTeamCrest={state.awayTeamCrest}
+        positions={state.playerPositions || getDefaultPositions(state.homePlayers, state.awayPlayers)}
+        readOnly
+      />
+
       {/* Players */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <LivePlayerTable
