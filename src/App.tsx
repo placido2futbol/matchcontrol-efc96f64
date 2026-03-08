@@ -27,6 +27,7 @@ const App = () => (
             <Route path="/match/:id" element={<MatchDetailPage />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/sant-pau-stats" element={<SantPauGlobalStats />} />
+            <Route path="/live/:sessionId" element={<LiveMatchPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
