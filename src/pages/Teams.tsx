@@ -21,7 +21,7 @@ export default function Teams() {
   const [kitUrl, setKitUrl] = useState('');
   const [kitHtml, setKitHtml] = useState('');
   const [fcfUrl, setFcfUrl] = useState('');
-  const [players, setPlayers] = useState<{ name: string; dorsal: string }[]>([{ name: '', dorsal: '' }]);
+  const [players, setPlayers] = useState<{ name: string; dorsal: string; photo_url: string }[]>([{ name: '', dorsal: '', photo_url: '' }]);
   const kitFileRef = useRef<HTMLInputElement>(null);
 
   const openNew = () => {
