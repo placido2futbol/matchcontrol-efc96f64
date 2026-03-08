@@ -287,7 +287,14 @@ export default function TacticalBoard() {
           onAddAwayPlayer={() => addPlayerToField('away')}
           onFullscreen={toggleFullscreen}
           showCrest={activeScene.showCrest}
-          onToggleCrest={() => updateScene(s => ({ ...s, showCrest: !s.showCrest }))}
+          crestUrl={activeScene.crestUrl}
+          onSelectCrest={(url) => {
+            if (url === null) {
+              updateScene(s => ({ ...s, showCrest: false, crestUrl: undefined }));
+            } else {
+              updateScene(s => ({ ...s, showCrest: true, crestUrl: url }));
+            }
+          }}
         />
         {activeScene.name !== '11 Inicial' && activeScene.titlePos?.x === -100 && (
           <Button
