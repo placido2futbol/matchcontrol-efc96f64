@@ -61,6 +61,8 @@ interface ThemeContextType {
   selectBgColor: (v: string) => void;
   bgCrest: string;
   selectCrest: (v: string) => void;
+  bgCustomImage: string;
+  setBgCustomImage: (v: string) => void;
   // Derived
   textClass: string;
   mutedTextClass: string;
@@ -78,6 +80,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
   const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
   const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
+  const [bgCustomImage, _setBgCustomImage] = useState(() => localStorage.getItem('mc_bg_custom_image') || '');
+
+  const setBgCustomImage = (value: string) => {
+    _setBgCustomImage(value);
+    localStorage.setItem('mc_bg_custom_image', value);
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -118,7 +126,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
   const isLightBg = bgColor && selectedBgColor?.light;
-  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && bgCrest);
+  const activeBgImage = bgCrest || bgCustomImage;
+  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && activeBgImage);
   const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
   const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
   const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
@@ -127,6 +136,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     selectBgColor('');
     setBgCrest('');
     localStorage.setItem('mc_bg_crest', '');
+    setBgCustomImage('');
     setDarkMode(false);
     setAccentColor('green');
     setFontSize('normal');
@@ -138,7 +148,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <ThemeContext.Provider value={{
       darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
       compactCards, setCompactCards, crestOpacity, setCrestOpacity,
-      bgColor, selectBgColor, bgCrest, selectCrest,
+      bgColor, selectBgColor, bgCrest, selectCrest, bgCustomImage, setBgCustomImage,
       textClass, mutedTextClass, btnClass, resetAll,
     }}>
       {children}

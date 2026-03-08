@@ -2,26 +2,27 @@ import { ReactNode } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 
 export default function ThemeBackground({ children }: { children: ReactNode }) {
-  const { bgColor, bgCrest, crestOpacity } = useTheme();
+  const { bgColor, bgCrest, bgCustomImage, crestOpacity } = useTheme();
 
   const crestAlpha = crestOpacity / 100;
+  const activeBgImage = bgCrest || bgCustomImage;
   const bgStyle: React.CSSProperties = bgColor
     ? { background: bgColor }
-    : bgCrest
+    : activeBgImage
     ? { backgroundColor: '#1a1a2e' }
     : {};
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
-      {bgCrest && (
+      {activeBgImage && (
         <img
-          src={bgCrest}
+          src={activeBgImage}
           alt=""
           className="absolute inset-0 m-auto pointer-events-none select-none"
           style={{
-            width: '40%',
-            height: 'auto',
-            objectFit: 'contain',
+            width: bgCustomImage ? '100%' : '40%',
+            height: bgCustomImage ? '100%' : 'auto',
+            objectFit: bgCustomImage ? 'cover' : 'contain',
             opacity: crestAlpha,
             mixBlendMode: bgColor ? 'multiply' : 'screen',
             filter: bgColor ? 'none' : 'brightness(1.2)',

@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2 } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2, Upload } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,9 +50,31 @@ export default function Dashboard() {
   const {
     darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
     compactCards, setCompactCards, crestOpacity, setCrestOpacity,
-    bgColor, selectBgColor, bgCrest, selectCrest,
+    bgColor, selectBgColor, bgCrest, selectCrest, bgCustomImage, setBgCustomImage,
     textClass, mutedTextClass, btnClass, resetAll,
   } = useTheme();
+
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/bg-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('backgrounds').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('backgrounds').getPublicUrl(path);
+      // Clear crest when setting custom image
+      selectCrest('');
+      setBgCustomImage(urlData.publicUrl);
+    } catch (err: any) {
+      toast.error('Error subiendo imagen: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
 
 
@@ -196,7 +218,7 @@ export default function Dashboard() {
                     {FCF_EQUIPOS_DB.map(team => (
                       <button
                         key={team.name}
-                        onClick={() => selectCrest(team.crest)}
+                        onClick={() => { selectCrest(team.crest); setBgCustomImage(''); }}
                         className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${bgCrest === team.crest ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
                         title={team.name}
                       >
@@ -206,11 +228,32 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Crest opacity */}
-                {bgCrest && (
+                {/* Custom image upload */}
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <Upload className="h-3.5 w-3.5" /> Imagen personalizada
+                  </span>
+                  {bgCustomImage ? (
+                    <div className="flex items-center gap-2">
+                      <img src={bgCustomImage} alt="Fondo" className="h-12 w-20 object-cover rounded border border-border" />
+                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setBgCustomImage('')}>
+                        <X className="h-3 w-3 mr-1" /> Quitar
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center gap-2 h-12 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{uploading ? 'Subiendo...' : 'Subir imagen'}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                    </label>
+                  )}
+                </div>
+
+                {/* Crest/image opacity */}
+                {(bgCrest || bgCustomImage) && (
                   <div>
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                      <Sun className="h-3.5 w-3.5" /> Transparencia escudo
+                      <Sun className="h-3.5 w-3.5" /> Transparencia imagen
                     </span>
                     <div className="flex gap-1">
                       {OPACITY_OPTIONS.map(o => (
