@@ -8,7 +8,7 @@ interface Notification {
 }
 
 const DISPLAY_MS = 4000;
-const RELEVANT_TYPES = ['goal', 'yellow', 'second_yellow', 'red'];
+const RELEVANT_TYPES = ['goal', 'yellow', 'second_yellow', 'red', 'substitution'];
 
 export default function LiveEventNotification({ events }: { events: MatchEvent[] }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
