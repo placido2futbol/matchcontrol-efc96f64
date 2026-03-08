@@ -354,7 +354,7 @@ export default function TacticalBoard() {
       </div>
 
       {/* Toolbar + Frames */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center gap-2 flex-wrap">
+      <div className="px-2 py-1 shrink-0 flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
         <Toolbar
           tool={tool}
           onToolChange={setTool}
@@ -390,7 +390,7 @@ export default function TacticalBoard() {
         )}
       </div>
 
-      <div className="px-3 py-1 shrink-0 border-b border-border bg-card/40">
+      <div className="px-2 py-1 shrink-0 border-b border-border bg-card/40 overflow-x-auto">
         <RosterPanel onAddPlayer={handleSelectFromRoster} />
         {pendingRoster && (
           <div className="flex items-center gap-2 py-1 px-2 mt-1 rounded-lg bg-primary/10 border border-primary/30 animate-fade-in">
@@ -420,16 +420,14 @@ export default function TacticalBoard() {
         </div>
 
         {/* Pitch */}
-        <div className="flex-1 flex items-center justify-center min-w-0">
+        <div className="flex-1 flex items-center justify-center min-w-0 min-h-0">
           <div
             ref={pitchRef}
             className={`relative rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
-              maxHeight: 'calc(100vh - 140px)',
-              maxWidth: activeScene.halfPitch
-                ? 'min(100%, calc((100vh - 140px) * 1050 / 750))'
-                : 'min(100%, calc((100vh - 140px) * 1050 / 680))',
+              maxHeight: 'calc(100vh - 120px)',
+              maxWidth: '100%',
               width: '100%',
               cursor: pendingRoster ? 'crosshair' : undefined,
             }}
