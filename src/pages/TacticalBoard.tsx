@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -278,10 +279,19 @@ export default function TacticalBoard() {
               halfPitch={activeScene.halfPitch}
             />
 
-            {/* Ball */}
+            {/* Ball (draggable) */}
             {activeScene.ball.visible && (
-              <div
-                className="absolute pointer-events-none"
+              <motion.div
+                drag
+                dragMomentum={false}
+                onDragEnd={(_: any, info: any) => {
+                  if (!pitchRef.current) return;
+                  const rect = pitchRef.current.getBoundingClientRect();
+                  const x = Math.max(2, Math.min(98, ((info.point.x - rect.left) / rect.width) * 100));
+                  const y = Math.max(2, Math.min(98, ((info.point.y - rect.top) / rect.height) * 100));
+                  updateScene(s => ({ ...s, ball: { x, y, visible: true } }));
+                }}
+                className="absolute cursor-grab active:cursor-grabbing"
                 style={{
                   left: `${activeScene.ball.x}%`,
                   top: `${activeScene.ball.y}%`,
@@ -289,10 +299,10 @@ export default function TacticalBoard() {
                   zIndex: 15,
                 }}
               >
-                <div className="w-6 h-6 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
-                  <span className="text-[10px]">⚽</span>
+                <div className="w-7 h-7 rounded-full bg-white border-2 shadow-lg flex items-center justify-center" style={{ borderColor: '#333' }}>
+                  <span className="text-[11px]">⚽</span>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Scene title overlay with crest (top-right, like PPT reference) */}
@@ -336,67 +346,6 @@ export default function TacticalBoard() {
               </div>
             )}
 
-            {/* Legend overlay on the pitch (right side, like PPT reference) */}
-            {activeScene.legend && activeScene.legend.entries.length > 0 && (
-              <div
-                className="absolute select-none pointer-events-none"
-                style={{
-                  right: '2%',
-                  top: activeScene.legend.title ? '30%' : '25%',
-                  zIndex: 35,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  alignItems: 'flex-end',
-                }}
-              >
-                {activeScene.legend.title && (
-                  <div
-                    style={{
-                      fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                      fontSize: 16,
-                      fontWeight: 900,
-                      color: '#ffffff',
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                      marginBottom: 4,
-                    }}
-                  >
-                    {activeScene.legend.title}
-                  </div>
-                )}
-                {activeScene.legend.entries.map((entry, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <span
-                      style={{
-                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                        fontSize: 22,
-                        fontWeight: 900,
-                        color: '#ffffff',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {entry.number}
-                    </span>
-                    <div
-                      style={{
-                        background: entry.borderColor === '#cc0000' ? 'transparent' : '#ffff00',
-                        border: `2px solid ${entry.borderColor || '#ffff00'}`,
-                        padding: '2px 10px',
-                        fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                        fontSize: 14,
-                        fontWeight: 900,
-                        color: '#cc0000',
-                        minWidth: 80,
-                        textAlign: 'center',
-                      }}
-                    >
-                      {entry.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Text labels */}
             {activeScene.labels.map(label => (
