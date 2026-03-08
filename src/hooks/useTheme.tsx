@@ -148,7 +148,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <ThemeContext.Provider value={{
       darkMode, setDarkMode, accentColor, setAccentColor, fontSize, setFontSize,
       compactCards, setCompactCards, crestOpacity, setCrestOpacity,
-      bgColor, selectBgColor, bgCrest, selectCrest,
+      bgColor, selectBgColor, bgCrest, selectCrest, bgCustomImage, setBgCustomImage,
       textClass, mutedTextClass, btnClass, resetAll,
     }}>
       {children}
