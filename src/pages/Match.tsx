@@ -173,6 +173,14 @@ export default function MatchPage() {
     load();
   }, [matchId, user]);
 
+  // Auto-generate default positions when players change and no positions exist
+  useEffect(() => {
+    const hasNamedStarters = homePlayers.some(p => p.isStarter && p.playerName) || awayPlayers.some(p => p.isStarter && p.playerName);
+    if (hasNamedStarters && playerPositions.length === 0) {
+      setPlayerPositions(getDefaultPositions(homePlayers, awayPlayers));
+    }
+  }, [homePlayers, awayPlayers]);
+
   // Broadcast live state on every change
   useEffect(() => {
     const state: LiveMatchState = {
@@ -195,9 +203,10 @@ export default function MatchPage() {
       awayTeamKitHtml: awayTeam?.kit_html || undefined,
       homeTeamKitUrl: homeTeam?.kit_url || undefined,
       awayTeamKitUrl: awayTeam?.kit_url || undefined,
+      playerPositions,
     };
     broadcast(state);
-  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam]);
+  }, [homeScore, awayScore, timer.seconds, timer.running, events, homePlayers, awayPlayers, halftimeResult, matchDate, matchTime, homeTeam, awayTeam, playerPositions]);
 
   const liveUrl = `${window.location.origin}/live/${sessionId}`;
   const handleCopyLink = () => {
