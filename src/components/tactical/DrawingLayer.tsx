@@ -131,8 +131,8 @@ export default function DrawingLayer({ drawings, onDrawingsChange, tool, drawCol
       onMouseLeave={handleEnd}
       onClick={handleClick}
     >
-      {drawings.map(d => renderPath(d))}
-      {isDrawing && currentPath.current && renderPath(currentPath.current)}
+      {drawings.map(d => renderPath(d, VB))}
+      {isDrawing && currentPath.current && renderPath(currentPath.current, VB)}
     </svg>
   );
 }
