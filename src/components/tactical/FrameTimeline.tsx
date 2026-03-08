@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Camera, Trash2, Play, Square, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Camera, Trash2, Play, Square, Gauge } from 'lucide-react';
 import { AnimationFrame } from './types';
 
 interface FrameTimelineProps {
@@ -11,11 +11,20 @@ interface FrameTimelineProps {
   isPlaying: boolean;
   activeFrameIndex: number | null;
   onSelectFrame: (index: number) => void;
+  speed: number;
+  onSpeedChange: (speed: number) => void;
 }
+
+const SPEEDS = [
+  { label: '0.5x', value: 3000 },
+  { label: '1x', value: 1500 },
+  { label: '1.5x', value: 1000 },
+  { label: '2x', value: 750 },
+];
 
 export default function FrameTimeline({
   frames, onCaptureFrame, onDeleteFrame, onPreview, onStop,
-  isPlaying, activeFrameIndex, onSelectFrame,
+  isPlaying, activeFrameIndex, onSelectFrame, speed, onSpeedChange,
 }: FrameTimelineProps) {
   return (
     <div className="flex items-center gap-1 p-1.5 bg-card border border-border rounded-xl shadow-md shrink-0">
@@ -53,7 +62,7 @@ export default function FrameTimeline({
         Capturar
       </Button>
 
-      {/* Delete last frame */}
+      {/* Delete frame */}
       {frames.length > 0 && activeFrameIndex !== null && (
         <Button
           variant="outline"
@@ -66,21 +75,40 @@ export default function FrameTimeline({
         </Button>
       )}
 
-      {/* Play/Stop preview */}
+      {/* Play/Stop + Speed */}
       {frames.length >= 2 && (
-        <Button
-          variant="outline"
-          size="sm"
-          className={`h-7 text-[10px] gap-1 ${isPlaying
-            ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-700 dark:text-yellow-300'
-            : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
-          }`}
-          onClick={isPlaying ? onStop : onPreview}
-          title={isPlaying ? 'Parar' : 'Reproducir animación'}
-        >
-          {isPlaying ? <Square className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-          {isPlaying ? 'Parar' : 'Play'}
-        </Button>
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`h-7 text-[10px] gap-1 ${isPlaying
+              ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-700 dark:text-yellow-300'
+              : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+            }`}
+            onClick={isPlaying ? onStop : onPreview}
+            title={isPlaying ? 'Parar' : 'Reproducir animación'}
+          >
+            {isPlaying ? <Square className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            {isPlaying ? 'Parar' : 'Play'}
+          </Button>
+
+          <div className="flex items-center gap-0.5">
+            <Gauge className="h-3 w-3 text-muted-foreground" />
+            {SPEEDS.map(s => (
+              <button
+                key={s.value}
+                onClick={() => onSpeedChange(s.value)}
+                className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
+                  speed === s.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
