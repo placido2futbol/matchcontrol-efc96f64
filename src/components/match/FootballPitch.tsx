@@ -261,11 +261,15 @@ export default function FootballPitch({
             <p className="text-[9px] sm:text-[10px] font-bold text-foreground truncate">{awayTeamName}</p>
             <p className="text-[8px] text-muted-foreground uppercase">Suplentes</p>
           </div>
-          {awaySubs.map((p, i) => (
+          {awaySubs.map((p) => (
             <div key={p.slotIndex} className="flex items-center gap-1 text-[8px] sm:text-[9px]">
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-[7px] sm:text-[8px] font-bold shrink-0">
-                {p.dorsal || (p.slotIndex % 100) + 1}
-              </span>
+              {p.photoUrl ? (
+                <img src={p.photoUrl} alt="" className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover shrink-0" />
+              ) : (
+                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-[7px] sm:text-[8px] font-bold shrink-0">
+                  {p.dorsal || (p.slotIndex % 100) + 1}
+                </span>
+              )}
               <span className="text-foreground truncate">{p.playerName}</span>
             </div>
           ))}
