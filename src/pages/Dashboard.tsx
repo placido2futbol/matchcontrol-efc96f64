@@ -89,39 +89,9 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
-  // Determine if bg is light or dark for text contrast
-  const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
-  const isLightBg = bgColor && selectedBgColor?.light;
-  const hasDarkBg = (bgColor && !isLightBg) || (!bgColor && bgCrest);
-  const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
-  const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
-  const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
-
-  const crestAlpha = crestOpacity / 100;
-  const bgStyle: React.CSSProperties = bgColor
-    ? { background: bgColor }
-    : bgCrest
-    ? { backgroundColor: '#1a1a2e' }
-    : {};
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={bgStyle}>
-      {bgCrest && (
-        <img
-          src={bgCrest}
-          alt=""
-          className="absolute inset-0 m-auto pointer-events-none select-none"
-          style={{
-            width: '40%',
-            height: 'auto',
-            objectFit: 'contain',
-            opacity: crestAlpha,
-            mixBlendMode: bgColor ? 'multiply' : 'screen',
-            filter: bgColor ? 'none' : 'brightness(1.2)',
-          }}
-        />
-      )}
-      <div className="relative max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
