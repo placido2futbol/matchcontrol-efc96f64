@@ -398,7 +398,14 @@ export default function MatchPage() {
   const homeSelected = homePlayers.filter(p => p.playerName).map(p => p.playerName);
   const awaySelected = awayPlayers.filter(p => p.playerName).map(p => p.playerName);
 
-  const [importingFcf, setImportingFcf] = useState(false);
+  const homeAvailablePlayers = useMemo(
+    () => uniquePlayersByName(homeTeam?.players || []).map((p) => p.name),
+    [homeTeam]
+  );
+  const awayAvailablePlayers = useMemo(
+    () => uniquePlayersByName(awayTeam?.players || []).map((p) => p.name),
+    [awayTeam]
+  );
 
   const handleImportFCF = async () => {
     if (!homeTeam?.fcf_url && !awayTeam?.fcf_url) {
