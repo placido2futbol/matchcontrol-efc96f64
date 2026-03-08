@@ -12,6 +12,7 @@ import SantPauGlobalStats from "./pages/SantPauGlobalStats";
 import LiveMatchPage from "./pages/LiveMatchPage";
 import NotFound from "./pages/NotFound";
 import TacticalBoard from "./pages/TacticalBoard";
+import TacticalViewer from "./pages/TacticalViewer";
 
 const queryClient = new QueryClient();
 
