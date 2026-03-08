@@ -407,6 +407,8 @@ export default function MatchPage() {
     [awayTeam]
   );
 
+  const [importingFcf, setImportingFcf] = useState(false);
+
   const handleImportFCF = async () => {
     if (!homeTeam?.fcf_url && !awayTeam?.fcf_url) {
       toast.error('Al menos uno de los equipos debe tener URL de la FCF configurada.');
