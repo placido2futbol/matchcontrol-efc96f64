@@ -176,10 +176,17 @@ export default function Dashboard() {
 
   const matchToDelete = matches.find(m => m.id === deleteId);
 
+  // Determine if we need light text (dark bg)
+  const hasDarkBg = bgType === 'color' || bgType === 'crest';
+  const textClass = hasDarkBg ? 'text-white' : 'text-foreground';
+  const mutedTextClass = hasDarkBg ? 'text-white/60' : 'text-muted-foreground';
+  const btnClass = hasDarkBg ? 'text-white/70 hover:text-white hover:bg-white/10' : '';
+
+  const overlayOpacity = 1 - crestOpacity / 100;
   const bgStyle: React.CSSProperties = bgType === 'color'
     ? { background: bgValue }
     : bgType === 'crest'
-    ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+    ? { backgroundImage: `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${Math.min(overlayOpacity + 0.1, 0.95)})), url(${bgValue})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
     : {};
 
   return (
@@ -187,7 +194,7 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className={`font-display text-xl sm:text-2xl ${bgType !== 'default' ? 'text-white' : 'text-foreground'}`}>⚽ MatchControl</h1>
+        <h1 className={`font-display text-xl sm:text-2xl ${textClass}`}>⚽ MatchControl</h1>
         <div className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
