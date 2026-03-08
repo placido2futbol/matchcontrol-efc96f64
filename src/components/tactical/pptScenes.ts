@@ -139,10 +139,9 @@ export function createPPTScenes(): TacticalScene[] {
     // ===== ESCENA 5: FALTA FRONTAL A FAVOR =====
     {
       id: generateId(),
-      name: 'Falta frontal a favor',
+      name: 'FALTA FRONTAL A FAVOR',
       players: [
         p('PORTERO', 1, PINK, 52, 6),
-        // Rivales (barrera + posiciones)
         p('', 0, RED, 25, 22),
         p('', 0, RED, 29, 22),
         p('', 0, RED, 33, 22),
@@ -153,15 +152,12 @@ export function createPPTScenes(): TacticalScene[] {
         p('', 0, RED, 74, 22),
         p('', 0, RED, 8, 38),
         p('', 0, RED, 50, 92),
-        // Nuestros jugadores con balón
         p('LANZADOR 1', 0, BLUE, 32, 42),
         p('LANZADOR 2', 0, BLUE, 42, 42),
         p('COBERTURA', 0, BLUE, 38, 58),
       ],
       drawings: [],
-      labels: [
-        label('FALTA FRONTAL A FAVOR', 78, 6, 'lg'),
-      ],
+      labels: [],
       ball: { x: 36, y: 40, visible: true },
     },
 
