@@ -57,18 +57,21 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
 
   const textColor = isLightColor(player.color) ? '#1a1a2e' : '#ffffff';
   const borderColor = isSelected ? '#ffffff' : darkenColor(player.color, 30);
+  const displayX = overridePos?.x ?? player.x;
+  const displayY = overridePos?.y ?? player.y;
 
   return (
     <div
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing select-none touch-none"
+      onPointerDown={animating ? undefined : handlePointerDown}
+      onPointerMove={animating ? undefined : handlePointerMove}
+      onPointerUp={animating ? undefined : handlePointerUp}
+      className={`absolute flex flex-col items-center select-none touch-none ${animating ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'}`}
       style={{
-        left: `${player.x}%`,
-        top: `${player.y}%`,
+        left: `${displayX}%`,
+        top: `${displayY}%`,
         transform: 'translate(-50%, -50%)',
         zIndex: isSelected ? 30 : 20,
+        transition: animating ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
       }}
     >
       <div
