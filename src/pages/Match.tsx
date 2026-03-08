@@ -487,7 +487,7 @@ export default function MatchPage() {
           <Button variant="outline" onClick={() => saveMatch('in_progress')} disabled={saving}>
             <Save className="h-4 w-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar Partido'}
           </Button>
-          <Button onClick={() => saveMatch('finished')} disabled={saving} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={() => saveMatch('finished')} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Flag className="h-4 w-4 mr-1" /> Finalizar Partido
           </Button>
         </div>
