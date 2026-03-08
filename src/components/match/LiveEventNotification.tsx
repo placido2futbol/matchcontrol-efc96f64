@@ -51,7 +51,7 @@ export default function LiveEventNotification({ events, playerPhotos = {} }: { e
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col items-center justify-center gap-3">
       {notifications.map(n => (
-        <NotificationCard key={n.id} event={n.event} visible={n.visible} />
+        <NotificationCard key={n.id} event={n.event} visible={n.visible} playerPhotoUrl={n.playerPhotoUrl} />
       ))}
     </div>
   );
