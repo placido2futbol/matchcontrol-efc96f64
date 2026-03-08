@@ -316,7 +316,7 @@ export default function Dashboard() {
                 {/* Background crest */}
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                    <Image className="h-3.5 w-3.5" /> Escudo de fondo
+                    <ImageIcon className="h-3.5 w-3.5" /> Escudo de fondo
                   </span>
                   <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
                     {FCF_EQUIPOS_DB.map(team => (
