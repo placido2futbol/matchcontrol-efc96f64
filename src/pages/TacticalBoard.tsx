@@ -435,7 +435,7 @@ export default function TacticalBoard() {
         <div className="flex-1 flex items-center justify-center min-w-0 min-h-0">
           <div
             ref={pitchRef}
-            className={`relative rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
+            className={`relative rounded-xl shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
               maxHeight: 'calc(100vh - 120px)',
