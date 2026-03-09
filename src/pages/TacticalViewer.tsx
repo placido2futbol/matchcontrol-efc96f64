@@ -420,6 +420,10 @@ function isLight(hex: string): boolean {
   return (r * 299 + g * 587 + b * 114) / 1000 > 160;
 }
 
+function clampPercent(value: number): number {
+  return Math.max(4, Math.min(96, value));
+}
+
 function darken(hex: string, amount: number): string {
   const c = hex.replace('#', '');
   const r = Math.max(0, parseInt(c.substring(0, 2), 16) - amount);
