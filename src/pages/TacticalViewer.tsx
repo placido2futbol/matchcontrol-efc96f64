@@ -186,8 +186,8 @@ export default function TacticalViewer() {
             <div
               className="absolute pointer-events-none"
               style={{
-                left: `${currentBall.x}%`,
-                top: `${currentBall.y}%`,
+                 left: `${clampPercent(currentBall.x)}%`,
+                 top: `${clampPercent(currentBall.y)}%`,
                 transform: 'translate(-50%, -50%)',
                 zIndex: 15,
                 transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
@@ -270,13 +270,15 @@ export default function TacticalViewer() {
           {/* Players */}
           {scene.players.filter((p: TacticalPlayer) => p.onField).map((p: TacticalPlayer) => {
             const pos = getPlayerPosition(p);
-            return (
-              <div
-                key={p.id}
-                className="absolute flex flex-col items-center pointer-events-none"
-                style={{
-                  left: `${pos.x}%`,
-                  top: `${pos.y}%`,
+              const safeX = clampPercent(pos.x);
+              const safeY = clampPercent(pos.y);
+              return (
+                <div
+                  key={p.id}
+                  className="absolute flex flex-col items-center pointer-events-none"
+                  style={{
+                    left: `${safeX}%`,
+                    top: `${safeY}%`,
                   transform: 'translate(-50%, -50%)',
                   zIndex: 20,
                   transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
@@ -416,6 +418,10 @@ function isLight(hex: string): boolean {
   const g = parseInt(c.substring(2, 4), 16);
   const b = parseInt(c.substring(4, 6), 16);
   return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+}
+
+function clampPercent(value: number): number {
+  return Math.max(4, Math.min(96, value));
 }
 
 function darken(hex: string, amount: number): string {
