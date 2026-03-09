@@ -270,13 +270,15 @@ export default function TacticalViewer() {
           {/* Players */}
           {scene.players.filter((p: TacticalPlayer) => p.onField).map((p: TacticalPlayer) => {
             const pos = getPlayerPosition(p);
-            return (
-              <div
-                key={p.id}
-                className="absolute flex flex-col items-center pointer-events-none"
-                style={{
-                  left: `${pos.x}%`,
-                  top: `${pos.y}%`,
+              const safeX = clampPercent(pos.x);
+              const safeY = clampPercent(pos.y);
+              return (
+                <div
+                  key={p.id}
+                  className="absolute flex flex-col items-center pointer-events-none"
+                  style={{
+                    left: `${safeX}%`,
+                    top: `${safeY}%`,
                   transform: 'translate(-50%, -50%)',
                   zIndex: 20,
                   transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
