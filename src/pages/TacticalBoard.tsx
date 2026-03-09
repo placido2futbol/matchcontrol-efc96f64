@@ -417,7 +417,7 @@ export default function TacticalBoard() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex gap-2 p-2 min-h-0">
+      <div className="flex-1 flex gap-1 p-1 min-h-0">
         {/* Left sidebar - Scenes */}
         <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
           <SceneManager
