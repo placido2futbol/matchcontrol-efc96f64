@@ -419,7 +419,7 @@ export default function TacticalBoard() {
       {/* Main content */}
       <div className="flex-1 flex gap-2 p-2 min-h-0">
         {/* Left sidebar - Scenes */}
-        <div className="w-40 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+        <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
           <SceneManager
             scenes={scenes}
             activeSceneId={activeSceneId}
@@ -435,7 +435,7 @@ export default function TacticalBoard() {
         <div className="flex-1 flex items-center justify-center min-w-0 min-h-0">
           <div
             ref={pitchRef}
-            className={`relative rounded-xl overflow-hidden shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
+            className={`relative rounded-xl shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
               maxHeight: 'calc(100vh - 120px)',
@@ -445,7 +445,9 @@ export default function TacticalBoard() {
             }}
             onClick={handlePitchClick}
           >
-            {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
+            </div>
 
             {/* Club crest watermark */}
             {boardCrest && (
