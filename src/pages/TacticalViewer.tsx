@@ -186,8 +186,8 @@ export default function TacticalViewer() {
             <div
               className="absolute pointer-events-none"
               style={{
-                left: `${currentBall.x}%`,
-                top: `${currentBall.y}%`,
+                 left: `${clampPercent(currentBall.x)}%`,
+                 top: `${clampPercent(currentBall.y)}%`,
                 transform: 'translate(-50%, -50%)',
                 zIndex: 15,
                 transition: playingFrames ? 'left 1s ease-in-out, top 1s ease-in-out' : undefined,
