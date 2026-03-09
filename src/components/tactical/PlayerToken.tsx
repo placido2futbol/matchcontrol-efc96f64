@@ -57,8 +57,8 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
 
   const textColor = isLightColor(player.color) ? '#1a1a2e' : '#ffffff';
   const borderColor = isSelected ? '#ffffff' : darkenColor(player.color, 30);
-  const displayX = overridePos?.x ?? player.x;
-  const displayY = overridePos?.y ?? player.y;
+  const displayX = Math.max(4, Math.min(96, overridePos?.x ?? player.x));
+  const displayY = Math.max(4, Math.min(96, overridePos?.y ?? player.y));
 
   return (
     <div
