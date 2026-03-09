@@ -438,7 +438,7 @@ export default function TacticalBoard() {
             className={`relative rounded-xl shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
-              maxHeight: 'calc(100vh - 120px)',
+              maxHeight: 'calc(100vh - 96px)',
               maxWidth: '100%',
               width: '100%',
               cursor: pendingRoster ? 'crosshair' : undefined,
