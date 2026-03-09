@@ -445,7 +445,9 @@ export default function TacticalBoard() {
             }}
             onClick={handlePitchClick}
           >
-            {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              {activeScene.halfPitch ? <HalfPitchSVG /> : <PitchSVG />}
+            </div>
 
             {/* Club crest watermark */}
             {boardCrest && (
