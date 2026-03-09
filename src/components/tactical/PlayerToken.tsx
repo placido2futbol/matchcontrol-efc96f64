@@ -38,8 +38,8 @@ export default function PlayerToken({ player, containerRef, onDragEnd, onClick, 
       const rect = containerRef.current.getBoundingClientRect();
       const dx = e.clientX - startPos.current.x;
       const dy = e.clientY - startPos.current.y;
-      const newX = Math.max(1, Math.min(99, startPlayerPos.current.x + (dx / rect.width) * 100));
-      const newY = Math.max(1, Math.min(99, startPlayerPos.current.y + (dy / rect.height) * 100));
+      const newX = Math.max(4, Math.min(96, startPlayerPos.current.x + (dx / rect.width) * 100));
+      const newY = Math.max(4, Math.min(96, startPlayerPos.current.y + (dy / rect.height) * 100));
       onDragEnd(player.id, Math.round(newX), Math.round(newY));
     } else {
       onClick(player);
