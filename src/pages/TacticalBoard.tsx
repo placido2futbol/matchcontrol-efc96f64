@@ -474,28 +474,30 @@ export default function TacticalBoard() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex gap-1 p-1 min-h-0">
-        {/* Left sidebar - Scenes */}
-        <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
-          <SceneManager
-            scenes={scenes}
-            activeSceneId={activeSceneId}
-            onSelectScene={setActiveSceneId}
-            onAddScene={handleAddScene}
-            onDuplicateScene={handleDuplicateScene}
-            onDeleteScene={handleDeleteScene}
-            onRenameScene={handleRenameScene}
-          />
-        </div>
+      <div className="flex-1 flex gap-1 p-1 min-h-0 overflow-hidden">
+        {/* Left sidebar - Scenes (hidden on mobile) */}
+        {!isMobile && (
+          <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+            <SceneManager
+              scenes={scenes}
+              activeSceneId={activeSceneId}
+              onSelectScene={setActiveSceneId}
+              onAddScene={handleAddScene}
+              onDuplicateScene={handleDuplicateScene}
+              onDeleteScene={handleDeleteScene}
+              onRenameScene={handleRenameScene}
+            />
+          </div>
+        )}
 
         {/* Pitch */}
-        <div className="flex-1 flex items-center justify-center min-w-0 min-h-0">
+        <div className="flex-1 flex items-center justify-center min-w-0 min-h-0 overflow-hidden">
           <div
             ref={pitchRef}
             className={`relative rounded-xl shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
-              maxHeight: 'calc(100vh - 96px)',
+              maxHeight: isMobile ? 'calc(100vh - 140px)' : 'calc(100vh - 96px)',
               maxWidth: '100%',
               width: '100%',
               cursor: pendingRoster ? 'crosshair' : undefined,
