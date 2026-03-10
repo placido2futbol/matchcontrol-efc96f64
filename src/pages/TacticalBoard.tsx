@@ -40,6 +40,7 @@ export default function TacticalBoard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const pitchRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const [scenes, setScenes] = useState<TacticalScene[]>(initialScenes);
   const [activeSceneId, setActiveSceneId] = useState(initialScenes[0].id);
@@ -56,6 +57,61 @@ export default function TacticalBoard() {
   const [activeFrameIndex, setActiveFrameIndex] = useState<number | null>(null);
   const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [frameSpeed, setFrameSpeed] = useState(1500);
+  const [loadedFromDb, setLoadedFromDb] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load saved board from DB on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('tactical_boards')
+        .select('id, scenes')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (data && data.scenes) {
+        const loaded = data.scenes as unknown as TacticalScene[];
+        if (loaded.length > 0) {
+          setScenes(loaded);
+          setActiveSceneId(loaded[0].id);
+          setShareId(data.id);
+          setLoadedFromDb(true);
+        }
+      }
+    })();
+  }, [user]);
+
+  // Auto-save to DB with debounce (2s after last change)
+  useEffect(() => {
+    if (!user || !loadedFromDb && !shareId) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      const scenesWithCrest = scenes.map(s => ({
+        ...s,
+        showCrest: !!boardCrest,
+        crestUrl: boardCrest || undefined,
+      }));
+      try {
+        if (shareId) {
+          await supabase.from('tactical_boards').update({
+            scenes: scenesWithCrest as any,
+            updated_at: new Date().toISOString(),
+          }).eq('id', shareId);
+        } else {
+          const { data } = await supabase.from('tactical_boards').insert({
+            user_id: user.id,
+            name: 'Pizarra Táctica',
+            scenes: scenesWithCrest as any,
+          }).select('id').single();
+          if (data) setShareId(data.id);
+        }
+      } catch {}
+    }, 2000);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [scenes, user, shareId, boardCrest]);
 
   const handleShare = useCallback(async () => {
     if (!user) {
