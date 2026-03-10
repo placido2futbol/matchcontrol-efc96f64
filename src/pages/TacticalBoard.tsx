@@ -697,50 +697,71 @@ export default function TacticalBoard() {
           </div>
         </div>
 
-        {/* Right sidebar - Legend (like PPT) */}
-        <div className="w-48 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
-            Jugadores ({fieldPlayers.length})
-          </h3>
-          <div className="space-y-1">
-            {fieldPlayers.map(p => (
-              <div
-                key={p.id}
-                className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer ${
-                  selectedPlayerId === p.id ? 'bg-primary/15 ring-1 ring-primary/30' : 'hover:bg-muted'
-                }`}
-                onClick={() => setSelectedPlayerId(selectedPlayerId === p.id ? null : p.id)}
-              >
+        {/* Right sidebar - Legend (hidden on mobile) */}
+        {!isMobile && (
+          <div className="w-48 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
+              Jugadores ({fieldPlayers.length})
+            </h3>
+            <div className="space-y-1">
+              {fieldPlayers.map(p => (
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-sm"
-                  style={{
-                    background: p.color,
-                    color: isLight(p.color) ? '#1a1a2e' : '#fff',
-                    border: '2px solid rgba(0,0,0,0.2)',
-                  }}
+                  key={p.id}
+                  className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    selectedPlayerId === p.id ? 'bg-primary/15 ring-1 ring-primary/30' : 'hover:bg-muted'
+                  }`}
+                  onClick={() => setSelectedPlayerId(selectedPlayerId === p.id ? null : p.id)}
                 >
-                  {p.number}
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-sm"
+                    style={{
+                      background: p.color,
+                      color: isLight(p.color) ? '#1a1a2e' : '#fff',
+                      border: '2px solid rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    {p.number}
+                  </div>
+                  <span
+                    className="text-xs font-bold truncate px-1.5 py-0.5"
+                    style={{
+                      background: p.team === 'away' ? 'transparent' : '#ffff00',
+                      color: '#cc0000',
+                      border: p.team === 'away' ? 'none' : '1px solid #cc0000',
+                    }}
+                  >
+                    {p.name.toUpperCase()}
+                  </span>
                 </div>
-                <span
-                  className="text-xs font-bold truncate px-1.5 py-0.5"
-                  style={{
-                    background: p.team === 'away' ? 'transparent' : '#ffff00',
-                    color: '#cc0000',
-                    border: p.team === 'away' ? 'none' : '1px solid #cc0000',
-                  }}
-                >
-                  {p.name.toUpperCase()}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
+            {fieldPlayers.length === 0 && (
+              <p className="text-[10px] text-muted-foreground text-center py-8">
+                Añade jugadores con los botones de la barra superior
+              </p>
+            )}
           </div>
-          {fieldPlayers.length === 0 && (
-            <p className="text-[10px] text-muted-foreground text-center py-8">
-              Añade jugadores con los botones de la barra superior
-            </p>
-          )}
-        </div>
+        )}
       </div>
+
+      {/* Mobile scene selector at bottom */}
+      {isMobile && scenes.length > 1 && (
+        <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 overflow-x-auto border-t border-border bg-card/80">
+          {scenes.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSceneId(s.id)}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all shrink-0 ${
+                s.id === activeSceneId
+                  ? 'bg-primary text-primary-foreground shadow'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {s.name.length > 12 ? s.name.substring(0, 12) + '…' : s.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
