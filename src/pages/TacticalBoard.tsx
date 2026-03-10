@@ -3,10 +3,11 @@ import soccerBallImg from '@/assets/soccer-ball.png';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, Share2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import PitchSVG from '@/components/tactical/PitchSVG';
 import HalfPitchSVG from '@/components/tactical/HalfPitchSVG';
 import PlayerToken from '@/components/tactical/PlayerToken';
@@ -39,6 +40,7 @@ export default function TacticalBoard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const pitchRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const [scenes, setScenes] = useState<TacticalScene[]>(initialScenes);
   const [activeSceneId, setActiveSceneId] = useState(initialScenes[0].id);
@@ -55,6 +57,61 @@ export default function TacticalBoard() {
   const [activeFrameIndex, setActiveFrameIndex] = useState<number | null>(null);
   const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [frameSpeed, setFrameSpeed] = useState(1500);
+  const [loadedFromDb, setLoadedFromDb] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load saved board from DB on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('tactical_boards')
+        .select('id, scenes')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (data && data.scenes) {
+        const loaded = data.scenes as unknown as TacticalScene[];
+        if (loaded.length > 0) {
+          setScenes(loaded);
+          setActiveSceneId(loaded[0].id);
+          setShareId(data.id);
+          setLoadedFromDb(true);
+        }
+      }
+    })();
+  }, [user]);
+
+  // Auto-save to DB with debounce (2s after last change)
+  useEffect(() => {
+    if (!user || !loadedFromDb && !shareId) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      const scenesWithCrest = scenes.map(s => ({
+        ...s,
+        showCrest: !!boardCrest,
+        crestUrl: boardCrest || undefined,
+      }));
+      try {
+        if (shareId) {
+          await supabase.from('tactical_boards').update({
+            scenes: scenesWithCrest as any,
+            updated_at: new Date().toISOString(),
+          }).eq('id', shareId);
+        } else {
+          const { data } = await supabase.from('tactical_boards').insert({
+            user_id: user.id,
+            name: 'Pizarra Táctica',
+            scenes: scenesWithCrest as any,
+          }).select('id').single();
+          if (data) setShareId(data.id);
+        }
+      } catch {}
+    }, 2000);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [scenes, user, shareId, boardCrest]);
 
   const handleShare = useCallback(async () => {
     if (!user) {
@@ -417,28 +474,30 @@ export default function TacticalBoard() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex gap-1 p-1 min-h-0">
-        {/* Left sidebar - Scenes */}
-        <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
-          <SceneManager
-            scenes={scenes}
-            activeSceneId={activeSceneId}
-            onSelectScene={setActiveSceneId}
-            onAddScene={handleAddScene}
-            onDuplicateScene={handleDuplicateScene}
-            onDeleteScene={handleDeleteScene}
-            onRenameScene={handleRenameScene}
-          />
-        </div>
+      <div className="flex-1 flex gap-1 p-1 min-h-0 overflow-hidden">
+        {/* Left sidebar - Scenes (hidden on mobile) */}
+        {!isMobile && (
+          <div className="w-52 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+            <SceneManager
+              scenes={scenes}
+              activeSceneId={activeSceneId}
+              onSelectScene={setActiveSceneId}
+              onAddScene={handleAddScene}
+              onDuplicateScene={handleDuplicateScene}
+              onDeleteScene={handleDeleteScene}
+              onRenameScene={handleRenameScene}
+            />
+          </div>
+        )}
 
         {/* Pitch */}
-        <div className="flex-1 flex items-center justify-center min-w-0 min-h-0">
+        <div className="flex-1 flex items-center justify-center min-w-0 min-h-0 overflow-hidden">
           <div
             ref={pitchRef}
             className={`relative rounded-xl shadow-2xl ${pendingRoster ? 'ring-2 ring-primary/50' : ''}`}
             style={{
               aspectRatio: activeScene.halfPitch ? '1050/750' : '1050/680',
-              maxHeight: 'calc(100vh - 96px)',
+              maxHeight: isMobile ? 'calc(100vh - 140px)' : 'calc(100vh - 96px)',
               maxWidth: '100%',
               width: '100%',
               cursor: pendingRoster ? 'crosshair' : undefined,
@@ -638,50 +697,71 @@ export default function TacticalBoard() {
           </div>
         </div>
 
-        {/* Right sidebar - Legend (like PPT) */}
-        <div className="w-48 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
-            Jugadores ({fieldPlayers.length})
-          </h3>
-          <div className="space-y-1">
-            {fieldPlayers.map(p => (
-              <div
-                key={p.id}
-                className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer ${
-                  selectedPlayerId === p.id ? 'bg-primary/15 ring-1 ring-primary/30' : 'hover:bg-muted'
-                }`}
-                onClick={() => setSelectedPlayerId(selectedPlayerId === p.id ? null : p.id)}
-              >
+        {/* Right sidebar - Legend (hidden on mobile) */}
+        {!isMobile && (
+          <div className="w-48 shrink-0 bg-card/50 border border-border rounded-xl p-2 overflow-y-auto hidden md:block">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
+              Jugadores ({fieldPlayers.length})
+            </h3>
+            <div className="space-y-1">
+              {fieldPlayers.map(p => (
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-sm"
-                  style={{
-                    background: p.color,
-                    color: isLight(p.color) ? '#1a1a2e' : '#fff',
-                    border: '2px solid rgba(0,0,0,0.2)',
-                  }}
+                  key={p.id}
+                  className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    selectedPlayerId === p.id ? 'bg-primary/15 ring-1 ring-primary/30' : 'hover:bg-muted'
+                  }`}
+                  onClick={() => setSelectedPlayerId(selectedPlayerId === p.id ? null : p.id)}
                 >
-                  {p.number}
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-sm"
+                    style={{
+                      background: p.color,
+                      color: isLight(p.color) ? '#1a1a2e' : '#fff',
+                      border: '2px solid rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    {p.number}
+                  </div>
+                  <span
+                    className="text-xs font-bold truncate px-1.5 py-0.5"
+                    style={{
+                      background: p.team === 'away' ? 'transparent' : '#ffff00',
+                      color: '#cc0000',
+                      border: p.team === 'away' ? 'none' : '1px solid #cc0000',
+                    }}
+                  >
+                    {p.name.toUpperCase()}
+                  </span>
                 </div>
-                <span
-                  className="text-xs font-bold truncate px-1.5 py-0.5"
-                  style={{
-                    background: p.team === 'away' ? 'transparent' : '#ffff00',
-                    color: '#cc0000',
-                    border: p.team === 'away' ? 'none' : '1px solid #cc0000',
-                  }}
-                >
-                  {p.name.toUpperCase()}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
+            {fieldPlayers.length === 0 && (
+              <p className="text-[10px] text-muted-foreground text-center py-8">
+                Añade jugadores con los botones de la barra superior
+              </p>
+            )}
           </div>
-          {fieldPlayers.length === 0 && (
-            <p className="text-[10px] text-muted-foreground text-center py-8">
-              Añade jugadores con los botones de la barra superior
-            </p>
-          )}
-        </div>
+        )}
       </div>
+
+      {/* Mobile scene selector at bottom */}
+      {isMobile && scenes.length > 1 && (
+        <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 overflow-x-auto border-t border-border bg-card/80">
+          {scenes.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSceneId(s.id)}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all shrink-0 ${
+                s.id === activeSceneId
+                  ? 'bg-primary text-primary-foreground shadow'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {s.name.length > 12 ? s.name.substring(0, 12) + '…' : s.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
