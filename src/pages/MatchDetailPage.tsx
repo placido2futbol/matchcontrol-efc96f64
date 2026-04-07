@@ -95,6 +95,19 @@ export default function MatchDetail() {
     );
   };
 
+  // Compute stats from events instead of stored values
+  const getGoalsFromEvents = (playerName: string, teamSide: string) => {
+    return events.filter(e => e.team_side === teamSide && e.event_type === 'goal' && e.player_name === playerName).length;
+  };
+
+  const getYellowsFromEvents = (playerName: string, teamSide: string) => {
+    return events.filter(e => e.team_side === teamSide && (e.event_type === 'yellow' || e.event_type === 'second_yellow') && e.player_name === playerName).length;
+  };
+
+  const getRedFromEvents = (playerName: string, teamSide: string) => {
+    return events.some(e => e.team_side === teamSide && (e.event_type === 'red' || e.event_type === 'second_yellow') && e.player_name === playerName);
+  };
+
   const renderPlayerTable = (teamPlayers: MatchPlayerRow[], label: string) => (
     <div>
       <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
@@ -117,9 +130,9 @@ export default function MatchDetail() {
                 <td className="p-0.5 sm:p-1 text-muted-foreground">{p.dorsal || '-'}</td>
                 <td className="p-0.5 sm:p-1 text-foreground">{p.player_name}</td>
                 <td className="p-0.5 sm:p-1 text-center">{p.is_starter ? '✓' : ''}</td>
-                <td className="p-0.5 sm:p-1 text-center font-bold">{p.goals || ''}</td>
-                <td className="p-0.5 sm:p-1 text-center">{p.yellow_cards || ''}</td>
-                <td className="p-0.5 sm:p-1 text-center">{p.red_card ? '🟥' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center font-bold">{getGoalsFromEvents(p.player_name, p.team_side) || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{getYellowsFromEvents(p.player_name, p.team_side) || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{getRedFromEvents(p.player_name, p.team_side) ? '🟥' : ''}</td>
                 <td className="p-0.5 sm:p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
               </tr>
             ))}
