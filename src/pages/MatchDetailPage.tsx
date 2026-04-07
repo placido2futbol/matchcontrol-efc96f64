@@ -130,9 +130,9 @@ export default function MatchDetail() {
                 <td className="p-0.5 sm:p-1 text-muted-foreground">{p.dorsal || '-'}</td>
                 <td className="p-0.5 sm:p-1 text-foreground">{p.player_name}</td>
                 <td className="p-0.5 sm:p-1 text-center">{p.is_starter ? '✓' : ''}</td>
-                <td className="p-0.5 sm:p-1 text-center font-bold">{p.goals || ''}</td>
-                <td className="p-0.5 sm:p-1 text-center">{p.yellow_cards || ''}</td>
-                <td className="p-0.5 sm:p-1 text-center">{p.red_card ? '🟥' : ''}</td>
+                <td className="p-0.5 sm:p-1 text-center font-bold">{getGoalsFromEvents(p.player_name, p.team_side) || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{getYellowsFromEvents(p.player_name, p.team_side) || ''}</td>
+                <td className="p-0.5 sm:p-1 text-center">{getRedFromEvents(p.player_name, p.team_side) ? '🟥' : ''}</td>
                 <td className="p-0.5 sm:p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
               </tr>
             ))}
