@@ -81,9 +81,39 @@ export default function MatchDetail() {
   if (!match) return <div className="p-8 text-center text-muted-foreground">Partido no encontrado</div>;
 
   const homePlayers = players.filter(p => p.team_side === 'home');
-  const awayPlayers = players.filter(p => p.team_side === 'away');
+  const awayPlayersRaw = players.filter(p => p.team_side === 'away');
   const homeEvents = events.filter(e => e.team_side === 'home');
   const awayEvents = events.filter(e => e.team_side === 'away');
+
+  // If no away players saved, synthesize from events
+  const awayPlayers: MatchPlayerRow[] = awayPlayersRaw.length > 0
+    ? awayPlayersRaw
+    : (() => {
+        const playerMap = new Map<string, MatchPlayerRow>();
+        awayEvents.forEach(ev => {
+          const name = ev.player_name?.trim();
+          if (!name) return;
+          if (!playerMap.has(name)) {
+            playerMap.set(name, {
+              id: `synth-${name}`,
+              player_name: name,
+              dorsal: '',
+              team_side: 'away',
+              is_starter: false,
+              goals: 0,
+              yellow_cards: 0,
+              red_card: false,
+              minutes_played: 0,
+            });
+          }
+          const p = playerMap.get(name)!;
+          if (ev.event_type === 'goal') p.goals += 1;
+          if (ev.event_type === 'yellow') p.yellow_cards += 1;
+          if (ev.event_type === 'second_yellow') { p.yellow_cards += 1; p.red_card = true; }
+          if (ev.event_type === 'red') p.red_card = true;
+        });
+        return Array.from(playerMap.values());
+      })();
 
   const getMinutes = (player: MatchPlayerRow) => {
     const sideEvents = player.team_side === 'home' ? homeEvents : awayEvents;
