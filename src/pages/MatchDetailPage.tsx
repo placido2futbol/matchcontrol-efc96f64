@@ -95,6 +95,19 @@ export default function MatchDetail() {
     );
   };
 
+  // Compute stats from events instead of stored values
+  const getGoalsFromEvents = (playerName: string, teamSide: string) => {
+    return events.filter(e => e.team_side === teamSide && e.event_type === 'goal' && e.player_name === playerName).length;
+  };
+
+  const getYellowsFromEvents = (playerName: string, teamSide: string) => {
+    return events.filter(e => e.team_side === teamSide && (e.event_type === 'yellow' || e.event_type === 'second_yellow') && e.player_name === playerName).length;
+  };
+
+  const getRedFromEvents = (playerName: string, teamSide: string) => {
+    return events.some(e => e.team_side === teamSide && (e.event_type === 'red' || e.event_type === 'second_yellow') && e.player_name === playerName);
+  };
+
   const renderPlayerTable = (teamPlayers: MatchPlayerRow[], label: string) => (
     <div>
       <h4 className="font-bold text-sm mb-1 text-foreground">{label}</h4>
