@@ -9,6 +9,21 @@ interface MatchPlayer {
   isStarter: boolean;
 }
 
+interface MatchGoal {
+  playerName: string;
+  minute: number;
+  type: 'normal' | 'penalty';
+  teamSide: 'home' | 'away';
+  runningScore: string;
+}
+
+interface MatchCard {
+  playerName: string;
+  minute: number;
+  cardType: 'yellow' | 'red';
+  teamSide: 'home' | 'away';
+}
+
 interface MatchData {
   homeTeamName: string;
   awayTeamName: string;
@@ -16,6 +31,8 @@ interface MatchData {
   awayPlayers: MatchPlayer[];
   score: string;
   actaUrl: string;
+  goals: MatchGoal[];
+  cards: MatchCard[];
 }
 
 Deno.serve(async (req) => {
@@ -33,12 +50,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Extract team slug and season from URL
     const teamSlug = teamPageUrl.split('/').pop();
     const seasonMatch = teamPageUrl.match(/equip\/(\d{4})/);
     const season = seasonMatch ? seasonMatch[1] : '2526';
 
-    // Fetch calendar page
     const calendarUrl = `https://www.fcf.cat/calendari-equip/${season}/futbol-11/quarta-catalana/grup-28/${teamSlug}`;
     console.log(`Fetching calendar: ${calendarUrl}`);
 
@@ -47,8 +62,6 @@ Deno.serve(async (req) => {
     });
     const calHtml = await calResponse.text();
 
-    // Find the acta URL for the specific match
-    // Look for a row that contains both team names and has an acta link
     const actaRegex = /href="(https:\/\/www\.fcf\.cat\/acta\/[^"]+)"/g;
     const actaUrls: string[] = [];
     let match;
@@ -63,7 +76,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Find the matching acta by checking each one
     let matchData: MatchData | null = null;
 
     for (const actaUrl of actaUrls) {
@@ -74,7 +86,6 @@ Deno.serve(async (req) => {
         });
         const actaHtml = await actaResponse.text();
 
-        // Extract team names from acta
         const titleMatch = actaHtml.match(/class="apex"[^>]*>([^<]+)/);
         if (!titleMatch) continue;
 
@@ -84,14 +95,12 @@ Deno.serve(async (req) => {
         const actaHomeTeam = titleParts[0].trim();
         const actaAwayTeam = titleParts.slice(1).join(' - ').trim();
 
-        // Check if this is the match we're looking for
         const homeMatch = normalizeTeamName(actaHomeTeam).includes(normalizeTeamName(homeTeamName || '')) ||
                          normalizeTeamName(homeTeamName || '').includes(normalizeTeamName(actaHomeTeam));
         const awayMatch = normalizeTeamName(actaAwayTeam).includes(normalizeTeamName(awayTeamName || '')) ||
                          normalizeTeamName(awayTeamName || '').includes(normalizeTeamName(actaAwayTeam));
 
         if (homeMatch && awayMatch) {
-          // Found our match! Extract players
           const sections = actaHtml.split('col-md-4 p-0_ml');
           
           const homePlayers = sections.length >= 2 ? extractPlayersFromSection(sections[1]) : [];
@@ -101,6 +110,14 @@ Deno.serve(async (req) => {
           const scoreMatch = actaHtml.match(/acta-marcador[^>]*>\s*<span>\s*(\d+\s*-\s*\d+)\s*<\/span>/);
           const score = scoreMatch ? scoreMatch[1].replace(/\s/g, '') : '';
 
+          // Extract goals from the Gols table (in sections[2] - middle section)
+          const goals = extractGoals(actaHtml, homePlayers, awayPlayers);
+
+          // Extract cards from home (sections[1]) and away (sections[3]) sections
+          const homeCards = sections.length >= 2 ? extractCardsFromSection(sections[1], 'home') : [];
+          const awayCards = sections.length >= 4 ? extractCardsFromSection(sections[3], 'away') : [];
+          const cards = [...homeCards, ...awayCards];
+
           matchData = {
             homeTeamName: actaHomeTeam,
             awayTeamName: actaAwayTeam,
@@ -108,9 +125,11 @@ Deno.serve(async (req) => {
             awayPlayers,
             score,
             actaUrl,
+            goals,
+            cards,
           };
 
-          console.log(`Found match: ${actaHomeTeam} vs ${actaAwayTeam}`);
+          console.log(`Found match: ${actaHomeTeam} vs ${actaAwayTeam}, ${goals.length} goals, ${cards.length} cards`);
           break;
         }
       } catch (e) {
@@ -148,11 +167,9 @@ function normalizeTeamName(name: string): string {
 function extractPlayersFromSection(sectionHtml: string): MatchPlayer[] {
   const players: MatchPlayer[] = [];
   
-  // Check if we're in Titulars or Suplents section
   const titularsMatch = sectionHtml.indexOf('Titulars');
   const suplentsMatch = sectionHtml.indexOf('Suplents');
   
-  // Extract titulars
   let titularsSection = sectionHtml;
   if (suplentsMatch > 0) {
     titularsSection = sectionHtml.substring(0, suplentsMatch);
@@ -168,7 +185,6 @@ function extractPlayersFromSection(sectionHtml: string): MatchPlayer[] {
     });
   }
   
-  // Extract suplents if present
   if (suplentsMatch > 0) {
     const suplentsSection = sectionHtml.substring(suplentsMatch);
     const suplentRegex = /num-samarreta-acta2">\s*(\d+)\s*<\/span>[\s\S]*?<a[^>]*>([^<]+)<\/a>/g;
@@ -182,4 +198,67 @@ function extractPlayersFromSection(sectionHtml: string): MatchPlayer[] {
   }
 
   return players;
+}
+
+function extractGoals(actaHtml: string, homePlayers: MatchPlayer[], awayPlayers: MatchPlayer[]): MatchGoal[] {
+  const goals: MatchGoal[] = [];
+
+  // Find the Gols table
+  const golsTableMatch = actaHtml.match(/<th\s+colspan="4"\s*>\s*Gols\s*<\/th>[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/);
+  if (!golsTableMatch) return goals;
+
+  const golsBody = golsTableMatch[1];
+  // Each goal row: gol-normal or gol-penal, running score, player name, minute
+  const goalRowRegex = /gol-(normal|penal)[\s\S]*?acta-marcador-gol">\s*([\d\s]+-[\s\d]+)\s*<\/div>[\s\S]*?<a[^>]*>\s*([^<\n]+)[\s\S]*?<td>\s*(\d+)'/g;
+
+  let m;
+  while ((m = goalRowRegex.exec(golsBody)) !== null) {
+    const type = m[1] === 'penal' ? 'penalty' : 'normal';
+    const runningScore = m[2].replace(/\s/g, '');
+    const playerName = m[3].trim();
+    const minute = parseInt(m[4], 10);
+
+    // Determine team by matching player name against rosters
+    const normName = normalizeTeamName(playerName);
+    const isHome = homePlayers.some(p => normalizeTeamName(p.name) === normName);
+    const isAway = awayPlayers.some(p => normalizeTeamName(p.name) === normName);
+
+    let teamSide: 'home' | 'away';
+    if (isHome && !isAway) {
+      teamSide = 'home';
+    } else if (isAway && !isHome) {
+      teamSide = 'away';
+    } else {
+      // Infer from running score changes
+      const parts = runningScore.split('-').map(s => parseInt(s, 10));
+      const prevGoals = goals.filter(g => g.teamSide === 'home').length;
+      teamSide = parts[0] > prevGoals ? 'home' : 'away';
+    }
+
+    goals.push({ playerName, minute, type, teamSide, runningScore });
+  }
+
+  return goals;
+}
+
+function extractCardsFromSection(sectionHtml: string, teamSide: 'home' | 'away'): MatchCard[] {
+  const cards: MatchCard[] = [];
+
+  // Find the Targetes section within this team's section
+  const targetsIdx = sectionHtml.indexOf('Targetes');
+  if (targetsIdx < 0) return cards;
+
+  const targetsSection = sectionHtml.substring(targetsIdx);
+
+  // Extract each card: player name + card type (groga-s or vermella-s) + minute
+  const cardRegex = /<a[^>]*>\s*([^<\n]+)<\/a>[\s\S]*?(groga-s|vermella-s)[\s\S]*?acta-minut-targeta">\s*(\d+)'/g;
+  let m;
+  while ((m = cardRegex.exec(targetsSection)) !== null) {
+    const playerName = m[1].trim();
+    const cardType = m[2] === 'vermella-s' ? 'red' : 'yellow';
+    const minute = parseInt(m[3], 10);
+    cards.push({ playerName, minute, cardType, teamSide });
+  }
+
+  return cards;
 }

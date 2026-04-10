@@ -432,10 +432,12 @@ export default function MatchPage() {
       }
 
       if (data.matchData) {
+        let newHomePlayers = [...homePlayers];
+        let newAwayPlayers = [...awayPlayers];
+
         // Map and dedupe players from scraped data (avoid repeats between 11/subs)
         if (data.matchData.homePlayers && data.matchData.homePlayers.length > 0) {
           const { starters, subs } = normalizeImportedPlayers(data.matchData.homePlayers);
-          const newHomePlayers = [...homePlayers];
 
           starters.forEach((p, i) => {
             newHomePlayers[i] = {
@@ -454,13 +456,10 @@ export default function MatchPage() {
               isStarter: false,
             };
           });
-
-          setHomePlayers(newHomePlayers);
         }
 
         if (data.matchData.awayPlayers && data.matchData.awayPlayers.length > 0) {
           const { starters, subs } = normalizeImportedPlayers(data.matchData.awayPlayers);
-          const newAwayPlayers = [...awayPlayers];
 
           starters.forEach((p, i) => {
             newAwayPlayers[i] = {
@@ -479,11 +478,97 @@ export default function MatchPage() {
               isStarter: false,
             };
           });
-
-          setAwayPlayers(newAwayPlayers);
         }
-        
-        toast.success(`Acta importada: ${data.matchData.homePlayers.length + data.matchData.awayPlayers.length} jugadores`);
+
+        // Process goals from acta
+        const importedGoals = (data.matchData.goals || []) as Array<{playerName: string; minute: number; type: string; teamSide: 'home' | 'away'}>;
+        const importedCards = (data.matchData.cards || []) as Array<{playerName: string; minute: number; cardType: string; teamSide: 'home' | 'away'}>;
+        const newEvents: MatchEvent[] = [];
+        let newHomeScore = 0;
+        let newAwayScore = 0;
+
+        // Apply goals to players and create events
+        for (const goal of importedGoals) {
+          const players = goal.teamSide === 'home' ? newHomePlayers : newAwayPlayers;
+          const normName = goal.playerName.toUpperCase().replace(/[,.']/g, '').trim();
+          const playerIdx = players.findIndex(p => {
+            const pNorm = p.playerName.toUpperCase().replace(/[,.']/g, '').trim();
+            return pNorm === normName || pNorm.includes(normName) || normName.includes(pNorm);
+          });
+
+          if (playerIdx >= 0) {
+            if (goal.teamSide === 'home') {
+              newHomePlayers = newHomePlayers.map((p, i) => i === playerIdx ? { ...p, goals: p.goals + 1 } : p);
+            } else {
+              newAwayPlayers = newAwayPlayers.map((p, i) => i === playerIdx ? { ...p, goals: p.goals + 1 } : p);
+            }
+          }
+
+          if (goal.teamSide === 'home') newHomeScore++;
+          else newAwayScore++;
+
+          newEvents.push({
+            minute: goal.minute * 60,
+            type: 'goal',
+            teamSide: goal.teamSide,
+            playerName: goal.playerName,
+            details: goal.type === 'penalty' ? 'Penalti' : undefined,
+          });
+        }
+
+        // Apply cards to players and create events
+        for (const card of importedCards) {
+          const players = card.teamSide === 'home' ? newHomePlayers : newAwayPlayers;
+          const normName = card.playerName.toUpperCase().replace(/[,.']/g, '').trim();
+          const playerIdx = players.findIndex(p => {
+            const pNorm = p.playerName.toUpperCase().replace(/[,.']/g, '').trim();
+            return pNorm === normName || pNorm.includes(normName) || normName.includes(pNorm);
+          });
+
+          if (playerIdx >= 0) {
+            if (card.cardType === 'yellow') {
+              if (card.teamSide === 'home') {
+                newHomePlayers = newHomePlayers.map((p, i) => {
+                  if (i !== playerIdx) return p;
+                  if (!p.yellowCard1) return { ...p, yellowCard1: true };
+                  return { ...p, yellowCard2: true, redCard: true };
+                });
+              } else {
+                newAwayPlayers = newAwayPlayers.map((p, i) => {
+                  if (i !== playerIdx) return p;
+                  if (!p.yellowCard1) return { ...p, yellowCard1: true };
+                  return { ...p, yellowCard2: true, redCard: true };
+                });
+              }
+            } else if (card.cardType === 'red') {
+              if (card.teamSide === 'home') {
+                newHomePlayers = newHomePlayers.map((p, i) => i === playerIdx ? { ...p, redCard: true } : p);
+              } else {
+                newAwayPlayers = newAwayPlayers.map((p, i) => i === playerIdx ? { ...p, redCard: true } : p);
+              }
+            }
+          }
+
+          const eventType = card.cardType === 'red' ? 'red' : 'yellow';
+          newEvents.push({
+            minute: card.minute * 60,
+            type: eventType,
+            teamSide: card.teamSide,
+            playerName: card.playerName,
+          });
+        }
+
+        // Sort events by minute
+        newEvents.sort((a, b) => a.minute - b.minute);
+
+        setHomePlayers(newHomePlayers);
+        setAwayPlayers(newAwayPlayers);
+        setHomeScore(newHomeScore);
+        setAwayScore(newAwayScore);
+        setEvents(newEvents);
+
+        const totalPlayers = (data.matchData.homePlayers?.length || 0) + (data.matchData.awayPlayers?.length || 0);
+        toast.success(`Acta importada: ${totalPlayers} jugadores, ${importedGoals.length} goles, ${importedCards.length} tarjetas`);
       } else {
         toast.error('No se encontró el acta para este partido');
       }
