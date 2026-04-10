@@ -481,8 +481,8 @@ export default function MatchPage() {
         }
 
         // Process goals from acta
-        const importedGoals: MatchGoal[] = (data.matchData.goals || []) as Array<{playerName: string; minute: number; type: string; teamSide: 'home' | 'away'}>;
-        const importedCards: MatchCard[] = (data.matchData.cards || []) as Array<{playerName: string; minute: number; cardType: string; teamSide: 'home' | 'away'}>;
+        const importedGoals = (data.matchData.goals || []) as Array<{playerName: string; minute: number; type: string; teamSide: 'home' | 'away'}>;
+        const importedCards = (data.matchData.cards || []) as Array<{playerName: string; minute: number; cardType: string; teamSide: 'home' | 'away'}>;
         const newEvents: MatchEvent[] = [];
         let newHomeScore = 0;
         let newAwayScore = 0;
