@@ -567,6 +567,14 @@ export default function MatchPage() {
         setAwayScore(newAwayScore);
         setEvents(newEvents);
 
+        // Import date and time from acta
+        if (data.matchData.matchDate) {
+          setMatchDate(data.matchData.matchDate);
+        }
+        if (data.matchData.matchTime) {
+          setMatchTime(data.matchData.matchTime);
+        }
+
         const totalPlayers = (data.matchData.homePlayers?.length || 0) + (data.matchData.awayPlayers?.length || 0);
         toast.success(`Acta importada: ${totalPlayers} jugadores, ${importedGoals.length} goles, ${importedCards.length} tarjetas`);
       } else {

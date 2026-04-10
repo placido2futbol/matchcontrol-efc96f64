@@ -33,6 +33,8 @@ interface MatchData {
   actaUrl: string;
   goals: MatchGoal[];
   cards: MatchCard[];
+  matchDate: string | null;
+  matchTime: string | null;
 }
 
 Deno.serve(async (req) => {
@@ -110,6 +112,15 @@ Deno.serve(async (req) => {
           const scoreMatch = actaHtml.match(/acta-marcador[^>]*>\s*<span>\s*(\d+\s*-\s*\d+)\s*<\/span>/);
           const score = scoreMatch ? scoreMatch[1].replace(/\s/g, '') : '';
 
+          // Extract date and time: "Data: 22-09-2024,  16:00h"
+          const dateTimeMatch = actaHtml.match(/print-acta-data">\s*Data:\s*(\d{2})-(\d{2})-(\d{4}),\s*(\d{2}:\d{2})h/);
+          let matchDate: string | null = null;
+          let matchTime: string | null = null;
+          if (dateTimeMatch) {
+            matchDate = `${dateTimeMatch[3]}-${dateTimeMatch[2]}-${dateTimeMatch[1]}`; // YYYY-MM-DD
+            matchTime = dateTimeMatch[4]; // HH:MM
+          }
+
           // Extract goals from the Gols table (in sections[2] - middle section)
           const goals = extractGoals(actaHtml, homePlayers, awayPlayers);
 
@@ -127,6 +138,8 @@ Deno.serve(async (req) => {
             actaUrl,
             goals,
             cards,
+            matchDate,
+            matchTime,
           };
 
           console.log(`Found match: ${actaHomeTeam} vs ${actaAwayTeam}, ${goals.length} goals, ${cards.length} cards`);
