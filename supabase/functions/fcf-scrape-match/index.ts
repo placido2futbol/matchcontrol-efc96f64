@@ -33,6 +33,8 @@ interface MatchData {
   actaUrl: string;
   goals: MatchGoal[];
   cards: MatchCard[];
+  matchDate: string | null;
+  matchTime: string | null;
 }
 
 Deno.serve(async (req) => {
