@@ -333,6 +333,19 @@ export default function Dashboard() {
           </div>
         </button>
 
+        <button
+          onClick={() => navigate('/callups')}
+          className="group relative overflow-hidden rounded-xl bg-card border-2 border-accent/20 p-4 sm:p-5 text-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-accent/50 active:scale-[0.98]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-accent/10 p-3 text-accent-foreground transition-transform duration-300 group-hover:scale-110">
+              <ClipboardList className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide">Convocatorias</span>
+          </div>
+        </button>
+
         {isAdmin && (
           <button
             onClick={() => navigate('/tactical')}
