@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      callup_players: {
+        Row: {
+          callup_id: string
+          created_at: string
+          dorsal: string | null
+          id: string
+          photo_url: string | null
+          player_name: string
+          position_order: number
+          status: string
+        }
+        Insert: {
+          callup_id: string
+          created_at?: string
+          dorsal?: string | null
+          id?: string
+          photo_url?: string | null
+          player_name: string
+          position_order?: number
+          status?: string
+        }
+        Update: {
+          callup_id?: string
+          created_at?: string
+          dorsal?: string | null
+          id?: string
+          photo_url?: string | null
+          player_name?: string
+          position_order?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "callup_players_callup_id_fkey"
+            columns: ["callup_id"]
+            isOneToOne: false
+            referencedRelation: "callups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      callups: {
+        Row: {
+          created_at: string
+          id: string
+          match_date: string | null
+          match_time: string | null
+          notes: string | null
+          opponent: string
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_date?: string | null
+          match_time?: string | null
+          notes?: string | null
+          opponent?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_date?: string | null
+          match_time?: string | null
+          notes?: string | null
+          opponent?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "callups_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_events: {
         Row: {
           created_at: string
