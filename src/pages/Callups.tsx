@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Save, Users, Download, Calendar, Clock, FileText, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Download, Calendar, Clock, FileText, X, Share2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -38,13 +38,9 @@ const FORMATIONS: Record<string, { label: string; positions: { x: number; y: num
   '4-3-3': {
     label: '4-3-3',
     positions: [
-      // GK
       { x: 50, y: 90 },
-      // DEF (4)
       { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
-      // MID (3)
       { x: 25, y: 52 }, { x: 50, y: 48 }, { x: 75, y: 52 },
-      // FWD (3)
       { x: 20, y: 25 }, { x: 50, y: 18 }, { x: 80, y: 25 },
     ],
   },
@@ -87,7 +83,7 @@ const FORMATIONS: Record<string, { label: string; positions: { x: number; y: num
   },
 };
 
-type EditorTab = 'match' | 'players' | 'list' | 'export';
+type EditorTab = 'match' | 'players' | 'export';
 
 export default function Callups() {
   const { user } = useAuth();
@@ -111,7 +107,7 @@ export default function Callups() {
   const [formation, setFormation] = useState('4-3-3');
   const [activeTab, setActiveTab] = useState<EditorTab>('players');
 
-  // For assigning starters to pitch positions
+  // Pitch slots for 11 starters
   const [pitchSlots, setPitchSlots] = useState<(number | null)[]>(new Array(11).fill(null));
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
@@ -198,7 +194,6 @@ export default function Callups() {
     setOpponent(c.opponent);
     setNotes(c.notes);
     setPlayers(c.players);
-    // Rebuild pitch slots from starters
     const starterIndices = c.players
       .map((p, i) => p.status === 'starter' ? i : -1)
       .filter(i => i >= 0);
@@ -290,17 +285,20 @@ export default function Callups() {
       .filter(Boolean);
   }, [pitchSlots, players]);
 
-  const substitutes = players.filter(p => p.status === 'substitute');
-  const notCalled = players.filter(p => p.status !== 'starter' && p.status !== 'substitute' && !pitchSlots.includes(players.indexOf(p)));
+  const substitutePlayers = players
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => p.status === 'substitute');
+
+  const desconvocados = players
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => p.status === 'not_called' && !pitchSlots.includes(p._idx));
 
   // Assign a player to a pitch slot
   const assignToSlot = (playerIdx: number) => {
     if (selectedSlot === null) return;
-    // Remove player from any existing slot
     const newSlots = pitchSlots.map(s => s === playerIdx ? null : s);
     newSlots[selectedSlot] = playerIdx;
     setPitchSlots(newSlots);
-    // Mark as starter
     setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'starter' } : p));
     setSelectedSlot(null);
   };
@@ -314,7 +312,6 @@ export default function Callups() {
   };
 
   const toggleSubstitute = (playerIdx: number) => {
-    // If already on pitch, ignore
     if (pitchSlots.includes(playerIdx)) return;
     setPlayers(prev => prev.map((p, i) => {
       if (i !== playerIdx) return p;
@@ -323,7 +320,6 @@ export default function Callups() {
   };
 
   const removeFromList = (playerIdx: number) => {
-    // Remove from pitch if on pitch
     if (pitchSlots.includes(playerIdx)) {
       setPitchSlots(prev => prev.map(s => s === playerIdx ? null : s));
     }
@@ -345,6 +341,80 @@ export default function Callups() {
     } catch {
       toast.error('Error generando imagen');
     }
+  };
+
+  const shareToWhatsApp = async () => {
+    if (!previewRef.current) return;
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(previewRef.current, { backgroundColor: null, scale: 2 });
+      
+      // Try native share if available (mobile)
+      if (navigator.share && navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const file = new File([blob], `convocatoria-${matchDate || 'sin-fecha'}.png`, { type: 'image/png' });
+          try {
+            await navigator.share({
+              title: `Convocatoria ${opponent ? 'vs ' + opponent : ''}`,
+              files: [file],
+            });
+            toast.success('Compartido');
+          } catch {
+            // User cancelled or not supported, fallback to text
+            fallbackWhatsApp();
+          }
+        }, 'image/png');
+      } else {
+        fallbackWhatsApp();
+      }
+    } catch {
+      toast.error('Error generando imagen');
+    }
+  };
+
+  const fallbackWhatsApp = () => {
+    const team = teams.find(t => t.id === selectedTeamId);
+    let text = `📋 *CONVOCATORIA*\n`;
+    if (team) text += `🏟️ ${team.name}\n`;
+    if (opponent) text += `⚽ vs ${opponent}\n`;
+    if (matchDate) text += `📅 ${matchDate}`;
+    if (matchTime) text += ` ⏰ ${matchTime}h`;
+    text += '\n\n';
+    
+    if (starters.length > 0) {
+      text += `*TITULARES (${starters.length}):*\n`;
+      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+      text += '\n';
+    }
+    if (substitutePlayers.length > 0) {
+      text += `*SUPLENTES (${substitutePlayers.length}):*\n`;
+      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    }
+
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const copyToClipboard = () => {
+    const team = teams.find(t => t.id === selectedTeamId);
+    let text = `📋 CONVOCATORIA\n`;
+    if (team) text += `🏟️ ${team.name}\n`;
+    if (opponent) text += `⚽ vs ${opponent}\n`;
+    if (matchDate) text += `📅 ${matchDate}`;
+    if (matchTime) text += ` ⏰ ${matchTime}h`;
+    text += '\n\n';
+    if (starters.length > 0) {
+      text += `TITULARES (${starters.length}):\n`;
+      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+      text += '\n';
+    }
+    if (substitutePlayers.length > 0) {
+      text += `SUPLENTES (${substitutePlayers.length}):\n`;
+      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    }
+    navigator.clipboard.writeText(text);
+    toast.success('Copiado al portapapeles');
   };
 
   const teamForPreview = (callup?: Callup) => {
@@ -422,30 +492,17 @@ export default function Callups() {
     );
   }
 
-  // ── EDITOR VIEW (like reference image) ──
+  // ── EDITOR VIEW ──
   const team = teamForPreview();
-
-  // Players not on pitch and not substitute = available for assignment
-  const availablePlayers = players
-    .map((p, i) => ({ ...p, _idx: i }))
-    .filter(p => !pitchSlots.includes(p._idx) && p.status !== 'substitute');
-
-  const substitutePlayers = players
-    .map((p, i) => ({ ...p, _idx: i }))
-    .filter(p => p.status === 'substitute');
-
-  const desconvocados = players
-    .map((p, i) => ({ ...p, _idx: i }))
-    .filter(p => p.status === 'not_called' && !pitchSlots.includes(p._idx));
 
   return (
     <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
-      {/* Top bar */}
-      <div className="flex items-center gap-2 px-2 py-1.5 border-b bg-card shrink-0">
-        {team?.crest_url && <img src={team.crest_url} alt="" className="h-6 w-6 object-contain" />}
+      {/* Top bar - matches reference: crest + formation + team name ... icons */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b bg-card shrink-0">
+        {team?.crest_url && <img src={team.crest_url} alt="" className="h-7 w-7 object-contain" />}
 
         <Select value={formation} onValueChange={setFormation}>
-          <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-20 h-7 text-xs font-semibold"><SelectValue /></SelectTrigger>
           <SelectContent>
             {Object.keys(FORMATIONS).map(f => (
               <SelectItem key={f} value={f}>{f}</SelectItem>
@@ -453,55 +510,47 @@ export default function Callups() {
           </SelectContent>
         </Select>
 
-        <span className="text-xs font-medium truncate">{team?.name || 'Equipo'}</span>
+        <span className="text-xs font-semibold uppercase tracking-wide truncate">{team?.name || 'Selecciona equipo'}</span>
 
         <div className="flex-1" />
 
-        <Select value={selectedTeamId} onValueChange={handleTeamChange}>
-          <SelectTrigger className="w-40 h-7 text-xs"><SelectValue placeholder="Equipo" /></SelectTrigger>
-          <SelectContent>
-            {teams.map(t => (
-              <SelectItem key={t.id} value={t.id}>
-                <div className="flex items-center gap-1.5">
-                  {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
-                  <span className="text-xs">{t.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveCallup} title="Guardar">
-            <Save className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setView('list')} title="Volver">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Action icons */}
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={newCallup} title="Nueva">
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveCallup} title="Guardar">
+          <Save className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => editId && setDeleteId(editId)} title="Eliminar">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setView('list')} title="Volver">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Football pitch */}
         <div className="flex-1 flex items-center justify-center p-2 min-w-0">
-          <div className="relative w-full max-w-lg aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-b from-green-600 via-green-500 to-green-600 border-2 border-green-700 shadow-lg">
+          <div className="relative w-full max-w-lg aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-b from-green-700 via-green-600 to-green-700 border border-green-800 shadow-2xl">
+            {/* Pitch line stripes for realism */}
+            <div className="absolute inset-0 opacity-10">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="h-[8.33%] w-full" style={{ backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'transparent' }} />
+              ))}
+            </div>
+
             {/* Pitch markings */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 130" preserveAspectRatio="none">
-              {/* Outer border */}
               <rect x="3" y="3" width="94" height="124" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
-              {/* Center line */}
               <line x1="3" y1="65" x2="97" y2="65" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              {/* Center circle */}
               <circle cx="50" cy="65" r="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
               <circle cx="50" cy="65" r="0.8" fill="rgba(255,255,255,0.5)" />
-              {/* Top penalty area */}
               <rect x="20" y="3" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
               <rect x="32" y="3" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              {/* Bottom penalty area */}
               <rect x="20" y="105" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
               <rect x="32" y="119" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              {/* Penalty arcs */}
               <path d="M 35 25 Q 50 32 65 25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
               <path d="M 35 105 Q 50 98 65 105" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
             </svg>
@@ -515,15 +564,15 @@ export default function Callups() {
               return (
                 <div
                   key={slotIdx}
-                  className="absolute flex flex-col items-center cursor-pointer"
+                  className="absolute flex flex-col items-center cursor-pointer group/token"
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y * 100 / 130}%`,
                     transform: 'translate(-50%, -50%)',
+                    zIndex: isSelected ? 20 : 10,
                   }}
                   onClick={() => {
                     if (player) {
-                      // Double-click to remove
                       removeFromPitch(slotIdx);
                     } else {
                       setSelectedSlot(isSelected ? null : slotIdx);
@@ -532,21 +581,25 @@ export default function Callups() {
                 >
                   {player ? (
                     <>
-                      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm sm:text-base overflow-hidden"
-                        style={{ backgroundColor: team?.crest_url ? '#d4a017' : '#3B82F6' }}>
-                        {player.photo_url ? (
-                          <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          player.dorsal || '?'
-                        )}
+                      <div className="relative">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-black text-sm sm:text-lg overflow-hidden"
+                          style={{ background: 'linear-gradient(135deg, #d4a017 0%, #c0392b 50%, #d4a017 100%)' }}>
+                          {player.photo_url ? (
+                            <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="drop-shadow-md">{player.dorsal || '?'}</span>
+                          )}
+                        </div>
+                        {/* Remove X on hover */}
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px] font-bold opacity-0 group-hover/token:opacity-100 transition-opacity">×</div>
                       </div>
-                      <span className="text-[9px] sm:text-[10px] text-white font-bold mt-0.5 text-center leading-tight drop-shadow-md max-w-16 truncate">
-                        {player.player_name.split(' ').pop()?.toUpperCase()}
+                      <span className="text-[9px] sm:text-[10px] text-white font-black mt-0.5 text-center leading-tight drop-shadow-lg max-w-16 truncate uppercase tracking-wide">
+                        {player.player_name.split(' ').pop()}
                       </span>
                     </>
                   ) : (
-                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-dashed flex items-center justify-center text-white/60 text-lg transition-all ${
-                      isSelected ? 'border-yellow-400 bg-yellow-400/30 scale-110' : 'border-white/40 bg-white/10'
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-dashed flex items-center justify-center text-white/60 text-lg font-bold transition-all ${
+                      isSelected ? 'border-yellow-400 bg-yellow-400/30 scale-110 shadow-lg shadow-yellow-400/30' : 'border-white/40 bg-white/10 hover:bg-white/20'
                     }`}>
                       +
                     </div>
@@ -557,25 +610,47 @@ export default function Callups() {
 
             {/* Hint text */}
             <div className="absolute bottom-2 left-0 right-0 text-center">
-              <p className="text-[9px] text-white/50">Toca una posición vacía y luego un jugador para asignarlo</p>
+              <p className="text-[9px] text-white/40 font-medium">
+                {selectedSlot !== null
+                  ? '👆 Selecciona un jugador del panel derecho'
+                  : 'Toca una posición vacía y luego un jugador para asignarlo'}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Right panel */}
         <div className="w-72 sm:w-80 lg:w-96 border-l bg-card flex flex-col shrink-0 overflow-hidden">
+          {/* Team selector at top of panel */}
+          <div className="px-3 py-2 border-b">
+            <Select value={selectedTeamId} onValueChange={handleTeamChange}>
+              <SelectTrigger className="h-8 text-xs w-full">
+                <SelectValue placeholder="▼ Selecciona equipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map(t => (
+                  <SelectItem key={t.id} value={t.id}>
+                    <div className="flex items-center gap-2">
+                      {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
+                      <span className="text-xs">{t.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Tabs */}
           <div className="flex border-b shrink-0">
             {([
               { key: 'match' as EditorTab, icon: '⚽', label: 'Partido' },
               { key: 'players' as EditorTab, icon: '👥', label: 'Jugadores' },
-              { key: 'list' as EditorTab, icon: '📋', label: 'Lista' },
               { key: 'export' as EditorTab, icon: '📤', label: 'Exportar' },
             ]).map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 py-2 text-[11px] sm:text-xs font-medium flex items-center justify-center gap-1 transition-colors ${
+                className={`flex-1 py-2.5 text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                   activeTab === tab.key
                     ? 'bg-primary/10 text-primary border-b-2 border-primary'
                     : 'text-muted-foreground hover:bg-muted/50'
@@ -591,35 +666,21 @@ export default function Callups() {
             {activeTab === 'match' && (
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Equipo</label>
-                  <Select value={selectedTeamId} onValueChange={handleTeamChange}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
-                    <SelectContent>
-                      {teams.map(t => (
-                        <SelectItem key={t.id} value={t.id}>
-                          <div className="flex items-center gap-2">
-                            {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
-                            {t.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Rival</label>
+                  <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Nombre del rival" className="h-8 text-xs" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
+                    <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora</label>
+                    <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Rival</label>
-                  <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Rival" className="h-8 text-xs" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Fecha</label>
-                  <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Hora</label>
-                  <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Notas</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Notas</label>
                   <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." className="h-8 text-xs" />
                 </div>
               </div>
@@ -627,40 +688,42 @@ export default function Callups() {
 
             {activeTab === 'players' && (
               <div className="space-y-4">
-                {/* Suplentes */}
+                {/* Suplentes section */}
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                    Suplentes ({substitutePlayers.length})
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-blue-400 mb-2">
+                    SUPLENTES ({substitutePlayers.length})
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {substitutePlayers.map(p => (
-                      <div key={p._idx} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/80 text-white cursor-pointer hover:bg-blue-500/80 transition-colors"
+                      <div key={p._idx}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-white cursor-pointer transition-all hover:brightness-110"
+                        style={{ background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)' }}
                         onClick={() => toggleSubstitute(p._idx)}>
-                        <span className="text-xs font-bold w-6">{p.dorsal}</span>
-                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name.split(' ').pop()}</span>
+                        <span className="text-sm font-black w-7">{p.dorsal}</span>
+                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name}</span>
                         <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
-                          <X className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ))}
                     {substitutePlayers.length === 0 && (
-                      <p className="text-[10px] text-muted-foreground/60 text-center py-2">Haz clic en un desconvocado para marcarlo como suplente</p>
+                      <p className="text-[10px] text-muted-foreground/50 text-center py-3">Haz clic en un desconvocado para marcarlo como suplente</p>
                     )}
                   </div>
                 </div>
 
-                {/* Desconvocados */}
+                {/* Desconvocados section */}
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                    Desconvocados ({desconvocados.length})
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                    DESCONVOCADOS ({desconvocados.length})
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {desconvocados.map(p => (
                       <div key={p._idx}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
                           selectedSlot !== null
-                            ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/30'
-                            : 'bg-muted/60 hover:bg-muted'
+                            ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/40 shadow-sm shadow-yellow-500/10'
+                            : 'bg-muted/50 hover:bg-muted/80'
                         }`}
                         onClick={() => {
                           if (selectedSlot !== null) {
@@ -669,10 +732,10 @@ export default function Callups() {
                             toggleSubstitute(p._idx);
                           }
                         }}>
-                        <span className="text-xs font-bold w-6 text-muted-foreground">{p.dorsal}</span>
-                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name.split(' ').pop()}</span>
-                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/40 hover:text-muted-foreground">
-                          <X className="h-3 w-3" />
+                        <span className="text-sm font-black w-7 text-muted-foreground">{p.dorsal}</span>
+                        <span className="text-xs font-bold uppercase flex-1 truncate text-muted-foreground">{p.player_name}</span>
+                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/30 hover:text-muted-foreground">
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ))}
@@ -681,65 +744,28 @@ export default function Callups() {
               </div>
             )}
 
-            {activeTab === 'list' && (
-              <div className="space-y-4">
-                {starters.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-2">Titulares ({starters.length})</h3>
-                    {starters.map((p, i) => (
-                      <div key={i} className="flex items-center gap-2 py-1.5 text-xs border-b border-border/30">
-                        <span className="font-bold w-6">{p.dorsal}</span>
-                        <span className="flex-1 truncate">{p.player_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {substitutePlayers.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-2">Suplentes ({substitutePlayers.length})</h3>
-                    {substitutePlayers.map(p => (
-                      <div key={p._idx} className="flex items-center gap-2 py-1.5 text-xs border-b border-border/30">
-                        <span className="font-bold w-6">{p.dorsal}</span>
-                        <span className="flex-1 truncate">{p.player_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {desconvocados.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Desconvocados ({desconvocados.length})</h3>
-                    {desconvocados.map(p => (
-                      <div key={p._idx} className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground border-b border-border/30">
-                        <span className="font-bold w-6">{p.dorsal}</span>
-                        <span className="flex-1 truncate">{p.player_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {activeTab === 'export' && (
               <div className="space-y-4">
+                {/* Preview card */}
                 <div ref={previewRef} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4">
                   <div className="text-center mb-4">
-                    {team?.crest_url && <img src={team.crest_url} alt="" className="h-10 w-10 mx-auto mb-1 object-contain" />}
-                    <h2 className="text-sm font-bold tracking-wide uppercase">{team?.name || 'Equipo'}</h2>
-                    <p className="text-white/50 text-[10px]">CONVOCATORIA</p>
-                    {opponent && <p className="text-white/70 text-[10px]">vs {opponent}</p>}
+                    {team?.crest_url && <img src={team.crest_url} alt="" className="h-12 w-12 mx-auto mb-2 object-contain" />}
+                    <h2 className="text-sm font-black tracking-wider uppercase">{team?.name || 'Equipo'}</h2>
+                    <p className="text-white/50 text-[10px] tracking-widest mt-0.5">CONVOCATORIA</p>
+                    {opponent && <p className="text-white/70 text-[11px] mt-1">vs {opponent}</p>}
                     <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
-                      {matchDate && <span>{matchDate}</span>}
-                      {matchTime && <span>{matchTime}h</span>}
+                      {matchDate && <span>📅 {matchDate}</span>}
+                      {matchTime && <span>⏰ {matchTime}h</span>}
                     </div>
                   </div>
 
                   {starters.length > 0 && (
                     <div className="mb-3">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
                       <div className="grid grid-cols-2 gap-1">
                         {starters.map((p, i) => (
-                          <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded p-1.5">
-                            <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-bold shrink-0">{p.dorsal || '?'}</div>
+                          <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                            <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
                             <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
                           </div>
                         ))}
@@ -749,11 +775,11 @@ export default function Callups() {
 
                   {substitutePlayers.length > 0 && (
                     <div>
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
                       <div className="grid grid-cols-2 gap-1">
                         {substitutePlayers.map(p => (
-                          <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded p-1.5">
-                            <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-bold shrink-0">{p.dorsal || '?'}</div>
+                          <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                            <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
                             <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
                           </div>
                         ))}
@@ -762,14 +788,37 @@ export default function Callups() {
                   )}
                 </div>
 
-                <Button className="w-full" size="sm" onClick={downloadImage}>
-                  <Download className="h-4 w-4 mr-1" />Descargar imagen
-                </Button>
+                {/* Export buttons */}
+                <div className="space-y-2">
+                  <Button className="w-full" size="sm" onClick={downloadImage}>
+                    <Download className="h-4 w-4 mr-2" />Descargar imagen
+                  </Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white" size="sm" onClick={shareToWhatsApp}>
+                    <Share2 className="h-4 w-4 mr-2" />Compartir por WhatsApp
+                  </Button>
+                  <Button variant="outline" className="w-full" size="sm" onClick={copyToClipboard}>
+                    <Copy className="h-4 w-4 mr-2" />Copiar texto
+                  </Button>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Delete dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar convocatoria?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
