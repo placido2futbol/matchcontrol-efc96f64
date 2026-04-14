@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useTeams, Team, Player } from '@/hooks/useTeams';
+import { useTeams } from '@/hooks/useTeams';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Save, Users, UserCheck, UserMinus, Download, Calendar, Clock, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Users, Download, Calendar, Clock, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -34,6 +34,61 @@ interface Callup {
   players: CallupPlayer[];
 }
 
+const FORMATIONS: Record<string, { label: string; positions: { x: number; y: number }[] }> = {
+  '4-3-3': {
+    label: '4-3-3',
+    positions: [
+      // GK
+      { x: 50, y: 90 },
+      // DEF (4)
+      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
+      // MID (3)
+      { x: 25, y: 52 }, { x: 50, y: 48 }, { x: 75, y: 52 },
+      // FWD (3)
+      { x: 20, y: 25 }, { x: 50, y: 18 }, { x: 80, y: 25 },
+    ],
+  },
+  '4-4-2': {
+    label: '4-4-2',
+    positions: [
+      { x: 50, y: 90 },
+      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
+      { x: 15, y: 48 }, { x: 38, y: 50 }, { x: 62, y: 50 }, { x: 85, y: 48 },
+      { x: 35, y: 22 }, { x: 65, y: 22 },
+    ],
+  },
+  '3-5-2': {
+    label: '3-5-2',
+    positions: [
+      { x: 50, y: 90 },
+      { x: 25, y: 74 }, { x: 50, y: 76 }, { x: 75, y: 74 },
+      { x: 10, y: 50 }, { x: 30, y: 48 }, { x: 50, y: 45 }, { x: 70, y: 48 }, { x: 90, y: 50 },
+      { x: 35, y: 22 }, { x: 65, y: 22 },
+    ],
+  },
+  '4-2-3-1': {
+    label: '4-2-3-1',
+    positions: [
+      { x: 50, y: 90 },
+      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
+      { x: 35, y: 55 }, { x: 65, y: 55 },
+      { x: 20, y: 35 }, { x: 50, y: 32 }, { x: 80, y: 35 },
+      { x: 50, y: 15 },
+    ],
+  },
+  '3-4-3': {
+    label: '3-4-3',
+    positions: [
+      { x: 50, y: 90 },
+      { x: 25, y: 74 }, { x: 50, y: 76 }, { x: 75, y: 74 },
+      { x: 15, y: 50 }, { x: 40, y: 48 }, { x: 60, y: 48 }, { x: 85, y: 50 },
+      { x: 20, y: 22 }, { x: 50, y: 18 }, { x: 80, y: 22 },
+    ],
+  },
+};
+
+type EditorTab = 'match' | 'players' | 'list' | 'export';
+
 export default function Callups() {
   const { user } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
@@ -42,7 +97,7 @@ export default function Callups() {
 
   const [callups, setCallups] = useState<Callup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'list' | 'editor' | 'preview'>('list');
+  const [view, setView] = useState<'list' | 'editor'>('list');
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -53,6 +108,12 @@ export default function Callups() {
   const [opponent, setOpponent] = useState('');
   const [notes, setNotes] = useState('');
   const [players, setPlayers] = useState<CallupPlayer[]>([]);
+  const [formation, setFormation] = useState('4-3-3');
+  const [activeTab, setActiveTab] = useState<EditorTab>('players');
+
+  // For assigning starters to pitch positions
+  const [pitchSlots, setPitchSlots] = useState<(number | null)[]>(new Array(11).fill(null));
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -107,6 +168,7 @@ export default function Callups() {
       status: 'not_called',
       position_order: i,
     })));
+    setPitchSlots(new Array(11).fill(null));
   };
 
   const handleTeamChange = (teamId: string) => {
@@ -122,6 +184,9 @@ export default function Callups() {
     setOpponent('');
     setNotes('');
     setPlayers([]);
+    setPitchSlots(new Array(11).fill(null));
+    setFormation('4-3-3');
+    setActiveTab('players');
     setView('editor');
   };
 
@@ -133,24 +198,32 @@ export default function Callups() {
     setOpponent(c.opponent);
     setNotes(c.notes);
     setPlayers(c.players);
+    // Rebuild pitch slots from starters
+    const starterIndices = c.players
+      .map((p, i) => p.status === 'starter' ? i : -1)
+      .filter(i => i >= 0);
+    const slots = new Array(11).fill(null);
+    starterIndices.forEach((playerIdx, slotIdx) => {
+      if (slotIdx < 11) slots[slotIdx] = playerIdx;
+    });
+    setPitchSlots(slots);
+    setFormation('4-3-3');
+    setActiveTab('players');
     setView('editor');
-  };
-
-  const togglePlayerStatus = (idx: number) => {
-    setPlayers(prev => prev.map((p, i) => {
-      if (i !== idx) return p;
-      const next: CallupPlayer['status'] =
-        p.status === 'not_called' ? 'starter' :
-        p.status === 'starter' ? 'substitute' :
-        'not_called';
-      return { ...p, status: next };
-    }));
   };
 
   const saveCallup = async () => {
     if (!user) return;
-    const calledPlayers = players.filter(p => p.status !== 'not_called');
     if (!selectedTeamId) { toast.error('Selecciona un equipo'); return; }
+
+    // Update statuses from pitch slots
+    const updatedPlayers = players.map((p, i) => {
+      const isOnPitch = pitchSlots.includes(i);
+      if (isOnPitch) return { ...p, status: 'starter' as const };
+      return p;
+    });
+
+    const calledPlayers = updatedPlayers.filter(p => p.status !== 'not_called');
 
     if (editId) {
       await supabase.from('callups').update({
@@ -210,14 +283,54 @@ export default function Callups() {
     await fetchCallups();
   };
 
-  const starters = players.filter(p => p.status === 'starter');
-  const substitutes = players.filter(p => p.status === 'substitute');
-  const notCalled = players.filter(p => p.status === 'not_called');
+  const starters = useMemo(() => {
+    return pitchSlots
+      .filter((idx): idx is number => idx !== null)
+      .map(idx => players[idx])
+      .filter(Boolean);
+  }, [pitchSlots, players]);
 
-  const teamForPreview = (callup?: Callup) => {
-    const tId = callup?.team_id || selectedTeamId;
-    return teams.find(t => t.id === tId);
+  const substitutes = players.filter(p => p.status === 'substitute');
+  const notCalled = players.filter(p => p.status !== 'starter' && p.status !== 'substitute' && !pitchSlots.includes(players.indexOf(p)));
+
+  // Assign a player to a pitch slot
+  const assignToSlot = (playerIdx: number) => {
+    if (selectedSlot === null) return;
+    // Remove player from any existing slot
+    const newSlots = pitchSlots.map(s => s === playerIdx ? null : s);
+    newSlots[selectedSlot] = playerIdx;
+    setPitchSlots(newSlots);
+    // Mark as starter
+    setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'starter' } : p));
+    setSelectedSlot(null);
   };
+
+  const removeFromPitch = (slotIdx: number) => {
+    const playerIdx = pitchSlots[slotIdx];
+    if (playerIdx !== null) {
+      setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'not_called' } : p));
+    }
+    setPitchSlots(prev => prev.map((s, i) => i === slotIdx ? null : s));
+  };
+
+  const toggleSubstitute = (playerIdx: number) => {
+    // If already on pitch, ignore
+    if (pitchSlots.includes(playerIdx)) return;
+    setPlayers(prev => prev.map((p, i) => {
+      if (i !== playerIdx) return p;
+      return { ...p, status: p.status === 'substitute' ? 'not_called' : 'substitute' };
+    }));
+  };
+
+  const removeFromList = (playerIdx: number) => {
+    // Remove from pitch if on pitch
+    if (pitchSlots.includes(playerIdx)) {
+      setPitchSlots(prev => prev.map(s => s === playerIdx ? null : s));
+    }
+    setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'not_called' } : p));
+  };
+
+  const formationPositions = FORMATIONS[formation]?.positions || FORMATIONS['4-3-3'].positions;
 
   const downloadImage = async () => {
     if (!previewRef.current) return;
@@ -234,10 +347,9 @@ export default function Callups() {
     }
   };
 
-  const statusBadge = (status: CallupPlayer['status']) => {
-    if (status === 'starter') return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-primary">TIT</span>;
-    if (status === 'substitute') return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-warning/20 text-warning">SUP</span>;
-    return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">NO</span>;
+  const teamForPreview = (callup?: Callup) => {
+    const tId = callup?.team_id || selectedTeamId;
+    return teams.find(t => t.id === tId);
   };
 
   // ── LIST VIEW ──
@@ -310,188 +422,354 @@ export default function Callups() {
     );
   }
 
-  // ── PREVIEW VIEW ──
-  if (view === 'preview') {
-    const team = teamForPreview();
-    return (
-      <div className="max-w-2xl mx-auto p-3 sm:p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => setView('editor')} className={btnClass}>
-            <ArrowLeft className="h-4 w-4 mr-1" />Volver al editor
-          </Button>
-          <Button size="sm" onClick={downloadImage}><Download className="h-4 w-4 mr-1" />Descargar imagen</Button>
-        </div>
+  // ── EDITOR VIEW (like reference image) ──
+  const team = teamForPreview();
 
-        <div ref={previewRef} className="rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 sm:p-8">
-          {/* Header */}
-          <div className="text-center mb-6">
-            {team?.crest_url && <img src={team.crest_url} alt="" className="h-16 w-16 mx-auto mb-2 object-contain" />}
-            <h2 className="text-2xl font-bold tracking-wide uppercase">{team?.name || 'Equipo'}</h2>
-            <p className="text-white/60 text-sm mt-1">CONVOCATORIA</p>
-            {opponent && <p className="text-white/80 text-sm mt-1">vs {opponent}</p>}
-            <div className="flex items-center justify-center gap-4 text-white/50 text-xs mt-2">
-              {matchDate && <span>{matchDate}</span>}
-              {matchTime && <span>{matchTime}h</span>}
-            </div>
-          </div>
+  // Players not on pitch and not substitute = available for assignment
+  const availablePlayers = players
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => !pitchSlots.includes(p._idx) && p.status !== 'substitute');
 
-          {/* Starters */}
-          {starters.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-3 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {starters.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
-                    {p.photo_url ? (
-                      <img src={p.photo_url} alt="" className="h-8 w-8 rounded-full object-cover border border-white/20" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-primary/30 flex items-center justify-center text-xs font-bold">{p.dorsal || '?'}</div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate">{p.player_name}</p>
-                      {p.dorsal && <p className="text-[10px] text-white/50">#{p.dorsal}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+  const substitutePlayers = players
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => p.status === 'substitute');
 
-          {/* Substitutes */}
-          {substitutes.length > 0 && (
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-warning mb-3 border-b border-white/10 pb-1">Suplentes ({substitutes.length})</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {substitutes.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
-                    {p.photo_url ? (
-                      <img src={p.photo_url} alt="" className="h-8 w-8 rounded-full object-cover border border-white/20" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-warning/30 flex items-center justify-center text-xs font-bold">{p.dorsal || '?'}</div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate">{p.player_name}</p>
-                      {p.dorsal && <p className="text-[10px] text-white/50">#{p.dorsal}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+  const desconvocados = players
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => p.status === 'not_called' && !pitchSlots.includes(p._idx));
 
-          {notes && (
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <p className="text-xs text-white/40">{notes}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── EDITOR VIEW ──
   return (
-    <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setView('list')} className={btnClass}><ArrowLeft className="h-5 w-5" /></Button>
-          <h1 className={`font-display text-lg sm:text-xl ${textClass}`}>{editId ? 'Editar' : 'Nueva'} Convocatoria</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setView('preview')} disabled={starters.length === 0 && substitutes.length === 0}>
-            <Eye className="h-4 w-4 mr-1" />Vista previa
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
+      {/* Top bar */}
+      <div className="flex items-center gap-2 px-2 py-1.5 border-b bg-card shrink-0">
+        {team?.crest_url && <img src={team.crest_url} alt="" className="h-6 w-6 object-contain" />}
+
+        <Select value={formation} onValueChange={setFormation}>
+          <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {Object.keys(FORMATIONS).map(f => (
+              <SelectItem key={f} value={f}>{f}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <span className="text-xs font-medium truncate">{team?.name || 'Equipo'}</span>
+
+        <div className="flex-1" />
+
+        <Select value={selectedTeamId} onValueChange={handleTeamChange}>
+          <SelectTrigger className="w-40 h-7 text-xs"><SelectValue placeholder="Equipo" /></SelectTrigger>
+          <SelectContent>
+            {teams.map(t => (
+              <SelectItem key={t.id} value={t.id}>
+                <div className="flex items-center gap-1.5">
+                  {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
+                  <span className="text-xs">{t.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveCallup} title="Guardar">
+            <Save className="h-4 w-4" />
           </Button>
-          <Button size="sm" onClick={saveCallup}><Save className="h-4 w-4 mr-1" />Guardar</Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setView('list')} title="Volver">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Match info */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Equipo</label>
-              <Select value={selectedTeamId} onValueChange={handleTeamChange}>
-                <SelectTrigger><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
-                <SelectContent>
-                  {teams.map(t => (
-                    <SelectItem key={t.id} value={t.id}>
-                      <div className="flex items-center gap-2">
-                        {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
-                        {t.name}
+      {/* Main content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Football pitch */}
+        <div className="flex-1 flex items-center justify-center p-2 min-w-0">
+          <div className="relative w-full max-w-lg aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-b from-green-600 via-green-500 to-green-600 border-2 border-green-700 shadow-lg">
+            {/* Pitch markings */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 130" preserveAspectRatio="none">
+              {/* Outer border */}
+              <rect x="3" y="3" width="94" height="124" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
+              {/* Center line */}
+              <line x1="3" y1="65" x2="97" y2="65" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              {/* Center circle */}
+              <circle cx="50" cy="65" r="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              <circle cx="50" cy="65" r="0.8" fill="rgba(255,255,255,0.5)" />
+              {/* Top penalty area */}
+              <rect x="20" y="3" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              <rect x="32" y="3" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              {/* Bottom penalty area */}
+              <rect x="20" y="105" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              <rect x="32" y="119" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              {/* Penalty arcs */}
+              <path d="M 35 25 Q 50 32 65 25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+              <path d="M 35 105 Q 50 98 65 105" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
+            </svg>
+
+            {/* Player tokens on pitch */}
+            {formationPositions.map((pos, slotIdx) => {
+              const playerIdx = pitchSlots[slotIdx];
+              const player = playerIdx !== null ? players[playerIdx] : null;
+              const isSelected = selectedSlot === slotIdx;
+
+              return (
+                <div
+                  key={slotIdx}
+                  className="absolute flex flex-col items-center cursor-pointer"
+                  style={{
+                    left: `${pos.x}%`,
+                    top: `${pos.y * 100 / 130}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onClick={() => {
+                    if (player) {
+                      // Double-click to remove
+                      removeFromPitch(slotIdx);
+                    } else {
+                      setSelectedSlot(isSelected ? null : slotIdx);
+                    }
+                  }}
+                >
+                  {player ? (
+                    <>
+                      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm sm:text-base overflow-hidden"
+                        style={{ backgroundColor: team?.crest_url ? '#d4a017' : '#3B82F6' }}>
+                        {player.photo_url ? (
+                          <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          player.dorsal || '?'
+                        )}
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Rival</label>
-              <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Nombre del rival" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Fecha</label>
-              <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Hora</label>
-              <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Notas</label>
-            <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas opcionales..." />
-          </div>
-        </CardContent>
-      </Card>
+                      <span className="text-[9px] sm:text-[10px] text-white font-bold mt-0.5 text-center leading-tight drop-shadow-md max-w-16 truncate">
+                        {player.player_name.split(' ').pop()?.toUpperCase()}
+                      </span>
+                    </>
+                  ) : (
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-dashed flex items-center justify-center text-white/60 text-lg transition-all ${
+                      isSelected ? 'border-yellow-400 bg-yellow-400/30 scale-110' : 'border-white/40 bg-white/10'
+                    }`}>
+                      +
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
-      {/* Summary badges */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-          <UserCheck className="h-3.5 w-3.5" />{starters.length} Titulares
+            {/* Hint text */}
+            <div className="absolute bottom-2 left-0 right-0 text-center">
+              <p className="text-[9px] text-white/50">Toca una posición vacía y luego un jugador para asignarlo</p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-xs font-semibold">
-          <Users className="h-3.5 w-3.5" />{substitutes.length} Suplentes
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
-          <UserMinus className="h-3.5 w-3.5" />{notCalled.length} No convocados
+
+        {/* Right panel */}
+        <div className="w-72 sm:w-80 lg:w-96 border-l bg-card flex flex-col shrink-0 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b shrink-0">
+            {([
+              { key: 'match' as EditorTab, icon: '⚽', label: 'Partido' },
+              { key: 'players' as EditorTab, icon: '👥', label: 'Jugadores' },
+              { key: 'list' as EditorTab, icon: '📋', label: 'Lista' },
+              { key: 'export' as EditorTab, icon: '📤', label: 'Exportar' },
+            ]).map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 py-2 text-[11px] sm:text-xs font-medium flex items-center justify-center gap-1 transition-colors ${
+                  activeTab === tab.key
+                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:bg-muted/50'
+                }`}
+              >
+                <span>{tab.icon}</span> {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {activeTab === 'match' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Equipo</label>
+                  <Select value={selectedTeamId} onValueChange={handleTeamChange}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecciona equipo" /></SelectTrigger>
+                    <SelectContent>
+                      {teams.map(t => (
+                        <SelectItem key={t.id} value={t.id}>
+                          <div className="flex items-center gap-2">
+                            {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
+                            {t.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Rival</label>
+                  <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Rival" className="h-8 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Fecha</label>
+                  <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Hora</label>
+                  <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Notas</label>
+                  <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." className="h-8 text-xs" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'players' && (
+              <div className="space-y-4">
+                {/* Suplentes */}
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    Suplentes ({substitutePlayers.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {substitutePlayers.map(p => (
+                      <div key={p._idx} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/80 text-white cursor-pointer hover:bg-blue-500/80 transition-colors"
+                        onClick={() => toggleSubstitute(p._idx)}>
+                        <span className="text-xs font-bold w-6">{p.dorsal}</span>
+                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name.split(' ').pop()}</span>
+                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {substitutePlayers.length === 0 && (
+                      <p className="text-[10px] text-muted-foreground/60 text-center py-2">Haz clic en un desconvocado para marcarlo como suplente</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Desconvocados */}
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    Desconvocados ({desconvocados.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {desconvocados.map(p => (
+                      <div key={p._idx}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                          selectedSlot !== null
+                            ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/30'
+                            : 'bg-muted/60 hover:bg-muted'
+                        }`}
+                        onClick={() => {
+                          if (selectedSlot !== null) {
+                            assignToSlot(p._idx);
+                          } else {
+                            toggleSubstitute(p._idx);
+                          }
+                        }}>
+                        <span className="text-xs font-bold w-6 text-muted-foreground">{p.dorsal}</span>
+                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name.split(' ').pop()}</span>
+                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/40 hover:text-muted-foreground">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'list' && (
+              <div className="space-y-4">
+                {starters.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-2">Titulares ({starters.length})</h3>
+                    {starters.map((p, i) => (
+                      <div key={i} className="flex items-center gap-2 py-1.5 text-xs border-b border-border/30">
+                        <span className="font-bold w-6">{p.dorsal}</span>
+                        <span className="flex-1 truncate">{p.player_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {substitutePlayers.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-2">Suplentes ({substitutePlayers.length})</h3>
+                    {substitutePlayers.map(p => (
+                      <div key={p._idx} className="flex items-center gap-2 py-1.5 text-xs border-b border-border/30">
+                        <span className="font-bold w-6">{p.dorsal}</span>
+                        <span className="flex-1 truncate">{p.player_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {desconvocados.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Desconvocados ({desconvocados.length})</h3>
+                    {desconvocados.map(p => (
+                      <div key={p._idx} className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground border-b border-border/30">
+                        <span className="font-bold w-6">{p.dorsal}</span>
+                        <span className="flex-1 truncate">{p.player_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'export' && (
+              <div className="space-y-4">
+                <div ref={previewRef} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4">
+                  <div className="text-center mb-4">
+                    {team?.crest_url && <img src={team.crest_url} alt="" className="h-10 w-10 mx-auto mb-1 object-contain" />}
+                    <h2 className="text-sm font-bold tracking-wide uppercase">{team?.name || 'Equipo'}</h2>
+                    <p className="text-white/50 text-[10px]">CONVOCATORIA</p>
+                    {opponent && <p className="text-white/70 text-[10px]">vs {opponent}</p>}
+                    <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
+                      {matchDate && <span>{matchDate}</span>}
+                      {matchTime && <span>{matchTime}h</span>}
+                    </div>
+                  </div>
+
+                  {starters.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
+                      <div className="grid grid-cols-2 gap-1">
+                        {starters.map((p, i) => (
+                          <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded p-1.5">
+                            <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-bold shrink-0">{p.dorsal || '?'}</div>
+                            <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {substitutePlayers.length > 0 && (
+                    <div>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
+                      <div className="grid grid-cols-2 gap-1">
+                        {substitutePlayers.map(p => (
+                          <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded p-1.5">
+                            <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-bold shrink-0">{p.dorsal || '?'}</div>
+                            <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <Button className="w-full" size="sm" onClick={downloadImage}>
+                  <Download className="h-4 w-4 mr-1" />Descargar imagen
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Players */}
-      {players.length === 0 ? (
-        <Card className="border-dashed border-2">
-          <CardContent className="py-8 text-center">
-            <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-muted-foreground text-sm">Selecciona un equipo para cargar los jugadores</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-1.5">
-          {players.map((p, idx) => (
-            <div
-              key={idx}
-              onClick={() => togglePlayerStatus(idx)}
-              className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${
-                p.status === 'starter' ? 'bg-primary/5 border-primary/30' :
-                p.status === 'substitute' ? 'bg-warning/5 border-warning/30' :
-                'bg-card border-border opacity-60'
-              }`}
-            >
-              {p.photo_url ? (
-                <img src={p.photo_url} alt="" className="h-9 w-9 rounded-full object-cover border border-border" />
-              ) : (
-                <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">{p.dorsal || '?'}</div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{p.player_name}</p>
-                {p.dorsal && <p className="text-xs text-muted-foreground">#{p.dorsal}</p>}
-              </div>
-              {statusBadge(p.status)}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
