@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeams } from '@/hooks/useTeams';
 import { useTheme } from '@/hooks/useTheme';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save, Download, Calendar, Clock, FileText, X, Share2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -38,47 +39,47 @@ const FORMATIONS: Record<string, { label: string; positions: { x: number; y: num
   '4-3-3': {
     label: '4-3-3',
     positions: [
-      { x: 50, y: 90 },
-      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
-      { x: 25, y: 52 }, { x: 50, y: 48 }, { x: 75, y: 52 },
-      { x: 20, y: 25 }, { x: 50, y: 18 }, { x: 80, y: 25 },
+      { x: 50, y: 88 },
+      { x: 15, y: 72 }, { x: 38, y: 74 }, { x: 62, y: 74 }, { x: 85, y: 72 },
+      { x: 25, y: 50 }, { x: 50, y: 46 }, { x: 75, y: 50 },
+      { x: 20, y: 26 }, { x: 50, y: 20 }, { x: 80, y: 26 },
     ],
   },
   '4-4-2': {
     label: '4-4-2',
     positions: [
-      { x: 50, y: 90 },
-      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
+      { x: 50, y: 88 },
+      { x: 15, y: 72 }, { x: 38, y: 74 }, { x: 62, y: 74 }, { x: 85, y: 72 },
       { x: 15, y: 48 }, { x: 38, y: 50 }, { x: 62, y: 50 }, { x: 85, y: 48 },
-      { x: 35, y: 22 }, { x: 65, y: 22 },
+      { x: 35, y: 24 }, { x: 65, y: 24 },
     ],
   },
   '3-5-2': {
     label: '3-5-2',
     positions: [
-      { x: 50, y: 90 },
-      { x: 25, y: 74 }, { x: 50, y: 76 }, { x: 75, y: 74 },
+      { x: 50, y: 88 },
+      { x: 25, y: 72 }, { x: 50, y: 74 }, { x: 75, y: 72 },
       { x: 10, y: 50 }, { x: 30, y: 48 }, { x: 50, y: 45 }, { x: 70, y: 48 }, { x: 90, y: 50 },
-      { x: 35, y: 22 }, { x: 65, y: 22 },
+      { x: 35, y: 24 }, { x: 65, y: 24 },
     ],
   },
   '4-2-3-1': {
     label: '4-2-3-1',
     positions: [
-      { x: 50, y: 90 },
-      { x: 15, y: 72 }, { x: 38, y: 75 }, { x: 62, y: 75 }, { x: 85, y: 72 },
-      { x: 35, y: 55 }, { x: 65, y: 55 },
-      { x: 20, y: 35 }, { x: 50, y: 32 }, { x: 80, y: 35 },
-      { x: 50, y: 15 },
+      { x: 50, y: 88 },
+      { x: 15, y: 72 }, { x: 38, y: 74 }, { x: 62, y: 74 }, { x: 85, y: 72 },
+      { x: 35, y: 54 }, { x: 65, y: 54 },
+      { x: 20, y: 36 }, { x: 50, y: 32 }, { x: 80, y: 36 },
+      { x: 50, y: 16 },
     ],
   },
   '3-4-3': {
     label: '3-4-3',
     positions: [
-      { x: 50, y: 90 },
-      { x: 25, y: 74 }, { x: 50, y: 76 }, { x: 75, y: 74 },
+      { x: 50, y: 88 },
+      { x: 25, y: 72 }, { x: 50, y: 74 }, { x: 75, y: 72 },
       { x: 15, y: 50 }, { x: 40, y: 48 }, { x: 60, y: 48 }, { x: 85, y: 50 },
-      { x: 20, y: 22 }, { x: 50, y: 18 }, { x: 80, y: 22 },
+      { x: 20, y: 24 }, { x: 50, y: 20 }, { x: 80, y: 24 },
     ],
   },
 };
@@ -90,6 +91,7 @@ export default function Callups() {
   const { teams, loading: teamsLoading } = useTeams();
   const { textClass, btnClass } = useTheme();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [callups, setCallups] = useState<Callup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +99,6 @@ export default function Callups() {
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Editor state
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
   const [matchTime, setMatchTime] = useState('');
@@ -107,9 +108,14 @@ export default function Callups() {
   const [formation, setFormation] = useState('4-3-3');
   const [activeTab, setActiveTab] = useState<EditorTab>('players');
 
-  // Pitch slots for 11 starters
   const [pitchSlots, setPitchSlots] = useState<(number | null)[]>(new Array(11).fill(null));
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+
+  // Drag state for pitch tokens
+  const pitchRef = useRef<HTMLDivElement>(null);
+  const draggingSlot = useRef<number | null>(null);
+  const dragStart = useRef<{ x: number; y: number; slotX: number; slotY: number } | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ slot: number; dx: number; dy: number } | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -211,7 +217,6 @@ export default function Callups() {
     if (!user) return;
     if (!selectedTeamId) { toast.error('Selecciona un equipo'); return; }
 
-    // Update statuses from pitch slots
     const updatedPlayers = players.map((p, i) => {
       const isOnPitch = pitchSlots.includes(i);
       if (isOnPitch) return { ...p, status: 'starter' as const };
@@ -275,6 +280,7 @@ export default function Callups() {
     await supabase.from('callups').delete().eq('id', deleteId);
     toast.success('Convocatoria eliminada');
     setDeleteId(null);
+    if (view === 'editor') setView('list');
     await fetchCallups();
   };
 
@@ -293,7 +299,6 @@ export default function Callups() {
     .map((p, i) => ({ ...p, _idx: i }))
     .filter(p => p.status === 'not_called' && !pitchSlots.includes(p._idx));
 
-  // Assign a player to a pitch slot
   const assignToSlot = (playerIdx: number) => {
     if (selectedSlot === null) return;
     const newSlots = pitchSlots.map(s => s === playerIdx ? null : s);
@@ -326,7 +331,66 @@ export default function Callups() {
     setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'not_called' } : p));
   };
 
+  // Custom positions per slot (allow dragging to override formation positions)
+  const [customPositions, setCustomPositions] = useState<Record<number, { x: number; y: number }>>({});
+  
+  // Reset custom positions when formation changes
+  useEffect(() => {
+    setCustomPositions({});
+  }, [formation]);
+
   const formationPositions = FORMATIONS[formation]?.positions || FORMATIONS['4-3-3'].positions;
+
+  const getSlotPosition = (slotIdx: number) => {
+    if (customPositions[slotIdx]) return customPositions[slotIdx];
+    return formationPositions[slotIdx];
+  };
+
+  // Drag handlers for pitch tokens
+  const handleTokenPointerDown = useCallback((e: React.PointerEvent, slotIdx: number) => {
+    if (pitchSlots[slotIdx] === null) return; // only drag filled slots
+    e.stopPropagation();
+    e.preventDefault();
+    const pos = getSlotPosition(slotIdx);
+    draggingSlot.current = slotIdx;
+    dragStart.current = { x: e.clientX, y: e.clientY, slotX: pos.x, slotY: pos.y };
+    setDragOffset(null);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [pitchSlots, customPositions, formationPositions]);
+
+  const handleTokenPointerMove = useCallback((e: React.PointerEvent) => {
+    if (draggingSlot.current === null || !dragStart.current || !pitchRef.current) return;
+    const rect = pitchRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - dragStart.current.x) / rect.width) * 100;
+    const dy = ((e.clientY - dragStart.current.y) / rect.height) * 100;
+    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+      setDragOffset({ slot: draggingSlot.current, dx, dy });
+    }
+  }, []);
+
+  const handleTokenPointerUp = useCallback((e: React.PointerEvent) => {
+    if (draggingSlot.current === null || !dragStart.current || !pitchRef.current) {
+      draggingSlot.current = null;
+      dragStart.current = null;
+      setDragOffset(null);
+      return;
+    }
+    const rect = pitchRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - dragStart.current.x) / rect.width) * 100;
+    const dy = ((e.clientY - dragStart.current.y) / rect.height) * 100;
+    const wasDrag = Math.abs(dx) > 2 || Math.abs(dy) > 2;
+    const slot = draggingSlot.current;
+    
+    if (wasDrag) {
+      const newX = Math.max(5, Math.min(95, dragStart.current.slotX + dx));
+      const newY = Math.max(5, Math.min(95, dragStart.current.slotY + dy));
+      setCustomPositions(prev => ({ ...prev, [slot]: { x: Math.round(newX), y: Math.round(newY) } }));
+    }
+    
+    draggingSlot.current = null;
+    dragStart.current = null;
+    setDragOffset(null);
+  }, []);
 
   const downloadImage = async () => {
     if (!previewRef.current) return;
@@ -348,22 +412,14 @@ export default function Callups() {
     try {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(previewRef.current, { backgroundColor: null, scale: 2 });
-      
-      // Try native share if available (mobile)
       if (navigator.share && navigator.canShare) {
         canvas.toBlob(async (blob) => {
           if (!blob) return;
           const file = new File([blob], `convocatoria-${matchDate || 'sin-fecha'}.png`, { type: 'image/png' });
           try {
-            await navigator.share({
-              title: `Convocatoria ${opponent ? 'vs ' + opponent : ''}`,
-              files: [file],
-            });
+            await navigator.share({ title: `Convocatoria ${opponent ? 'vs ' + opponent : ''}`, files: [file] });
             toast.success('Compartido');
-          } catch {
-            // User cancelled or not supported, fallback to text
-            fallbackWhatsApp();
-          }
+          } catch { fallbackWhatsApp(); }
         }, 'image/png');
       } else {
         fallbackWhatsApp();
@@ -381,7 +437,6 @@ export default function Callups() {
     if (matchDate) text += `📅 ${matchDate}`;
     if (matchTime) text += ` ⏰ ${matchTime}h`;
     text += '\n\n';
-    
     if (starters.length > 0) {
       text += `*TITULARES (${starters.length}):*\n`;
       starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
@@ -391,7 +446,6 @@ export default function Callups() {
       text += `*SUPLENTES (${substitutePlayers.length}):*\n`;
       substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
     }
-
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -495,316 +549,369 @@ export default function Callups() {
   // ── EDITOR VIEW ──
   const team = teamForPreview();
 
+  // Render pitch component (shared between mobile and desktop)
+  const renderPitch = () => (
+    <div
+      ref={pitchRef}
+      className="relative w-full h-full rounded-xl overflow-hidden select-none touch-none"
+      style={{
+        background: 'linear-gradient(180deg, hsl(145, 50%, 22%) 0%, hsl(145, 50%, 28%) 8.33%, hsl(145, 50%, 24%) 8.33%, hsl(145, 50%, 28%) 16.66%, hsl(145, 50%, 22%) 16.66%, hsl(145, 50%, 28%) 25%, hsl(145, 50%, 24%) 25%, hsl(145, 50%, 28%) 33.33%, hsl(145, 50%, 22%) 33.33%, hsl(145, 50%, 28%) 41.66%, hsl(145, 50%, 24%) 41.66%, hsl(145, 50%, 28%) 50%, hsl(145, 50%, 22%) 50%, hsl(145, 50%, 28%) 58.33%, hsl(145, 50%, 24%) 58.33%, hsl(145, 50%, 28%) 66.66%, hsl(145, 50%, 22%) 66.66%, hsl(145, 50%, 28%) 75%, hsl(145, 50%, 24%) 75%, hsl(145, 50%, 28%) 83.33%, hsl(145, 50%, 22%) 83.33%, hsl(145, 50%, 28%) 91.66%, hsl(145, 50%, 24%) 91.66%, hsl(145, 50%, 28%) 100%)',
+      }}
+      onClick={() => setSelectedSlot(null)}
+    >
+      {/* Pitch markings SVG */}
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 130" preserveAspectRatio="none">
+        {/* Field outline */}
+        <rect x="5" y="4" width="90" height="122" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.4" />
+        {/* Center line */}
+        <line x1="5" y1="65" x2="95" y2="65" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        {/* Center circle */}
+        <circle cx="50" cy="65" r="10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <circle cx="50" cy="65" r="0.6" fill="rgba(255,255,255,0.45)" />
+        {/* Top penalty area */}
+        <rect x="22" y="4" width="56" height="20" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <rect x="34" y="4" width="32" height="7" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <circle cx="50" cy="17" r="0.6" fill="rgba(255,255,255,0.45)" />
+        <path d="M 36 24 A 8 8 0 0 0 64 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        {/* Goal top */}
+        <rect x="40" y="1" width="20" height="3" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.3" rx="0.5" />
+        {/* Bottom penalty area */}
+        <rect x="22" y="106" width="56" height="20" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <rect x="34" y="119" width="32" height="7" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <circle cx="50" cy="113" r="0.6" fill="rgba(255,255,255,0.45)" />
+        <path d="M 36 106 A 8 8 0 0 1 64 106" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        {/* Goal bottom */}
+        <rect x="40" y="126" width="20" height="3" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.3" rx="0.5" />
+        {/* Corner arcs */}
+        <path d="M 5 7 A 3 3 0 0 1 8 4" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <path d="M 92 4 A 3 3 0 0 1 95 7" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <path d="M 8 126 A 3 3 0 0 1 5 123" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+        <path d="M 95 123 A 3 3 0 0 1 92 126" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" />
+      </svg>
+
+      {/* Player tokens */}
+      {formationPositions.map((defaultPos, slotIdx) => {
+        const playerIdx = pitchSlots[slotIdx];
+        const player = playerIdx !== null ? players[playerIdx] : null;
+        const isSelected = selectedSlot === slotIdx;
+        const pos = getSlotPosition(slotIdx);
+
+        // Apply drag offset if currently dragging this slot
+        let displayX = pos.x;
+        let displayY = pos.y;
+        if (dragOffset && dragOffset.slot === slotIdx) {
+          displayX = Math.max(5, Math.min(95, pos.x + dragOffset.dx));
+          displayY = Math.max(5, Math.min(95, pos.y + dragOffset.dy));
+        }
+
+        return (
+          <div
+            key={slotIdx}
+            className={`absolute flex flex-col items-center ${player ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+            style={{
+              left: `${displayX}%`,
+              top: `${(displayY / 100) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              zIndex: (dragOffset?.slot === slotIdx) ? 50 : isSelected ? 20 : 10,
+              transition: (dragOffset?.slot === slotIdx) ? 'none' : 'left 0.3s ease, top 0.3s ease',
+            }}
+            onPointerDown={(e) => {
+              if (player) {
+                handleTokenPointerDown(e, slotIdx);
+              }
+            }}
+            onPointerMove={handleTokenPointerMove}
+            onPointerUp={(e) => {
+              if (draggingSlot.current !== null) {
+                handleTokenPointerUp(e);
+              } else if (!player) {
+                e.stopPropagation();
+                setSelectedSlot(isSelected ? null : slotIdx);
+              }
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!player && draggingSlot.current === null) {
+                setSelectedSlot(isSelected ? null : slotIdx);
+              }
+            }}
+          >
+            {player ? (
+              <>
+                <div
+                  className="relative rounded-full border-[2.5px] border-white/90 shadow-lg flex items-center justify-center text-white font-black overflow-hidden"
+                  style={{
+                    width: isMobile ? 38 : 46,
+                    height: isMobile ? 38 : 46,
+                    background: 'linear-gradient(160deg, #d4a017 0%, #c0392b 45%, #d4a017 100%)',
+                    fontSize: isMobile ? 15 : 19,
+                    boxShadow: '0 3px 12px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  {player.photo_url ? (
+                    <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="drop-shadow-md">{player.dorsal || '?'}</span>
+                  )}
+                </div>
+                <span
+                  className="text-white font-black text-center leading-tight drop-shadow-lg uppercase tracking-wide mt-0.5"
+                  style={{ fontSize: isMobile ? 8 : 10, maxWidth: isMobile ? 54 : 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {player.player_name.split(' ').pop()}
+                </span>
+              </>
+            ) : (
+              <div
+                className={`rounded-full border-2 border-dashed flex items-center justify-center text-white/60 font-bold transition-all ${
+                  isSelected ? 'border-yellow-400 bg-yellow-400/30 scale-110 shadow-lg shadow-yellow-400/30' : 'border-white/30 bg-white/10 hover:bg-white/20'
+                }`}
+                style={{ width: isMobile ? 34 : 42, height: isMobile ? 34 : 42, fontSize: isMobile ? 16 : 20 }}
+              >
+                +
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Hint */}
+      <div className="absolute bottom-1 left-0 right-0 text-center pointer-events-none">
+        <p className="text-[8px] sm:text-[9px] text-white/40 font-medium">
+          {selectedSlot !== null
+            ? '👆 Selecciona un jugador del panel'
+            : 'Toca una posición vacía · Arrastra jugadores para moverlos'}
+        </p>
+      </div>
+    </div>
+  );
+
+  // Render right panel content
+  const renderPanel = () => (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Team selector */}
+      <div className="px-3 py-2 border-b shrink-0">
+        <Select value={selectedTeamId} onValueChange={handleTeamChange}>
+          <SelectTrigger className="h-8 text-xs w-full">
+            <SelectValue placeholder="▼ Selecciona equipo" />
+          </SelectTrigger>
+          <SelectContent>
+            {teams.map(t => (
+              <SelectItem key={t.id} value={t.id}>
+                <div className="flex items-center gap-2">
+                  {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
+                  <span className="text-xs">{t.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b shrink-0">
+        {([
+          { key: 'match' as EditorTab, icon: '⚽', label: 'Partido' },
+          { key: 'players' as EditorTab, icon: '👥', label: 'Jugadores' },
+          { key: 'export' as EditorTab, icon: '📤', label: 'Exportar' },
+        ]).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 py-2 text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
+              activeTab === tab.key
+                ? 'bg-primary/10 text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:bg-muted/50'
+            }`}
+          >
+            <span>{tab.icon}</span> {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {activeTab === 'match' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Rival</label>
+              <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Nombre del rival" className="h-8 text-xs" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
+                <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora</label>
+                <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Notas</label>
+              <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." className="h-8 text-xs" />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'players' && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-blue-400 mb-2">
+                SUPLENTES ({substitutePlayers.length})
+              </h3>
+              <div className="space-y-1.5">
+                {substitutePlayers.map(p => (
+                  <div key={p._idx}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-white cursor-pointer transition-all hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)' }}
+                    onClick={() => toggleSubstitute(p._idx)}>
+                    <span className="text-sm font-black w-7">{p.dorsal}</span>
+                    <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name}</span>
+                    <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {substitutePlayers.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground/50 text-center py-2">Haz clic en un desconvocado para marcarlo como suplente</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                DESCONVOCADOS ({desconvocados.length})
+              </h3>
+              <div className="space-y-1.5">
+                {desconvocados.map(p => (
+                  <div key={p._idx}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all cursor-pointer ${
+                      selectedSlot !== null
+                        ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/40 shadow-sm shadow-yellow-500/10'
+                        : 'bg-muted/50 hover:bg-muted/80'
+                    }`}
+                    onClick={() => {
+                      if (selectedSlot !== null) {
+                        assignToSlot(p._idx);
+                      } else {
+                        toggleSubstitute(p._idx);
+                      }
+                    }}>
+                    <span className="text-sm font-black w-7 text-muted-foreground">{p.dorsal}</span>
+                    <span className="text-xs font-bold uppercase flex-1 truncate text-muted-foreground">{p.player_name}</span>
+                    <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/30 hover:text-muted-foreground">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'export' && (
+          <div className="space-y-4">
+            <div ref={previewRef} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4">
+              <div className="text-center mb-4">
+                {team?.crest_url && <img src={team.crest_url} alt="" className="h-12 w-12 mx-auto mb-2 object-contain" />}
+                <h2 className="text-sm font-black tracking-wider uppercase">{team?.name || 'Equipo'}</h2>
+                <p className="text-white/50 text-[10px] tracking-widest mt-0.5">CONVOCATORIA</p>
+                {opponent && <p className="text-white/70 text-[11px] mt-1">vs {opponent}</p>}
+                <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
+                  {matchDate && <span>📅 {matchDate}</span>}
+                  {matchTime && <span>⏰ {matchTime}h</span>}
+                </div>
+              </div>
+              {starters.length > 0 && (
+                <div className="mb-3">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
+                  <div className="grid grid-cols-2 gap-1">
+                    {starters.map((p, i) => (
+                      <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                        <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
+                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {substitutePlayers.length > 0 && (
+                <div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
+                  <div className="grid grid-cols-2 gap-1">
+                    {substitutePlayers.map(p => (
+                      <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                        <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
+                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Button className="w-full" size="sm" onClick={downloadImage}>
+                <Download className="h-4 w-4 mr-2" />Descargar imagen
+              </Button>
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white" size="sm" onClick={shareToWhatsApp}>
+                <Share2 className="h-4 w-4 mr-2" />Compartir por WhatsApp
+              </Button>
+              <Button variant="outline" className="w-full" size="sm" onClick={copyToClipboard}>
+                <Copy className="h-4 w-4 mr-2" />Copiar texto
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
-      {/* Top bar - matches reference: crest + formation + team name ... icons */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b bg-card shrink-0">
-        {team?.crest_url && <img src={team.crest_url} alt="" className="h-7 w-7 object-contain" />}
-
+      {/* Top bar */}
+      <div className="flex items-center gap-2 px-2 sm:px-3 py-2 border-b bg-card shrink-0">
+        {team?.crest_url && <img src={team.crest_url} alt="" className="h-6 w-6 sm:h-7 sm:w-7 object-contain" />}
         <Select value={formation} onValueChange={setFormation}>
-          <SelectTrigger className="w-20 h-7 text-xs font-semibold"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[70px] sm:w-20 h-7 text-[10px] sm:text-xs font-semibold"><SelectValue /></SelectTrigger>
           <SelectContent>
             {Object.keys(FORMATIONS).map(f => (
               <SelectItem key={f} value={f}>{f}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-
-        <span className="text-xs font-semibold uppercase tracking-wide truncate">{team?.name || 'Selecciona equipo'}</span>
-
+        <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide truncate">{team?.name || 'Equipo'}</span>
         <div className="flex-1" />
-
-        {/* Action icons */}
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={newCallup} title="Nueva">
-          <Plus className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveCallup} title="Guardar">
-          <Save className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => editId && setDeleteId(editId)} title="Eliminar">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setView('list')} title="Volver">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={newCallup}><Plus className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveCallup}><Save className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => editId && setDeleteId(editId)}><Trash2 className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setView('list')}><ArrowLeft className="h-4 w-4" /></Button>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Football pitch */}
-        <div className="flex-1 flex items-center justify-center p-2 min-w-0">
-          <div className="relative w-full max-w-lg aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-b from-green-700 via-green-600 to-green-700 border border-green-800 shadow-2xl">
-            {/* Pitch line stripes for realism */}
-            <div className="absolute inset-0 opacity-10">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="h-[8.33%] w-full" style={{ backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'transparent' }} />
-              ))}
-            </div>
-
-            {/* Pitch markings */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 130" preserveAspectRatio="none">
-              <rect x="3" y="3" width="94" height="124" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
-              <line x1="3" y1="65" x2="97" y2="65" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <circle cx="50" cy="65" r="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <circle cx="50" cy="65" r="0.8" fill="rgba(255,255,255,0.5)" />
-              <rect x="20" y="3" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <rect x="32" y="3" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <rect x="20" y="105" width="60" height="22" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <rect x="32" y="119" width="36" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <path d="M 35 25 Q 50 32 65 25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-              <path d="M 35 105 Q 50 98 65 105" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-            </svg>
-
-            {/* Player tokens on pitch */}
-            {formationPositions.map((pos, slotIdx) => {
-              const playerIdx = pitchSlots[slotIdx];
-              const player = playerIdx !== null ? players[playerIdx] : null;
-              const isSelected = selectedSlot === slotIdx;
-
-              return (
-                <div
-                  key={slotIdx}
-                  className="absolute flex flex-col items-center cursor-pointer group/token"
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y * 100 / 130}%`,
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: isSelected ? 20 : 10,
-                  }}
-                  onClick={() => {
-                    if (player) {
-                      removeFromPitch(slotIdx);
-                    } else {
-                      setSelectedSlot(isSelected ? null : slotIdx);
-                    }
-                  }}
-                >
-                  {player ? (
-                    <>
-                      <div className="relative">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-black text-sm sm:text-lg overflow-hidden"
-                          style={{ background: 'linear-gradient(135deg, #d4a017 0%, #c0392b 50%, #d4a017 100%)' }}>
-                          {player.photo_url ? (
-                            <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="drop-shadow-md">{player.dorsal || '?'}</span>
-                          )}
-                        </div>
-                        {/* Remove X on hover */}
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px] font-bold opacity-0 group-hover/token:opacity-100 transition-opacity">×</div>
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] text-white font-black mt-0.5 text-center leading-tight drop-shadow-lg max-w-16 truncate uppercase tracking-wide">
-                        {player.player_name.split(' ').pop()}
-                      </span>
-                    </>
-                  ) : (
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-dashed flex items-center justify-center text-white/60 text-lg font-bold transition-all ${
-                      isSelected ? 'border-yellow-400 bg-yellow-400/30 scale-110 shadow-lg shadow-yellow-400/30' : 'border-white/40 bg-white/10 hover:bg-white/20'
-                    }`}>
-                      +
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Hint text */}
-            <div className="absolute bottom-2 left-0 right-0 text-center">
-              <p className="text-[9px] text-white/40 font-medium">
-                {selectedSlot !== null
-                  ? '👆 Selecciona un jugador del panel derecho'
-                  : 'Toca una posición vacía y luego un jugador para asignarlo'}
-              </p>
-            </div>
+      {/* Main content - responsive */}
+      {isMobile ? (
+        // Mobile: vertical stack - pitch on top, panel below
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="shrink-0 p-2" style={{ height: '55%' }}>
+            {renderPitch()}
+          </div>
+          <div className="flex-1 border-t overflow-hidden bg-card">
+            {renderPanel()}
           </div>
         </div>
-
-        {/* Right panel */}
-        <div className="w-72 sm:w-80 lg:w-96 border-l bg-card flex flex-col shrink-0 overflow-hidden">
-          {/* Team selector at top of panel */}
-          <div className="px-3 py-2 border-b">
-            <Select value={selectedTeamId} onValueChange={handleTeamChange}>
-              <SelectTrigger className="h-8 text-xs w-full">
-                <SelectValue placeholder="▼ Selecciona equipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map(t => (
-                  <SelectItem key={t.id} value={t.id}>
-                    <div className="flex items-center gap-2">
-                      {t.crest_url && <img src={t.crest_url} alt="" className="h-4 w-4 object-contain" />}
-                      <span className="text-xs">{t.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      ) : (
+        // Desktop: side by side
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex items-center justify-center p-3 min-w-0">
+            <div className="w-full max-w-lg" style={{ aspectRatio: '3/4' }}>
+              {renderPitch()}
+            </div>
           </div>
-
-          {/* Tabs */}
-          <div className="flex border-b shrink-0">
-            {([
-              { key: 'match' as EditorTab, icon: '⚽', label: 'Partido' },
-              { key: 'players' as EditorTab, icon: '👥', label: 'Jugadores' },
-              { key: 'export' as EditorTab, icon: '📤', label: 'Exportar' },
-            ]).map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 py-2.5 text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground hover:bg-muted/50'
-                }`}
-              >
-                <span>{tab.icon}</span> {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab content */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {activeTab === 'match' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Rival</label>
-                  <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Nombre del rival" className="h-8 text-xs" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
-                    <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora</label>
-                    <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Notas</label>
-                  <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." className="h-8 text-xs" />
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'players' && (
-              <div className="space-y-4">
-                {/* Suplentes section */}
-                <div>
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-blue-400 mb-2">
-                    SUPLENTES ({substitutePlayers.length})
-                  </h3>
-                  <div className="space-y-1.5">
-                    {substitutePlayers.map(p => (
-                      <div key={p._idx}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-white cursor-pointer transition-all hover:brightness-110"
-                        style={{ background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)' }}
-                        onClick={() => toggleSubstitute(p._idx)}>
-                        <span className="text-sm font-black w-7">{p.dorsal}</span>
-                        <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name}</span>
-                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    {substitutePlayers.length === 0 && (
-                      <p className="text-[10px] text-muted-foreground/50 text-center py-3">Haz clic en un desconvocado para marcarlo como suplente</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Desconvocados section */}
-                <div>
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                    DESCONVOCADOS ({desconvocados.length})
-                  </h3>
-                  <div className="space-y-1.5">
-                    {desconvocados.map(p => (
-                      <div key={p._idx}
-                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
-                          selectedSlot !== null
-                            ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/40 shadow-sm shadow-yellow-500/10'
-                            : 'bg-muted/50 hover:bg-muted/80'
-                        }`}
-                        onClick={() => {
-                          if (selectedSlot !== null) {
-                            assignToSlot(p._idx);
-                          } else {
-                            toggleSubstitute(p._idx);
-                          }
-                        }}>
-                        <span className="text-sm font-black w-7 text-muted-foreground">{p.dorsal}</span>
-                        <span className="text-xs font-bold uppercase flex-1 truncate text-muted-foreground">{p.player_name}</span>
-                        <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/30 hover:text-muted-foreground">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'export' && (
-              <div className="space-y-4">
-                {/* Preview card */}
-                <div ref={previewRef} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4">
-                  <div className="text-center mb-4">
-                    {team?.crest_url && <img src={team.crest_url} alt="" className="h-12 w-12 mx-auto mb-2 object-contain" />}
-                    <h2 className="text-sm font-black tracking-wider uppercase">{team?.name || 'Equipo'}</h2>
-                    <p className="text-white/50 text-[10px] tracking-widest mt-0.5">CONVOCATORIA</p>
-                    {opponent && <p className="text-white/70 text-[11px] mt-1">vs {opponent}</p>}
-                    <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
-                      {matchDate && <span>📅 {matchDate}</span>}
-                      {matchTime && <span>⏰ {matchTime}h</span>}
-                    </div>
-                  </div>
-
-                  {starters.length > 0 && (
-                    <div className="mb-3">
-                      <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
-                      <div className="grid grid-cols-2 gap-1">
-                        {starters.map((p, i) => (
-                          <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                            <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                            <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {substitutePlayers.length > 0 && (
-                    <div>
-                      <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
-                      <div className="grid grid-cols-2 gap-1">
-                        {substitutePlayers.map(p => (
-                          <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                            <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                            <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Export buttons */}
-                <div className="space-y-2">
-                  <Button className="w-full" size="sm" onClick={downloadImage}>
-                    <Download className="h-4 w-4 mr-2" />Descargar imagen
-                  </Button>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white" size="sm" onClick={shareToWhatsApp}>
-                    <Share2 className="h-4 w-4 mr-2" />Compartir por WhatsApp
-                  </Button>
-                  <Button variant="outline" className="w-full" size="sm" onClick={copyToClipboard}>
-                    <Copy className="h-4 w-4 mr-2" />Copiar texto
-                  </Button>
-                </div>
-              </div>
-            )}
+          <div className="w-80 lg:w-96 border-l bg-card flex flex-col shrink-0 overflow-hidden">
+            {renderPanel()}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Delete dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
