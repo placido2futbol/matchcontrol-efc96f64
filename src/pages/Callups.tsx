@@ -817,12 +817,22 @@ export default function Callups() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha partido</label>
                 <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora partido</label>
                 <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora convocatoria</label>
+                <Input type="time" value={callupTime} onChange={e => setCallupTime(e.target.value)} className="h-8 text-xs" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Lugar convocatoria</label>
+                <Input value={callupLocation} onChange={e => setCallupLocation(e.target.value)} placeholder="Lugar..." className="h-8 text-xs" />
               </div>
             </div>
             <div>
