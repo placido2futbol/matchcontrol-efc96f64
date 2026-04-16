@@ -29,6 +29,8 @@ interface Callup {
   team_id: string | null;
   match_date: string | null;
   match_time: string | null;
+  callup_time: string | null;
+  callup_location: string;
   opponent: string;
   notes: string;
   created_at: string;
@@ -102,6 +104,8 @@ export default function Callups() {
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
   const [matchTime, setMatchTime] = useState('');
+  const [callupTime, setCallupTime] = useState('');
+  const [callupLocation, setCallupLocation] = useState('');
   const [opponent, setOpponent] = useState('');
   const [notes, setNotes] = useState('');
   const [players, setPlayers] = useState<CallupPlayer[]>([]);
