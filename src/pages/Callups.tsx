@@ -514,15 +514,15 @@ export default function Callups() {
     if (opponent) text += `⚽ vs ${opponent}\n`;
     if (matchDate) text += `📅 ${matchDate}`;
     if (matchTime) text += ` ⏰ ${matchTime}h`;
-    text += '\n\n';
-    if (starters.length > 0) {
-      text += `*TITULARES (${starters.length}):*\n`;
-      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
-      text += '\n';
-    }
-    if (substitutePlayers.length > 0) {
-      text += `*SUPLENTES (${substitutePlayers.length}):*\n`;
-      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    text += '\n';
+    if (callupTime) text += `🕐 Convocatoria: ${callupTime}h\n`;
+    if (callupLocation) text += `📍 ${callupLocation}\n`;
+    text += '\n';
+    const allCalled = [...starters, ...substitutePlayers]
+      .sort((a, b) => (parseInt(a.dorsal) || 999) - (parseInt(b.dorsal) || 999));
+    if (allCalled.length > 0) {
+      text += `*CONVOCADOS (${allCalled.length}):*\n`;
+      allCalled.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
     }
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -535,15 +535,15 @@ export default function Callups() {
     if (opponent) text += `⚽ vs ${opponent}\n`;
     if (matchDate) text += `📅 ${matchDate}`;
     if (matchTime) text += ` ⏰ ${matchTime}h`;
-    text += '\n\n';
-    if (starters.length > 0) {
-      text += `TITULARES (${starters.length}):\n`;
-      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
-      text += '\n';
-    }
-    if (substitutePlayers.length > 0) {
-      text += `SUPLENTES (${substitutePlayers.length}):\n`;
-      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    text += '\n';
+    if (callupTime) text += `🕐 Convocatoria: ${callupTime}h\n`;
+    if (callupLocation) text += `📍 ${callupLocation}\n`;
+    text += '\n';
+    const allCalled = [...starters, ...substitutePlayers]
+      .sort((a, b) => (parseInt(a.dorsal) || 999) - (parseInt(b.dorsal) || 999));
+    if (allCalled.length > 0) {
+      text += `CONVOCADOS (${allCalled.length}):\n`;
+      allCalled.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
     }
     navigator.clipboard.writeText(text);
     toast.success('Copiado al portapapeles');
