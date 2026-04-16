@@ -922,37 +922,33 @@ export default function Callups() {
                 <h2 className="text-sm font-black tracking-wider uppercase">{team?.name || 'Equipo'}</h2>
                 <p className="text-white/50 text-[10px] tracking-widest mt-0.5">CONVOCATORIA</p>
                 {opponent && <p className="text-white/70 text-[11px] mt-1">vs {opponent}</p>}
-                <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
-                  {matchDate && <span>📅 {matchDate}</span>}
-                  {matchTime && <span>⏰ {matchTime}h</span>}
+                <div className="flex flex-col items-center gap-0.5 text-white/40 text-[10px] mt-1">
+                  {matchDate && <span>📅 {matchDate}{matchTime ? ` ⏰ ${matchTime}h` : ''}</span>}
+                  {callupTime && <span>🕐 Convocatoria: {callupTime}h</span>}
+                  {callupLocation && <span>📍 {callupLocation}</span>}
                 </div>
               </div>
-              {starters.length > 0 && (
-                <div className="mb-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
-                  <div className="grid grid-cols-2 gap-1">
-                    {starters.map((p, i) => (
-                      <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                        <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                      </div>
-                    ))}
+              {(() => {
+                const allCalled = [...starters, ...substitutePlayers]
+                  .sort((a, b) => {
+                    const dA = parseInt(a.dorsal) || 999;
+                    const dB = parseInt(b.dorsal) || 999;
+                    return dA - dB;
+                  });
+                return allCalled.length > 0 ? (
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Convocados ({allCalled.length})</h3>
+                    <div className="grid grid-cols-2 gap-1">
+                      {allCalled.map((p, i) => (
+                        <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                          <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
+                          <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              {substitutePlayers.length > 0 && (
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
-                  <div className="grid grid-cols-2 gap-1">
-                    {substitutePlayers.map(p => (
-                      <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                        <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ) : null;
+              })()}
             </div>
             <div className="space-y-2">
               <Button className="w-full" size="sm" onClick={downloadImage}>
