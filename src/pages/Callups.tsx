@@ -117,6 +117,12 @@ export default function Callups() {
   const dragStart = useRef<{ x: number; y: number; slotX: number; slotY: number } | null>(null);
   const [dragOffset, setDragOffset] = useState<{ slot: number; dx: number; dy: number } | null>(null);
 
+  // Drag from panel to pitch
+  const [panelDragPlayer, setPanelDragPlayer] = useState<number | null>(null);
+  const [panelDragPos, setPanelDragPos] = useState<{ x: number; y: number } | null>(null);
+  const panelDragStartPos = useRef<{ x: number; y: number } | null>(null);
+  const panelDragStarted = useRef(false);
+
   const previewRef = useRef<HTMLDivElement>(null);
 
   const fetchCallups = async () => {
