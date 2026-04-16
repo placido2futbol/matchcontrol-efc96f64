@@ -150,6 +150,8 @@ export default function Callups() {
         team_id: c.team_id,
         match_date: c.match_date,
         match_time: c.match_time,
+        callup_time: (c as any).callup_time ?? null,
+        callup_location: (c as any).callup_location ?? '',
         opponent: c.opponent || '',
         notes: c.notes || '',
         created_at: c.created_at,
@@ -193,6 +195,8 @@ export default function Callups() {
     setSelectedTeamId('');
     setMatchDate('');
     setMatchTime('');
+    setCallupTime('');
+    setCallupLocation('');
     setOpponent('');
     setNotes('');
     setPlayers([]);
@@ -207,6 +211,8 @@ export default function Callups() {
     setSelectedTeamId(c.team_id || '');
     setMatchDate(c.match_date || '');
     setMatchTime(c.match_time || '');
+    setCallupTime(c.callup_time || '');
+    setCallupLocation(c.callup_location || '');
     setOpponent(c.opponent);
     setNotes(c.notes);
     setPlayers(c.players);
@@ -240,9 +246,11 @@ export default function Callups() {
         team_id: selectedTeamId,
         match_date: matchDate || null,
         match_time: matchTime || null,
+        callup_time: callupTime || null,
+        callup_location: callupLocation,
         opponent,
         notes,
-      }).eq('id', editId);
+      } as any).eq('id', editId);
       await supabase.from('callup_players').delete().eq('callup_id', editId);
       if (calledPlayers.length > 0) {
         await supabase.from('callup_players').insert(
@@ -262,9 +270,11 @@ export default function Callups() {
         team_id: selectedTeamId,
         match_date: matchDate || null,
         match_time: matchTime || null,
+        callup_time: callupTime || null,
+        callup_location: callupLocation,
         opponent,
         notes,
-      }).select().single();
+      } as any).select().single();
       if (error || !data) { toast.error('Error guardando convocatoria'); return; }
       if (calledPlayers.length > 0) {
         await supabase.from('callup_players').insert(
