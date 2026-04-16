@@ -57,6 +57,8 @@ export type Database = {
       }
       callups: {
         Row: {
+          callup_location: string | null
+          callup_time: string | null
           created_at: string
           id: string
           match_date: string | null
@@ -68,6 +70,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          callup_location?: string | null
+          callup_time?: string | null
           created_at?: string
           id?: string
           match_date?: string | null
@@ -79,6 +83,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          callup_location?: string | null
+          callup_time?: string | null
           created_at?: string
           id?: string
           match_date?: string | null
