@@ -827,12 +827,21 @@ export default function Callups() {
               <div className="space-y-1.5">
                 {substitutePlayers.map(p => (
                   <div key={p._idx}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-white cursor-pointer transition-all hover:brightness-110"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-white cursor-grab active:cursor-grabbing transition-all hover:brightness-110 touch-none select-none"
                     style={{ background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)' }}
-                    onClick={() => toggleSubstitute(p._idx)}>
+                    onPointerDown={(e) => handlePanelDragStart(e, p._idx)}
+                    onPointerMove={handlePanelDragMove}
+                    onPointerUp={(e) => {
+                      if (!panelDragStarted.current) {
+                        setPanelDragPlayer(null); setPanelDragPos(null); panelDragStartPos.current = null;
+                        toggleSubstitute(p._idx);
+                      } else {
+                        handlePanelDragEnd(e);
+                      }
+                    }}>
                     <span className="text-sm font-black w-7">{p.dorsal}</span>
                     <span className="text-xs font-bold uppercase flex-1 truncate">{p.player_name}</span>
-                    <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
+                    <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-white/60 hover:text-white">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
