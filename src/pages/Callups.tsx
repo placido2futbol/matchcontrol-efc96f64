@@ -398,6 +398,64 @@ export default function Callups() {
     setDragOffset(null);
   }, []);
 
+  // Panel drag handlers (drag player from list to pitch)
+  const handlePanelDragStart = useCallback((e: React.PointerEvent, playerIdx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    panelDragStartPos.current = { x: e.clientX, y: e.clientY };
+    panelDragStarted.current = false;
+    setPanelDragPlayer(playerIdx);
+    setPanelDragPos({ x: e.clientX, y: e.clientY });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePanelDragMove = useCallback((e: React.PointerEvent) => {
+    if (panelDragPlayer === null || !panelDragStartPos.current) return;
+    const dx = e.clientX - panelDragStartPos.current.x;
+    const dy = e.clientY - panelDragStartPos.current.y;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) panelDragStarted.current = true;
+    if (panelDragStarted.current) {
+      setPanelDragPos({ x: e.clientX, y: e.clientY });
+    }
+  }, [panelDragPlayer]);
+
+  const handlePanelDragEnd = useCallback((e: React.PointerEvent) => {
+    if (panelDragPlayer === null) return;
+    const playerIdx = panelDragPlayer;
+    const wasDrag = panelDragStarted.current;
+
+    setPanelDragPlayer(null);
+    setPanelDragPos(null);
+    panelDragStartPos.current = null;
+    panelDragStarted.current = false;
+
+    if (!wasDrag || !pitchRef.current) return;
+
+    // Check if dropped over the pitch
+    const rect = pitchRef.current.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      const dropX = ((e.clientX - rect.left) / rect.width) * 100;
+      const dropY = ((e.clientY - rect.top) / rect.height) * 100;
+
+      // Find nearest empty slot
+      let bestSlot = -1;
+      let bestDist = Infinity;
+      formationPositions.forEach((pos, slotIdx) => {
+        if (pitchSlots[slotIdx] !== null) return;
+        const slotPos = getSlotPosition(slotIdx);
+        const dist = Math.hypot(slotPos.x - dropX, slotPos.y - dropY);
+        if (dist < bestDist) { bestDist = dist; bestSlot = slotIdx; }
+      });
+
+      if (bestSlot >= 0) {
+        // Remove from any existing slot first
+        const newSlots = pitchSlots.map(s => s === playerIdx ? null : s);
+        newSlots[bestSlot] = playerIdx;
+        setPitchSlots(newSlots);
+        setPlayers(prev => prev.map((p, i) => i === playerIdx ? { ...p, status: 'starter' } : p));
+      }
+    }
+  }, [panelDragPlayer, pitchSlots, formationPositions, getSlotPosition]);
   const downloadImage = async () => {
     if (!previewRef.current) return;
     try {
