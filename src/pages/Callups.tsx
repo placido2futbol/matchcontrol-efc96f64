@@ -1006,6 +1006,28 @@ export default function Callups() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating drag ghost */}
+      {panelDragPlayer !== null && panelDragPos && panelDragStarted.current && (
+        <div
+          className="fixed pointer-events-none z-[9999]"
+          style={{ left: panelDragPos.x, top: panelDragPos.y, transform: 'translate(-50%, -50%)' }}
+        >
+          <div
+            className="rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-white font-black"
+            style={{
+              width: 44, height: 44,
+              background: 'linear-gradient(160deg, #d4a017 0%, #c0392b 45%, #d4a017 100%)',
+              fontSize: 17,
+            }}
+          >
+            {players[panelDragPlayer]?.dorsal || '?'}
+          </div>
+          <div className="text-white text-[9px] font-bold text-center mt-0.5 drop-shadow-lg uppercase">
+            {players[panelDragPlayer]?.player_name.split(' ').pop()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
