@@ -29,6 +29,8 @@ interface Callup {
   team_id: string | null;
   match_date: string | null;
   match_time: string | null;
+  callup_time: string | null;
+  callup_location: string;
   opponent: string;
   notes: string;
   created_at: string;
@@ -102,6 +104,8 @@ export default function Callups() {
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
   const [matchTime, setMatchTime] = useState('');
+  const [callupTime, setCallupTime] = useState('');
+  const [callupLocation, setCallupLocation] = useState('');
   const [opponent, setOpponent] = useState('');
   const [notes, setNotes] = useState('');
   const [players, setPlayers] = useState<CallupPlayer[]>([]);
@@ -146,6 +150,8 @@ export default function Callups() {
         team_id: c.team_id,
         match_date: c.match_date,
         match_time: c.match_time,
+        callup_time: (c as any).callup_time ?? null,
+        callup_location: (c as any).callup_location ?? '',
         opponent: c.opponent || '',
         notes: c.notes || '',
         created_at: c.created_at,
@@ -189,6 +195,8 @@ export default function Callups() {
     setSelectedTeamId('');
     setMatchDate('');
     setMatchTime('');
+    setCallupTime('');
+    setCallupLocation('');
     setOpponent('');
     setNotes('');
     setPlayers([]);
@@ -203,6 +211,8 @@ export default function Callups() {
     setSelectedTeamId(c.team_id || '');
     setMatchDate(c.match_date || '');
     setMatchTime(c.match_time || '');
+    setCallupTime(c.callup_time || '');
+    setCallupLocation(c.callup_location || '');
     setOpponent(c.opponent);
     setNotes(c.notes);
     setPlayers(c.players);
@@ -236,9 +246,11 @@ export default function Callups() {
         team_id: selectedTeamId,
         match_date: matchDate || null,
         match_time: matchTime || null,
+        callup_time: callupTime || null,
+        callup_location: callupLocation,
         opponent,
         notes,
-      }).eq('id', editId);
+      } as any).eq('id', editId);
       await supabase.from('callup_players').delete().eq('callup_id', editId);
       if (calledPlayers.length > 0) {
         await supabase.from('callup_players').insert(
@@ -258,9 +270,11 @@ export default function Callups() {
         team_id: selectedTeamId,
         match_date: matchDate || null,
         match_time: matchTime || null,
+        callup_time: callupTime || null,
+        callup_location: callupLocation,
         opponent,
         notes,
-      }).select().single();
+      } as any).select().single();
       if (error || !data) { toast.error('Error guardando convocatoria'); return; }
       if (calledPlayers.length > 0) {
         await supabase.from('callup_players').insert(
@@ -500,15 +514,15 @@ export default function Callups() {
     if (opponent) text += `⚽ vs ${opponent}\n`;
     if (matchDate) text += `📅 ${matchDate}`;
     if (matchTime) text += ` ⏰ ${matchTime}h`;
-    text += '\n\n';
-    if (starters.length > 0) {
-      text += `*TITULARES (${starters.length}):*\n`;
-      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
-      text += '\n';
-    }
-    if (substitutePlayers.length > 0) {
-      text += `*SUPLENTES (${substitutePlayers.length}):*\n`;
-      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    text += '\n';
+    if (callupTime) text += `🕐 Convocatoria: ${callupTime}h\n`;
+    if (callupLocation) text += `📍 ${callupLocation}\n`;
+    text += '\n';
+    const allCalled = [...starters, ...substitutePlayers]
+      .sort((a, b) => (parseInt(a.dorsal) || 999) - (parseInt(b.dorsal) || 999));
+    if (allCalled.length > 0) {
+      text += `*CONVOCADOS (${allCalled.length}):*\n`;
+      allCalled.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
     }
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -521,15 +535,15 @@ export default function Callups() {
     if (opponent) text += `⚽ vs ${opponent}\n`;
     if (matchDate) text += `📅 ${matchDate}`;
     if (matchTime) text += ` ⏰ ${matchTime}h`;
-    text += '\n\n';
-    if (starters.length > 0) {
-      text += `TITULARES (${starters.length}):\n`;
-      starters.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
-      text += '\n';
-    }
-    if (substitutePlayers.length > 0) {
-      text += `SUPLENTES (${substitutePlayers.length}):\n`;
-      substitutePlayers.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
+    text += '\n';
+    if (callupTime) text += `🕐 Convocatoria: ${callupTime}h\n`;
+    if (callupLocation) text += `📍 ${callupLocation}\n`;
+    text += '\n';
+    const allCalled = [...starters, ...substitutePlayers]
+      .sort((a, b) => (parseInt(a.dorsal) || 999) - (parseInt(b.dorsal) || 999));
+    if (allCalled.length > 0) {
+      text += `CONVOCADOS (${allCalled.length}):\n`;
+      allCalled.forEach(p => { text += `  ${p.dorsal} - ${p.player_name}\n`; });
     }
     navigator.clipboard.writeText(text);
     toast.success('Copiado al portapapeles');
@@ -803,12 +817,22 @@ export default function Callups() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha partido</label>
                 <Input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="h-8 text-xs" />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora partido</label>
                 <Input type="time" value={matchTime} onChange={e => setMatchTime(e.target.value)} className="h-8 text-xs" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Hora convocatoria</label>
+                <Input type="time" value={callupTime} onChange={e => setCallupTime(e.target.value)} className="h-8 text-xs" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Lugar convocatoria</label>
+                <Input value={callupLocation} onChange={e => setCallupLocation(e.target.value)} placeholder="Lugar..." className="h-8 text-xs" />
               </div>
             </div>
             <div>
@@ -898,37 +922,33 @@ export default function Callups() {
                 <h2 className="text-sm font-black tracking-wider uppercase">{team?.name || 'Equipo'}</h2>
                 <p className="text-white/50 text-[10px] tracking-widest mt-0.5">CONVOCATORIA</p>
                 {opponent && <p className="text-white/70 text-[11px] mt-1">vs {opponent}</p>}
-                <div className="flex items-center justify-center gap-3 text-white/40 text-[10px] mt-1">
-                  {matchDate && <span>📅 {matchDate}</span>}
-                  {matchTime && <span>⏰ {matchTime}h</span>}
+                <div className="flex flex-col items-center gap-0.5 text-white/40 text-[10px] mt-1">
+                  {matchDate && <span>📅 {matchDate}{matchTime ? ` ⏰ ${matchTime}h` : ''}</span>}
+                  {callupTime && <span>🕐 Convocatoria: {callupTime}h</span>}
+                  {callupLocation && <span>📍 {callupLocation}</span>}
                 </div>
               </div>
-              {starters.length > 0 && (
-                <div className="mb-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Titulares ({starters.length})</h3>
-                  <div className="grid grid-cols-2 gap-1">
-                    {starters.map((p, i) => (
-                      <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                        <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                      </div>
-                    ))}
+              {(() => {
+                const allCalled = [...starters, ...substitutePlayers]
+                  .sort((a, b) => {
+                    const dA = parseInt(a.dorsal) || 999;
+                    const dB = parseInt(b.dorsal) || 999;
+                    return dA - dB;
+                  });
+                return allCalled.length > 0 ? (
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 border-b border-white/10 pb-1">Convocados ({allCalled.length})</h3>
+                    <div className="grid grid-cols-2 gap-1">
+                      {allCalled.map((p, i) => (
+                        <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+                          <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
+                          <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              {substitutePlayers.length > 0 && (
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 border-b border-white/10 pb-1">Suplentes ({substitutePlayers.length})</h3>
-                  <div className="grid grid-cols-2 gap-1">
-                    {substitutePlayers.map(p => (
-                      <div key={p._idx} className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-                        <div className="h-6 w-6 rounded-full bg-blue-500/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                        <span className="text-[9px] font-semibold truncate">{p.player_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ) : null;
+              })()}
             </div>
             <div className="space-y-2">
               <Button className="w-full" size="sm" onClick={downloadImage}>
