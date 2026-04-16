@@ -347,10 +347,10 @@ export default function Callups() {
 
   const formationPositions = FORMATIONS[formation]?.positions || FORMATIONS['4-3-3'].positions;
 
-  const getSlotPosition = (slotIdx: number) => {
+  const getSlotPosition = useCallback((slotIdx: number) => {
     if (customPositions[slotIdx]) return customPositions[slotIdx];
     return formationPositions[slotIdx];
-  };
+  }, [customPositions, formationPositions]);
 
   // Drag handlers for pitch tokens
   const handleTokenPointerDown = useCallback((e: React.PointerEvent, slotIdx: number) => {
