@@ -859,21 +859,28 @@ export default function Callups() {
               <div className="space-y-1.5">
                 {desconvocados.map(p => (
                   <div key={p._idx}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all cursor-grab active:cursor-grabbing touch-none select-none ${
                       selectedSlot !== null
                         ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/40 shadow-sm shadow-yellow-500/10'
                         : 'bg-muted/50 hover:bg-muted/80'
                     }`}
-                    onClick={() => {
-                      if (selectedSlot !== null) {
-                        assignToSlot(p._idx);
+                    onPointerDown={(e) => handlePanelDragStart(e, p._idx)}
+                    onPointerMove={handlePanelDragMove}
+                    onPointerUp={(e) => {
+                      if (!panelDragStarted.current) {
+                        setPanelDragPlayer(null); setPanelDragPos(null); panelDragStartPos.current = null;
+                        if (selectedSlot !== null) {
+                          assignToSlot(p._idx);
+                        } else {
+                          toggleSubstitute(p._idx);
+                        }
                       } else {
-                        toggleSubstitute(p._idx);
+                        handlePanelDragEnd(e);
                       }
                     }}>
                     <span className="text-sm font-black w-7 text-muted-foreground">{p.dorsal}</span>
                     <span className="text-xs font-bold uppercase flex-1 truncate text-muted-foreground">{p.player_name}</span>
-                    <button onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/30 hover:text-muted-foreground">
+                    <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); removeFromList(p._idx); }} className="text-muted-foreground/30 hover:text-muted-foreground">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
