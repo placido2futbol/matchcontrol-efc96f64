@@ -190,6 +190,49 @@ export default function Callups() {
     if (!editId) loadTeamPlayers(teamId);
   };
 
+  const [autofillLoading, setAutofillLoading] = useState(false);
+
+  const subtractOneHour = (hhmm: string): string => {
+    const [h, m] = hhmm.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return '';
+    const total = (h * 60 + m - 60 + 24 * 60) % (24 * 60);
+    const nh = Math.floor(total / 60);
+    const nm = total % 60;
+    return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+  };
+
+  const autofillFromFCF = async () => {
+    const team = teams.find(t => t.id === selectedTeamId);
+    if (!team) { toast.error('Selecciona primero un equipo'); return; }
+    if (!team.fcf_url) { toast.error('Este equipo no tiene URL de FCF configurada en Equipos'); return; }
+    setAutofillLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fcf-next-match', {
+        body: { teamPageUrl: team.fcf_url },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'No se pudo obtener el próximo partido');
+      const m = data.data;
+      if (m.opponent) setOpponent(m.opponent);
+      if (m.matchDate) setMatchDate(m.matchDate);
+      if (m.matchTime) {
+        setMatchTime(m.matchTime);
+        setCallupTime(subtractOneHour(m.matchTime));
+      }
+      if (m.field) setCallupLocation(m.field);
+      const refereeNote = m.referee ? `Àrbitre: ${m.referee}` : '';
+      if (refereeNote) {
+        setNotes(prev => prev ? `${prev}${prev.includes(refereeNote) ? '' : ' | ' + refereeNote}` : refereeNote);
+      }
+      toast.success(`Partido cargado: vs ${m.opponent}${m.homeAway === 'home' ? ' (casa)' : ' (fuera)'}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Error obteniendo el próximo partido');
+    } finally {
+      setAutofillLoading(false);
+    }
+  };
+
   const newCallup = () => {
     setEditId(null);
     setSelectedTeamId('');
@@ -811,6 +854,16 @@ export default function Callups() {
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {activeTab === 'match' && (
           <div className="space-y-3">
+            <Button
+              type="button"
+              size="sm"
+              onClick={autofillFromFCF}
+              disabled={autofillLoading || !selectedTeamId}
+              className="w-full h-8 text-xs gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {autofillLoading ? 'Cargando desde FCF...' : 'Auto-rellenar desde FCF'}
+            </Button>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Rival</label>
               <Input value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Nombre del rival" className="h-8 text-xs" />
