@@ -3,9 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileText, Printer } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, FileText, Printer, Pencil, Save, Plus, Trash2 } from 'lucide-react';
 import { calcMinutesFromDbEvents } from '@/lib/calcMinutesFromDbEvents';
+import { toast } from 'sonner';
 
 interface MatchDetail {
   id: string;
@@ -60,21 +63,119 @@ export default function MatchDetail() {
   const [players, setPlayers] = useState<MatchPlayerRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Editing states
+  const [editingMinutes, setEditingMinutes] = useState(false);
+  const [editedMinutes, setEditedMinutes] = useState<Record<string, number>>({});
+  const [editingEvents, setEditingEvents] = useState(false);
+  const [editedEvents, setEditedEvents] = useState<MatchEventRow[]>([]);
+  const [savingMinutes, setSavingMinutes] = useState(false);
+  const [savingEvents, setSavingEvents] = useState(false);
+
+  const reload = async () => {
+    if (!user || !id) return;
+    const { data: m } = await supabase.from('matches').select('*').eq('id', id).single();
+    const { data: ev } = await supabase.from('match_events').select('*').eq('match_id', id).order('minute');
+    const { data: pl } = await supabase.from('match_players').select('*').eq('match_id', id);
+    setMatch(m as MatchDetail | null);
+    setEvents((ev || []) as MatchEventRow[]);
+    setPlayers((pl || []) as MatchPlayerRow[]);
+  };
+
   useEffect(() => {
     if (!user || !id) return;
-    (async () => {
-      const { data: m } = await supabase.from('matches').select('*').eq('id', id).single();
-      const { data: ev } = await supabase.from('match_events').select('*').eq('match_id', id).order('minute');
-      const { data: pl } = await supabase.from('match_players').select('*').eq('match_id', id);
-      setMatch(m as MatchDetail | null);
-      setEvents((ev || []) as MatchEventRow[]);
-      setPlayers((pl || []) as MatchPlayerRow[]);
-      setLoading(false);
-    })();
+    reload().then(() => setLoading(false));
   }, [user, id]);
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = () => window.print();
+
+  // --- Minutes editing ---
+  const startEditMinutes = () => {
+    const map: Record<string, number> = {};
+    players.forEach(p => {
+      map[p.id] = p.minutes_played > 0 ? p.minutes_played : getMinutes(p);
+    });
+    setEditedMinutes(map);
+    setEditingMinutes(true);
+  };
+
+  const saveMinutes = async () => {
+    setSavingMinutes(true);
+    try {
+      for (const [playerId, mins] of Object.entries(editedMinutes)) {
+        await supabase.from('match_players').update({ minutes_played: mins }).eq('id', playerId);
+      }
+      toast.success('Minutos actualizados');
+      setEditingMinutes(false);
+      await reload();
+    } catch {
+      toast.error('Error al guardar');
+    }
+    setSavingMinutes(false);
+  };
+
+  // --- Events editing ---
+  const startEditEvents = () => {
+    setEditedEvents(events.map(e => ({ ...e })));
+    setEditingEvents(true);
+  };
+
+  const addSubstitution = (teamSide: string) => {
+    const newEv: MatchEventRow = {
+      id: `new-${Date.now()}`,
+      minute: 0,
+      event_type: 'substitution',
+      team_side: teamSide,
+      player_name: '',
+      details: '',
+    };
+    setEditedEvents(prev => [...prev, newEv]);
+  };
+
+  const updateEditedEvent = (idx: number, field: keyof MatchEventRow, value: string | number) => {
+    setEditedEvents(prev => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e));
+  };
+
+  const removeEditedEvent = (idx: number) => {
+    setEditedEvents(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const saveEvents = async () => {
+    if (!id) return;
+    setSavingEvents(true);
+    try {
+      // Delete removed events
+      const keptIds = new Set(editedEvents.filter(e => !e.id.startsWith('new-')).map(e => e.id));
+      const toDelete = events.filter(e => !keptIds.has(e.id));
+      for (const ev of toDelete) {
+        await supabase.from('match_events').delete().eq('id', ev.id);
+      }
+      // Update existing events
+      for (const ev of editedEvents) {
+        if (ev.id.startsWith('new-')) {
+          await supabase.from('match_events').insert({
+            match_id: id,
+            minute: ev.minute,
+            event_type: ev.event_type,
+            team_side: ev.team_side,
+            player_name: ev.player_name,
+            details: ev.details,
+          });
+        } else {
+          await supabase.from('match_events').update({
+            minute: ev.minute,
+            event_type: ev.event_type,
+            player_name: ev.player_name,
+            details: ev.details,
+          }).eq('id', ev.id);
+        }
+      }
+      toast.success('Incidencias actualizadas');
+      setEditingEvents(false);
+      await reload();
+    } catch {
+      toast.error('Error al guardar');
+    }
+    setSavingEvents(false);
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando...</div>;
@@ -85,7 +186,6 @@ export default function MatchDetail() {
   const homeEvents = events.filter(e => e.team_side === 'home');
   const awayEvents = events.filter(e => e.team_side === 'away');
 
-  // If no away players saved, synthesize from events
   const awayPlayers: MatchPlayerRow[] = awayPlayersRaw.length > 0
     ? awayPlayersRaw
     : (() => {
@@ -116,6 +216,7 @@ export default function MatchDetail() {
       })();
 
   const getMinutes = (player: MatchPlayerRow) => {
+    if (player.minutes_played > 0) return player.minutes_played;
     const sideEvents = player.team_side === 'home' ? homeEvents : awayEvents;
     return calcMinutesFromDbEvents(
       player.player_name,
@@ -150,7 +251,20 @@ export default function MatchDetail() {
                 <td className="p-0.5 sm:p-1 text-center font-bold">{p.goals || ''}</td>
                 <td className="p-0.5 sm:p-1 text-center">{p.yellow_cards || ''}</td>
                 <td className="p-0.5 sm:p-1 text-center">{p.red_card ? '🟥' : ''}</td>
-                <td className="p-0.5 sm:p-1 text-center text-muted-foreground">{getMinutes(p)}'</td>
+                <td className="p-0.5 sm:p-1 text-center text-muted-foreground">
+                  {editingMinutes ? (
+                    <Input
+                      type="number"
+                      min={0}
+                      max={120}
+                      value={editedMinutes[p.id] ?? 0}
+                      onChange={e => setEditedMinutes(prev => ({ ...prev, [p.id]: parseInt(e.target.value) || 0 }))}
+                      className="h-6 w-12 text-xs text-center p-0"
+                    />
+                  ) : (
+                    `${getMinutes(p)}'`
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -158,6 +272,10 @@ export default function MatchDetail() {
       </div>
     </div>
   );
+
+  const subEvents = editingEvents
+    ? editedEvents.filter(e => e.event_type === 'substitution' || e.event_type === 'sub_in' || e.event_type === 'sub_out')
+    : events.filter(e => e.event_type === 'substitution' || e.event_type === 'sub_in' || e.event_type === 'sub_out');
 
   return (
     <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4 print:p-2">
@@ -175,7 +293,6 @@ export default function MatchDetail() {
         </Button>
       </div>
 
-      {/* Print header */}
       <div className="hidden print:block text-center mb-4">
         <h1 className="font-bold text-lg">MatchControl - Detalle del Partido</h1>
       </div>
@@ -199,13 +316,142 @@ export default function MatchDetail() {
         </CardContent>
       </Card>
 
-      {/* Players */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {renderPlayerTable(homePlayers, match.home_team_name)}
-        {renderPlayerTable(awayPlayers, match.away_team_name)}
-      </div>
+      {/* Players with editable minutes */}
+      <Card>
+        <CardHeader className="py-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-display">Jugadores</CardTitle>
+          <div className="print:hidden">
+            {editingMinutes ? (
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setEditingMinutes(false)}>Cancelar</Button>
+                <Button size="sm" onClick={saveMinutes} disabled={savingMinutes}>
+                  <Save className="h-3 w-3 mr-1" /> Guardar
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" onClick={startEditMinutes}>
+                <Pencil className="h-3 w-3 mr-1" /> Editar minutos
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="py-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {renderPlayerTable(homePlayers, match.home_team_name)}
+            {renderPlayerTable(awayPlayers, match.away_team_name)}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Events */}
+      {/* Substitutions / Changes section */}
+      <Card>
+        <CardHeader className="py-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-display">🔄 Cambios</CardTitle>
+          <div className="print:hidden">
+            {editingEvents ? (
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setEditingEvents(false)}>Cancelar</Button>
+                <Button size="sm" onClick={saveEvents} disabled={savingEvents}>
+                  <Save className="h-3 w-3 mr-1" /> Guardar
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" onClick={startEditEvents}>
+                <Pencil className="h-3 w-3 mr-1" /> Editar cambios
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="py-2">
+          {subEvents.length === 0 && !editingEvents && (
+            <p className="text-xs text-muted-foreground text-center py-2">No hay cambios registrados</p>
+          )}
+          {subEvents.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[10px] sm:text-xs border border-border" style={{ minWidth: '300px' }}>
+                <thead>
+                  <tr className="bg-muted">
+                    <th className="p-1 text-muted-foreground">Min</th>
+                    <th className="p-1 text-muted-foreground">Equipo</th>
+                    <th className="p-1 text-muted-foreground">Detalle</th>
+                    {editingEvents && <th className="p-1 text-muted-foreground"></th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {subEvents.map((ev, idx) => {
+                    const globalIdx = editingEvents ? editedEvents.indexOf(ev) : -1;
+                    return (
+                      <tr key={ev.id} className="border-b border-border">
+                        <td className="p-1 text-center">
+                          {editingEvents ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              max={120}
+                              value={ev.minute}
+                              onChange={e => updateEditedEvent(globalIdx, 'minute', parseInt(e.target.value) || 0)}
+                              className="h-6 w-12 text-xs text-center p-0"
+                            />
+                          ) : (
+                            <span className="text-foreground">{ev.minute}'</span>
+                          )}
+                        </td>
+                        <td className="p-1 text-foreground">
+                          {editingEvents ? (
+                            <Select value={ev.team_side} onValueChange={v => updateEditedEvent(globalIdx, 'team_side', v)}>
+                              <SelectTrigger className="h-6 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="home">{match.home_team_name}</SelectItem>
+                                <SelectItem value="away">{match.away_team_name}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            ev.team_side === 'home' ? match.home_team_name : match.away_team_name
+                          )}
+                        </td>
+                        <td className="p-1 text-foreground">
+                          {editingEvents ? (
+                            <Input
+                              value={ev.details || ev.player_name}
+                              onChange={e => {
+                                updateEditedEvent(globalIdx, 'details', e.target.value);
+                                updateEditedEvent(globalIdx, 'player_name', e.target.value.split('/')[0]?.replace('Sale ', '').trim() || '');
+                              }}
+                              placeholder="Sale Jugador1 / Entra Jugador2"
+                              className="h-6 text-xs"
+                            />
+                          ) : (
+                            <span>{ev.details || ev.player_name}</span>
+                          )}
+                        </td>
+                        {editingEvents && (
+                          <td className="p-1 text-center">
+                            <Button size="xs" variant="destructive" onClick={() => removeEditedEvent(globalIdx)} className="h-6 w-6 p-0">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {editingEvents && (
+            <div className="flex gap-2 mt-2 print:hidden">
+              <Button size="sm" variant="outline" onClick={() => addSubstitution('home')}>
+                <Plus className="h-3 w-3 mr-1" /> Cambio {match.home_team_name}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => addSubstitution('away')}>
+                <Plus className="h-3 w-3 mr-1" /> Cambio {match.away_team_name}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* All Events */}
       {events.length > 0 && (
         <Card>
           <CardHeader className="py-3">
