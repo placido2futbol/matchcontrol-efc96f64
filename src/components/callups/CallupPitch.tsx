@@ -98,6 +98,14 @@ export default function CallupPitch({
           >
             {player ? (
               <>
+                <button
+                  className="absolute -top-1 -right-1 z-30 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-md hover:scale-110 transition-transform"
+                  style={{ width: isMobile ? 16 : 18, height: isMobile ? 16 : 18 }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onRemoveFromPitch(slotIdx); }}
+                >
+                  <X className="w-full h-full" />
+                </button>
                 <div
                   className="relative rounded-full border-[2.5px] border-primary-foreground/90 shadow-lg flex items-center justify-center text-primary-foreground font-black overflow-hidden"
                   style={{
