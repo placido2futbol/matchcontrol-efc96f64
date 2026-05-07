@@ -117,7 +117,7 @@ export default function CallupExportTab({
               {allCalled.map((p, i) => (
                 <div key={i} className="flex items-center gap-1.5 bg-background/5 rounded-lg p-1.5">
                   <div className="h-6 w-6 rounded-full bg-primary/30 flex items-center justify-center text-[9px] font-black shrink-0">{p.dorsal || '?'}</div>
-                  <span className="text-[9px] font-semibold truncate">{p.player_name.split(' ')[0]}</span>
+                  <span className="text-[9px] font-semibold truncate">{p.player_name.includes(',') ? p.player_name.split(',').pop()?.trim() : p.player_name}</span>
                 </div>
               ))}
             </div>
