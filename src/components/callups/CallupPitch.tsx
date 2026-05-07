@@ -21,7 +21,7 @@ interface Props {
 export default function CallupPitch({
   pitchSlots, players, formationPositions, getSlotPosition,
   selectedSlot, setSelectedSlot, dragOffset, draggingSlot,
-  onTokenPointerDown, onTokenPointerMove, onTokenPointerUp, pitchRef,
+  onRemoveFromPitch, onTokenPointerDown, onTokenPointerMove, onTokenPointerUp, pitchRef,
 }: Props) {
   const isMobile = useIsMobile();
 
