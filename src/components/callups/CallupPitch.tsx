@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   setSelectedSlot: (s: number | null) => void;
   dragOffset: { slot: number; dx: number; dy: number } | null;
   draggingSlot: React.MutableRefObject<number | null>;
+  onRemoveFromPitch: (slotIdx: number) => void;
   onTokenPointerDown: (e: React.PointerEvent, slotIdx: number, pitchRef: React.RefObject<HTMLDivElement>) => void;
   onTokenPointerMove: (e: React.PointerEvent, pitchRef: React.RefObject<HTMLDivElement>) => void;
   onTokenPointerUp: (e: React.PointerEvent, pitchRef: React.RefObject<HTMLDivElement>) => void;
@@ -19,7 +21,7 @@ interface Props {
 export default function CallupPitch({
   pitchSlots, players, formationPositions, getSlotPosition,
   selectedSlot, setSelectedSlot, dragOffset, draggingSlot,
-  onTokenPointerDown, onTokenPointerMove, onTokenPointerUp, pitchRef,
+  onRemoveFromPitch, onTokenPointerDown, onTokenPointerMove, onTokenPointerUp, pitchRef,
 }: Props) {
   const isMobile = useIsMobile();
 
@@ -96,6 +98,14 @@ export default function CallupPitch({
           >
             {player ? (
               <>
+                <button
+                  className="absolute -top-1 -right-1 z-30 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-md hover:scale-110 transition-transform"
+                  style={{ width: isMobile ? 16 : 18, height: isMobile ? 16 : 18 }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onRemoveFromPitch(slotIdx); }}
+                >
+                  <X className="w-full h-full" />
+                </button>
                 <div
                   className="relative rounded-full border-[2.5px] border-primary-foreground/90 shadow-lg flex items-center justify-center text-primary-foreground font-black overflow-hidden"
                   style={{
