@@ -249,7 +249,8 @@ export default function Callups() {
                 setSelectedSlot={sm.setSelectedSlot}
                 dragOffset={sm.dragOffset}
                 draggingSlot={sm.draggingSlot}
-                onTokenPointerDown={sm.handleTokenPointerDown}
+                 onRemoveFromPitch={sm.removeFromPitch}
+                 onTokenPointerDown={sm.handleTokenPointerDown}
                 onTokenPointerMove={sm.handleTokenPointerMove}
                 onTokenPointerUp={sm.handleTokenPointerUp}
                 pitchRef={pitchRef}
