@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Props {
