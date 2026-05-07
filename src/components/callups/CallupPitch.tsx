@@ -11,6 +11,7 @@ interface Props {
   setSelectedSlot: (s: number | null) => void;
   dragOffset: { slot: number; dx: number; dy: number } | null;
   draggingSlot: React.MutableRefObject<number | null>;
+  onRemoveFromPitch: (slotIdx: number) => void;
   onTokenPointerDown: (e: React.PointerEvent, slotIdx: number, pitchRef: React.RefObject<HTMLDivElement>) => void;
   onTokenPointerMove: (e: React.PointerEvent, pitchRef: React.RefObject<HTMLDivElement>) => void;
   onTokenPointerUp: (e: React.PointerEvent, pitchRef: React.RefObject<HTMLDivElement>) => void;
