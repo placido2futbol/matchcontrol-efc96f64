@@ -120,6 +120,7 @@ export function useCallupManager() {
 
   const resetForm = () => {
     setEditId(null);
+    setMatchId(null);
     setSelectedTeamId('');
     setMatchDate('');
     setMatchTime('');
@@ -132,6 +133,7 @@ export function useCallupManager() {
 
   const loadCallup = (c: Callup) => {
     setEditId(c.id);
+    setMatchId((c as any).match_id ?? null);
     setSelectedTeamId(c.team_id || '');
     setMatchDate(c.match_date || '');
     setMatchTime(c.match_time || '');
@@ -143,15 +145,88 @@ export function useCallupManager() {
     return c.players;
   };
 
+  // Sync a match record (and its match_players) with the current callup.
+  // The user's team is set as the home team by default.
+  const syncMatchFromCallup = async (
+    starters: CallupPlayer[],
+    subs: CallupPlayer[],
+    existingMatchId: string | null
+  ): Promise<string | null> => {
+    if (!user) return null;
+    const team = teams.find(t => t.id === selectedTeamId);
+    const homeName = team?.name || '';
+    const matchPayload = {
+      user_id: user.id,
+      home_team_id: selectedTeamId || null,
+      away_team_id: null as string | null,
+      home_team_name: homeName,
+      away_team_name: opponent || '',
+      match_date: matchDate || null,
+      match_time: matchTime || null,
+      status: 'scheduled',
+    };
+
+    let mId = existingMatchId;
+    if (mId) {
+      const { error } = await supabase.from('matches').update(matchPayload).eq('id', mId);
+      if (error) { mId = null; }
+    }
+    if (!mId) {
+      const { data, error } = await supabase.from('matches').insert(matchPayload).select().single();
+      if (error || !data) { toast.error('Error creando partido vinculado'); return null; }
+      mId = data.id;
+    }
+
+    // Replace match_players with starters + subs from callup (home side only)
+    await supabase.from('match_players').delete().eq('match_id', mId).eq('team_side', 'home');
+
+    const rows = [
+      ...starters.slice(0, 11).map(p => ({
+        match_id: mId,
+        team_side: 'home',
+        player_name: p.player_name,
+        dorsal: p.dorsal || '',
+        is_starter: true,
+        goals: 0,
+        yellow_cards: 0,
+        red_card: false,
+        minutes_played: 0,
+      })),
+      ...subs.slice(0, 9).map(p => ({
+        match_id: mId,
+        team_side: 'home',
+        player_name: p.player_name,
+        dorsal: p.dorsal || '',
+        is_starter: false,
+        goals: 0,
+        yellow_cards: 0,
+        red_card: false,
+        minutes_played: 0,
+      })),
+    ];
+    if (rows.length > 0) {
+      await supabase.from('match_players').insert(rows);
+    }
+    return mId;
+  };
+
   const saveCallup = async (pitchSlots: (number | null)[]) => {
     if (!user) return;
     if (!selectedTeamId) { toast.error('Selecciona un equipo'); return; }
 
-    const updatedPlayers = players.map((p, i) => {
-      if (pitchSlots.includes(i)) return { ...p, status: 'starter' as const };
-      return p;
+    // Build starters in pitch order, then substitutes
+    const starters: CallupPlayer[] = [];
+    pitchSlots.forEach(idx => {
+      if (idx !== null && players[idx]) {
+        starters.push({ ...players[idx], status: 'starter' });
+      }
     });
-    const calledPlayers = updatedPlayers.filter(p => p.status !== 'not_called');
+    const starterNames = new Set(starters.map(p => p.player_name));
+    const subs = players.filter(p => p.status === 'substitute' && !starterNames.has(p.player_name));
+    const calledPlayers = [...starters, ...subs];
+
+    let savedCallupId = editId;
+    let savedMatchId = matchId;
 
     if (editId) {
       await supabase.from('callups').update({
@@ -188,6 +263,7 @@ export function useCallupManager() {
         notes,
       } as any).select().single();
       if (error || !data) { toast.error('Error guardando convocatoria'); return; }
+      savedCallupId = data.id;
       if (calledPlayers.length > 0) {
         await supabase.from('callup_players').insert(
           calledPlayers.map((p, i) => ({
@@ -202,13 +278,30 @@ export function useCallupManager() {
       }
       setEditId(data.id);
     }
-    toast.success('Convocatoria guardada');
+
+    // Create / update linked match with starters + subs prefilled
+    const newMatchId = await syncMatchFromCallup(starters, subs, savedMatchId);
+    if (newMatchId && newMatchId !== savedMatchId && savedCallupId) {
+      await supabase.from('callups').update({ match_id: newMatchId } as any).eq('id', savedCallupId);
+      setMatchId(newMatchId);
+    } else if (newMatchId) {
+      setMatchId(newMatchId);
+    }
+
+    toast.success('Convocatoria y partido guardados');
     await fetchCallups();
   };
 
   const deleteCallup = async (id: string) => {
+    const { data: c } = await supabase.from('callups').select('match_id').eq('id', id).maybeSingle();
+    const linkedMatchId = (c as any)?.match_id as string | undefined;
     await supabase.from('callup_players').delete().eq('callup_id', id);
     await supabase.from('callups').delete().eq('id', id);
+    if (linkedMatchId) {
+      await supabase.from('match_events').delete().eq('match_id', linkedMatchId);
+      await supabase.from('match_players').delete().eq('match_id', linkedMatchId);
+      await supabase.from('matches').delete().eq('id', linkedMatchId);
+    }
     toast.success('Convocatoria eliminada');
     await fetchCallups();
   };
