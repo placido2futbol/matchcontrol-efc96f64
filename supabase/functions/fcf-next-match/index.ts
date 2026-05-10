@@ -150,3 +150,59 @@ function padTime(t: string): string {
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+function uniqueOrdered(items: string[]): string[] {
+  const seen = new Set<string>();
+  return items.filter(item => {
+    if (seen.has(item)) return false;
+    seen.add(item);
+    return true;
+  });
+}
+
+function extractTeamName(row: string, slug: string): string {
+  const teamNameRegex = new RegExp(
+    `resultats-w-equip[^>]*>\\s*<a[^>]*href="[^"]*/${escapeRegex(slug)}"[^>]*>([^<]+)<`
+  );
+  const match = row.match(teamNameRegex) || row.match(new RegExp(`href="[^"]*/${escapeRegex(slug)}"[^>]*>([^<]+)<`));
+  return match ? match[1].replace(/\\'/g, "'").replace(/\s+/g, ' ').trim() : '';
+}
+
+function findMatchRow(html: string, teamSlug: string, opponentSlug: string, displayDate: string | null): string | null {
+  const tableRegex = /<table[^>]*class="[^"]*table_resultats[^"]*"[^>]*>([\s\S]*?)<\/table>/g;
+  const rows: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = tableRegex.exec(html)) !== null) rows.push(match[1]);
+
+  return rows.find(row => {
+    const slugs = uniqueOrdered(
+      Array.from(row.matchAll(/href="https:\/\/www\.fcf\.cat\/(?:equip|calendari-equip)\/[^"]*\/([^\/"?#]+)"/g)).map(m => m[1])
+    );
+    const sameTeams = slugs.includes(teamSlug) && slugs.includes(opponentSlug);
+    return sameTeams && (!displayDate || row.includes(displayDate));
+  }) || rows.find(row => {
+    const slugs = uniqueOrdered(
+      Array.from(row.matchAll(/href="https:\/\/www\.fcf\.cat\/(?:equip|calendari-equip)\/[^"]*\/([^\/"?#]+)"/g)).map(m => m[1])
+    );
+    return slugs.includes(teamSlug) && slugs.includes(opponentSlug);
+  }) || null;
+}
+
+function extractFieldAndReferee(row: string): { field: string | null; referee: string | null } {
+  const fieldMatch = row.match(/href="https:\/\/www\.fcf\.cat\/camp\/\d+"[^>]*>([^<]+)</);
+  const refereeMatch = row.match(/camp\.png[^>]*><\/a>\s*<br\s*\/?>\s*([^<]*?)\s*<img[^>]+xiulet\.png/);
+  return {
+    field: fieldMatch ? cleanHtmlText(fieldMatch[1]) : null,
+    referee: refereeMatch && refereeMatch[1].trim() ? cleanHtmlText(refereeMatch[1]) : null,
+  };
+}
+
+function cleanHtmlText(value: string): string {
+  return value
+    .replace(/\\'/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
