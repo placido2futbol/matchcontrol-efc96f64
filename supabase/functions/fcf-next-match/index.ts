@@ -80,35 +80,21 @@ Deno.serve(async (req) => {
       return jsonResp({ success: false, error: 'No se encontró un próximo partido para este equipo' }, 404);
     }
 
-    // Extract opponent + home/away + date/time from the row
-    // Row structure: escut-home, name-home, resultat (date+time), name-away, escut-away
-    // The team's slug appears either as home or away.
-    const teamLinkRegex = new RegExp(`/equip/[^"]*/${escapeRegex(teamSlug)}"`, 'g');
-    const teamLinkMatches = nextRow.match(teamLinkRegex) || [];
-    // Determine home/away by position: find first /equip/ link in the row
-    const allEquipLinks = Array.from(nextRow.matchAll(/href="(https:\/\/www\.fcf\.cat\/equip\/[^"]+)"/g)).map(m => m[1]);
-    if (allEquipLinks.length < 2) {
+    // Extract opponent + home/away + date/time from the row.
+    // FCF repeats each team link twice (crest + name), so keep only unique slugs in display order.
+    const orderedTeamSlugs = uniqueOrdered(
+      Array.from(nextRow.matchAll(/href="https:\/\/www\.fcf\.cat\/(?:equip|calendari-equip)\/[^"]*\/([^\/"?#]+)"/g)).map(m => m[1])
+    );
+    if (orderedTeamSlugs.length < 2) {
       return jsonResp({ success: false, error: 'No se pudieron leer los equipos del próximo partido' }, 500);
     }
-    const homeUrl = allEquipLinks[0];
-    const awayUrl = allEquipLinks[1];
-    const isHome = homeUrl.endsWith('/' + teamSlug);
-    const opponentUrl = isHome ? awayUrl : homeUrl;
-    const opponentSlug = opponentUrl.split('/').pop() || '';
+    const homeSlug = orderedTeamSlugs[0];
+    const awaySlug = orderedTeamSlugs[1];
+    const isHome = homeSlug === teamSlug;
+    const opponentSlug = isHome ? awaySlug : homeSlug;
 
     // Opponent display name: anchor text inside .resultats-w-equip
-    const opponentNameRegex = new RegExp(
-      `resultats-w-equip[^>]*>\\s*<a[^>]*href="${escapeRegex(opponentUrl)}"[^>]*>([^<]+)<`
-    );
-    let opponentName = '';
-    const onm = nextRow.match(opponentNameRegex);
-    if (onm) {
-      opponentName = onm[1].replace(/\\'/g, "'").replace(/\s+/g, ' ').trim();
-    } else {
-      // fallback: any anchor pointing to opponentUrl
-      const fallback = nextRow.match(new RegExp(`href="${escapeRegex(opponentUrl)}"[^>]*>([^<]+)<`));
-      if (fallback) opponentName = fallback[1].trim();
-    }
+    const opponentName = extractTeamName(nextRow, opponentSlug);
 
     // Date and time in row
     const dateMatch = nextRow.match(/(\d{2})-(\d{2})-(\d{4})/);
@@ -116,39 +102,21 @@ Deno.serve(async (req) => {
     const matchDate = dateMatch ? `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}` : null;
     const matchTime = timeMatch ? padTime(timeMatch[1]) : null;
 
-    // 3) Field & referee come from the group jornada page. Compute jornada index = playedCount + 1.
-    const jornada = playedCount + 1;
-    const jornadaUrl = `${groupBaseUrl}/jornada-${jornada}`;
-    console.log(`Fetching jornada: ${jornadaUrl} (played=${playedCount})`);
+    // 3) Field & referee come from the group results page for the actual selected-team match.
+    // Do not guess jornada from the shortened team page; that page only lists upcoming games.
+    console.log(`Fetching group results: ${groupBaseUrl}`);
 
     let field: string | null = null;
     let referee: string | null = null;
 
     try {
-      const jornadaHtml = await (await fetch(jornadaUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
-      const jTableRegex = /<table[^>]*class="[^"]*table_resultats[^"]*"[^>]*>([\s\S]*?)<\/table>/g;
-      let jt: RegExpExecArray | null;
-      const candidateRows: string[] = [];
-      while ((jt = jTableRegex.exec(jornadaHtml)) !== null) {
-        candidateRows.push(jt[1]);
-      }
-      // Prefer the row that contains BOTH our team and the opponent (the actual match)
-      let matchRow = candidateRows.find(r =>
-        (r.includes(`/${teamSlug}"`) || r.includes(`/${teamSlug}\\"`)) &&
-        (r.includes(`/${opponentSlug}"`) || r.includes(`/${opponentSlug}\\"`))
-      );
-      // Fallback: any row mentioning our team
-      if (!matchRow) {
-        matchRow = candidateRows.find(r => r.includes(`/${teamSlug}"`) || r.includes(`/${teamSlug}\\"`));
-      }
+      const groupHtml = await (await fetch(groupBaseUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
+      let matchRow = findMatchRow(groupHtml, teamSlug, opponentSlug, dateMatch?.[0] || null);
       if (matchRow) {
-        const fm = matchRow.match(/href="https:\/\/www\.fcf\.cat\/camp\/\d+"[^>]*>([^<]+)</);
-        if (fm) field = fm[1].trim();
-        const refm = matchRow.match(/camp\.png[^>]*><\/a>\s*<br>\s*([^<]+?)\s*<img[^>]+xiulet\.png/);
-        if (refm) referee = refm[1].trim();
+        ({ field, referee } = extractFieldAndReferee(matchRow));
       }
     } catch (e) {
-      console.error('Jornada fetch error:', e);
+      console.error('Group results fetch error:', e);
     }
 
     const data: NextMatchData = {
