@@ -16,6 +16,7 @@ export interface Callup {
   opponent: string;
   notes: string;
   created_at: string;
+  match_id?: string | null;
   players: CallupPlayer[];
 }
 
