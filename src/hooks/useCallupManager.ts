@@ -12,6 +12,7 @@ export function useCallupManager() {
   const [callups, setCallups] = useState<Callup[]>([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState<string | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
 
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [matchDate, setMatchDate] = useState('');
