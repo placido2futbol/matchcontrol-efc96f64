@@ -126,20 +126,26 @@ Deno.serve(async (req) => {
 
     try {
       const jornadaHtml = await (await fetch(jornadaUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
-      // Find the row containing the team slug
       const jTableRegex = /<table[^>]*class="[^"]*table_resultats[^"]*"[^>]*>([\s\S]*?)<\/table>/g;
       let jt: RegExpExecArray | null;
+      const candidateRows: string[] = [];
       while ((jt = jTableRegex.exec(jornadaHtml)) !== null) {
-        const r = jt[1];
-        if (r.includes(`/${teamSlug}"`) || r.includes(`/${teamSlug}\"`)) {
-          // Field name: <a href="...camp/...">CAMP NAME<img...
-          const fm = r.match(/href="https:\/\/www\.fcf\.cat\/camp\/\d+"[^>]*>([^<]+)</);
-          if (fm) field = fm[1].trim();
-          // Referee: text between the camp.png img and the xiulet.png img
-          const refm = r.match(/camp\.png[^>]*><\/a>\s*<br>\s*([^<]+?)\s*<img[^>]+xiulet\.png/);
-          if (refm) referee = refm[1].trim();
-          break;
-        }
+        candidateRows.push(jt[1]);
+      }
+      // Prefer the row that contains BOTH our team and the opponent (the actual match)
+      let matchRow = candidateRows.find(r =>
+        (r.includes(`/${teamSlug}"`) || r.includes(`/${teamSlug}\\"`)) &&
+        (r.includes(`/${opponentSlug}"`) || r.includes(`/${opponentSlug}\\"`))
+      );
+      // Fallback: any row mentioning our team
+      if (!matchRow) {
+        matchRow = candidateRows.find(r => r.includes(`/${teamSlug}"`) || r.includes(`/${teamSlug}\\"`));
+      }
+      if (matchRow) {
+        const fm = matchRow.match(/href="https:\/\/www\.fcf\.cat\/camp\/\d+"[^>]*>([^<]+)</);
+        if (fm) field = fm[1].trim();
+        const refm = matchRow.match(/camp\.png[^>]*><\/a>\s*<br>\s*([^<]+?)\s*<img[^>]+xiulet\.png/);
+        if (refm) referee = refm[1].trim();
       }
     } catch (e) {
       console.error('Jornada fetch error:', e);
