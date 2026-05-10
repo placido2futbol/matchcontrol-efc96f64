@@ -1,0 +1,1 @@
+ALTER TABLE public.callups ADD COLUMN match_id uuid;

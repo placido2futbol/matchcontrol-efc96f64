@@ -62,6 +62,7 @@ export type Database = {
           created_at: string
           id: string
           match_date: string | null
+          match_id: string | null
           match_time: string | null
           notes: string | null
           opponent: string
@@ -75,6 +76,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_date?: string | null
+          match_id?: string | null
           match_time?: string | null
           notes?: string | null
           opponent?: string
@@ -88,6 +90,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_date?: string | null
+          match_id?: string | null
           match_time?: string | null
           notes?: string | null
           opponent?: string
