@@ -50,6 +50,7 @@ export function useCallupManager() {
         opponent: c.opponent || '',
         notes: c.notes || '',
         created_at: c.created_at,
+        match_id: (c as any).match_id ?? null,
         players: (pData || []).map(p => ({
           player_name: p.player_name,
           dorsal: p.dorsal || '',
