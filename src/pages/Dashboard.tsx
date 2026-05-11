@@ -432,12 +432,14 @@ export default function Dashboard() {
                           <span className="text-xs font-semibold text-accent flex items-center gap-1">
                             <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
                           </span>
+                        ) : isScheduled ? (
+                          <span className="text-xs font-semibold text-primary">Pendiente</span>
                         ) : (
                           <span className="text-xs text-muted-foreground/70">Finalizado</span>
                         )}
                       </div>
 
-                      {isLive && (
+                      {(isLive || isScheduled) && (
                         <Button
                           variant="ghost"
                           size="icon"
