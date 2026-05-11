@@ -383,12 +383,13 @@ export default function Dashboard() {
           <div className="space-y-3">
             {matches.map(m => {
               const isLive = m.status === 'in_progress';
+              const isScheduled = m.status === 'scheduled';
               const homeWin = m.home_score > m.away_score;
               const awayWin = m.away_score > m.home_score;
               return (
                 <div
                   key={m.id}
-                  onClick={() => navigate(`/match/${m.id}`)}
+                  onClick={() => navigate(isScheduled || isLive ? `/match/edit/${m.id}` : `/match/${m.id}`)}
                   className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card ${compactCards ? 'p-2.5' : 'p-4'} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isLive ? 'border-accent/50 ring-1 ring-accent/20' : 'hover:border-primary/30'}`}
                 >
                   {isLive && (
@@ -431,12 +432,14 @@ export default function Dashboard() {
                           <span className="text-xs font-semibold text-accent flex items-center gap-1">
                             <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
                           </span>
+                        ) : isScheduled ? (
+                          <span className="text-xs font-semibold text-primary">Pendiente</span>
                         ) : (
                           <span className="text-xs text-muted-foreground/70">Finalizado</span>
                         )}
                       </div>
 
-                      {isLive && (
+                      {(isLive || isScheduled) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -467,6 +470,8 @@ export default function Dashboard() {
                       <span className="font-semibold text-accent flex items-center gap-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
                       </span>
+                    ) : isScheduled ? (
+                      <span className="font-semibold text-primary">Pendiente</span>
                     ) : (
                       <span>Finalizado</span>
                     )}
