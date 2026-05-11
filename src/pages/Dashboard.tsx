@@ -470,6 +470,8 @@ export default function Dashboard() {
                       <span className="font-semibold text-accent flex items-center gap-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
                       </span>
+                    ) : isScheduled ? (
+                      <span className="font-semibold text-primary">Pendiente</span>
                     ) : (
                       <span>Finalizado</span>
                     )}
