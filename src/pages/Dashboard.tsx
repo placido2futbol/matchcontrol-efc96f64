@@ -383,12 +383,13 @@ export default function Dashboard() {
           <div className="space-y-3">
             {matches.map(m => {
               const isLive = m.status === 'in_progress';
+              const isScheduled = m.status === 'scheduled';
               const homeWin = m.home_score > m.away_score;
               const awayWin = m.away_score > m.home_score;
               return (
                 <div
                   key={m.id}
-                  onClick={() => navigate(`/match/${m.id}`)}
+                  onClick={() => navigate(isScheduled || isLive ? `/match/edit/${m.id}` : `/match/${m.id}`)}
                   className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card ${compactCards ? 'p-2.5' : 'p-4'} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isLive ? 'border-accent/50 ring-1 ring-accent/20' : 'hover:border-primary/30'}`}
                 >
                   {isLive && (
