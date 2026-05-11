@@ -164,16 +164,19 @@ export function useCallupManager() {
       away_team_name: opponent || '',
       match_date: matchDate || null,
       match_time: matchTime || null,
-      status: 'scheduled',
     };
 
     let mId = existingMatchId;
     if (mId) {
+      // Update metadata but DO NOT overwrite status (keep in_progress/finished if already set)
       const { error } = await supabase.from('matches').update(matchPayload).eq('id', mId);
       if (error) { mId = null; }
     }
     if (!mId) {
-      const { data, error } = await supabase.from('matches').insert(matchPayload).select().single();
+      const { data, error } = await supabase
+        .from('matches')
+        .insert({ ...matchPayload, status: 'scheduled' })
+        .select().single();
       if (error || !data) { toast.error('Error creando partido vinculado'); return null; }
       mId = data.id;
     }
