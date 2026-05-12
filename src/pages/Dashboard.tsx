@@ -360,7 +360,6 @@ export default function Dashboard() {
             </div>
           </button>
         )}
-      </div>
 
         <button
           onClick={() => navigate('/history')}
@@ -378,30 +377,6 @@ export default function Dashboard() {
           </div>
         </button>
       </div>
-
-      {/* Delete confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este partido?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {matchToDelete && (
-                <>
-                  <span className="font-bold">{matchToDelete.home_team_name} {matchToDelete.home_score} - {matchToDelete.away_score} {matchToDelete.away_team_name}</span>
-                  <br />
-                </>
-              )}
-              Esta acción no se puede deshacer. Se eliminarán todos los datos del partido, jugadores e incidencias.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sí, eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
