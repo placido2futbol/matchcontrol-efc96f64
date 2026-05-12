@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import TacticalBoard from "./pages/TacticalBoard";
 import TacticalViewer from "./pages/TacticalViewer";
 import Callups from "./pages/Callups";
+import MatchHistory from "./pages/MatchHistory";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/tactical" element={<TacticalBoard />} />
                 <Route path="/tactical/view/:id" element={<TacticalViewer />} />
                 <Route path="/callups" element={<Callups />} />
+                <Route path="/history" element={<MatchHistory />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeBackground>
