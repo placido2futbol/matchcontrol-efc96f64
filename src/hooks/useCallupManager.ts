@@ -185,6 +185,22 @@ export function useCallupManager() {
       match_time: matchTime || null,
     };
 
+    const team = teams.find(t => t.id === selectedTeamId);
+    const homeName = team?.name || '';
+    const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    const awayTeam = opponent
+      ? teams.find(t => t.id !== selectedTeamId && (norm(t.name) === norm(opponent) || norm(t.name).includes(norm(opponent)) || norm(opponent).includes(norm(t.name))))
+      : null;
+    const matchPayload = {
+      user_id: user.id,
+      home_team_id: selectedTeamId || null,
+      away_team_id: awayTeam?.id || null,
+      home_team_name: homeName,
+      away_team_name: opponent || '',
+      match_date: matchDate || null,
+      match_time: matchTime || null,
+    };
+
     let mId = existingMatchId;
     if (mId) {
       // Update metadata but DO NOT overwrite status (keep in_progress/finished if already set)
