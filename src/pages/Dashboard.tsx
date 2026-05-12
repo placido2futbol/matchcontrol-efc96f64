@@ -362,125 +362,21 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Match history */}
-      <div>
-        <h2 className={`font-display text-lg mb-4 flex items-center gap-2 ${textClass}`}>
-          <History className="h-5 w-5 text-primary" /> Historial de Partidos
-        </h2>
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <button
+          onClick={() => navigate('/history')}
+          className="group relative overflow-hidden rounded-xl bg-card border-2 border-primary/20 p-4 sm:p-5 text-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-primary/50 active:scale-[0.98]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-primary/10 p-3 text-primary transition-transform duration-300 group-hover:scale-110">
+              <History className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide">Historial</span>
+            {!loading && matches.length > 0 && (
+              <span className="text-xs text-muted-foreground">{matches.length} partido{matches.length !== 1 ? 's' : ''}</span>
+            )}
           </div>
-        ) : matches.length === 0 ? (
-          <Card className="border-dashed border-2">
-            <CardContent className="py-12 text-center">
-              <Trophy className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground font-medium">No hay partidos guardados</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">¡Crea tu primer partido!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {matches.map(m => {
-              const isLive = m.status === 'in_progress';
-              const isScheduled = m.status === 'scheduled';
-              const homeWin = m.home_score > m.away_score;
-              const awayWin = m.away_score > m.home_score;
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => navigate(isScheduled || isLive ? `/match/edit/${m.id}` : `/match/${m.id}`)}
-                  className={`group relative cursor-pointer overflow-hidden rounded-xl border bg-card ${compactCards ? 'p-2.5' : 'p-4'} shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isLive ? 'border-accent/50 ring-1 ring-accent/20' : 'hover:border-primary/30'}`}
-                >
-                  {isLive && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-warning to-accent animate-pulse" />
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-                      <div className="flex flex-col items-end flex-1 min-w-0">
-                        <span className={`font-display text-sm sm:text-base truncate max-w-full ${homeWin ? 'text-primary' : 'text-foreground'}`}>
-                          {m.home_team_name}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className={`font-display text-2xl sm:text-3xl w-8 text-center ${homeWin ? 'text-primary' : 'text-foreground'}`}>
-                          {m.home_score}
-                        </span>
-                        <span className="text-muted-foreground/40 font-display text-lg">:</span>
-                        <span className={`font-display text-2xl sm:text-3xl w-8 text-center ${awayWin ? 'text-primary' : 'text-foreground'}`}>
-                          {m.away_score}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col items-start flex-1 min-w-0">
-                        <span className={`font-display text-sm sm:text-base truncate max-w-full ${awayWin ? 'text-primary' : 'text-foreground'}`}>
-                          {m.away_team_name}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <div className="hidden sm:flex flex-col items-end mr-2">
-                        {m.match_date && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Calendar className="h-3 w-3" /> {m.match_date}
-                          </span>
-                        )}
-                        {isLive ? (
-                          <span className="text-xs font-semibold text-accent flex items-center gap-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
-                          </span>
-                        ) : isScheduled ? (
-                          <span className="text-xs font-semibold text-primary">Pendiente</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/70">Finalizado</span>
-                        )}
-                      </div>
-
-                      {(isLive || isScheduled) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-                          onClick={(e) => { e.stopPropagation(); navigate(`/match/edit/${m.id}`); }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                  </div>
-
-                  {/* Mobile date */}
-                  <div className="sm:hidden mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                    {m.match_date && (
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {m.match_date}</span>
-                    )}
-                    {isLive ? (
-                      <span className="font-semibold text-accent flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> En curso
-                      </span>
-                    ) : isScheduled ? (
-                      <span className="font-semibold text-primary">Pendiente</span>
-                    ) : (
-                      <span>Finalizado</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </button>
       </div>
 
       {/* Delete confirmation */}
