@@ -142,8 +142,27 @@ export function useCallupManager() {
     setCallupLocation(c.callup_location || '');
     setOpponent(c.opponent);
     setNotes(c.notes);
-    setPlayers(c.players);
-    return c.players;
+
+    // Merge saved called/substitute players with the full team roster so
+    // desconvocados (not_called) also appear and can be promoted later.
+    const team = teams.find(t => t.id === c.team_id);
+    const calledByName = new Map(c.players.map(p => [p.player_name.toLowerCase(), p]));
+    const merged: CallupPlayer[] = [...c.players];
+    if (team) {
+      team.players.forEach(tp => {
+        if (!calledByName.has(tp.name.toLowerCase())) {
+          merged.push({
+            player_name: tp.name,
+            dorsal: tp.dorsal,
+            photo_url: tp.photo_url,
+            status: 'not_called',
+            position_order: merged.length,
+          });
+        }
+      });
+    }
+    setPlayers(merged);
+    return merged;
   };
 
   // Sync a match record (and its match_players) with the current callup.
