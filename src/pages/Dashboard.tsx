@@ -110,7 +110,7 @@ export default function Dashboard() {
   };
 
   const matchToDelete = matches.find(m => m.id === deleteId);
-
+  const pendingMatches = matches.filter(m => m.status === 'scheduled');
 
   return (
     <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
