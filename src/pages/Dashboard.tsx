@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/sheet';
 import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
 import { toast } from 'sonner';
+import Top3Leaderboard from '@/components/dashboard/Top3Leaderboard';
 
 interface MatchSummary {
   id: string;
@@ -408,6 +409,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <Top3Leaderboard />
     </div>
   );
 }
