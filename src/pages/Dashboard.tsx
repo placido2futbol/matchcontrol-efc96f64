@@ -409,6 +409,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <Top3Leaderboard />
     </div>
   );
 }
