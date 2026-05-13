@@ -377,6 +377,37 @@ export default function Dashboard() {
           </div>
         </button>
       </div>
+
+      {/* Pending matches preview */}
+      {!loading && pendingMatches.length > 0 && (
+        <div className="space-y-2">
+          <h2 className={`font-display text-sm sm:text-base ${textClass} flex items-center gap-2`}>
+            <Calendar className="h-4 w-4 text-primary" /> Partidos pendientes
+          </h2>
+          <div className="space-y-2">
+            {pendingMatches.map(m => (
+              <button
+                key={m.id}
+                onClick={() => navigate(`/match/edit/${m.id}`)}
+                className="w-full group flex items-center gap-3 rounded-xl border border-primary/30 bg-card p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/60 hover:-translate-y-0.5 text-left"
+              >
+                <div className="flex-1 min-w-0 flex items-center gap-2">
+                  <span className="font-display text-sm sm:text-base truncate flex-1 text-right">{m.home_team_name}</span>
+                  <span className="text-muted-foreground text-xs shrink-0">vs</span>
+                  <span className="font-display text-sm sm:text-base truncate flex-1">{m.away_team_name}</span>
+                </div>
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-xs font-semibold text-primary">Pendiente</span>
+                  {m.match_date && (
+                    <span className="text-[10px] text-muted-foreground">{m.match_date}{m.match_time ? ` · ${m.match_time.slice(0,5)}` : ''}</span>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
