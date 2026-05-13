@@ -241,16 +241,19 @@ export function useCallupManager() {
     if (!user) return;
     if (!selectedTeamId) { toast.error('Selecciona un equipo'); return; }
 
-    // Build starters in pitch order, then substitutes
+    // Build starters in pitch order, then substitutes, but persist the full roster
+    // so not-called players are still available when reopening the callup.
     const starters: CallupPlayer[] = [];
+    const starterIndices = new Set<number>();
     pitchSlots.forEach(idx => {
       if (idx !== null && players[idx]) {
+        starterIndices.add(idx);
         starters.push({ ...players[idx], status: 'starter' });
       }
     });
-    const starterNames = new Set(starters.map(p => p.player_name));
-    const subs = players.filter(p => p.status === 'substitute' && !starterNames.has(p.player_name));
-    const calledPlayers = [...starters, ...subs];
+    const subs = players.filter((p, i) => p.status === 'substitute' && !starterIndices.has(i));
+    const notCalled = players.filter((p, i) => !starterIndices.has(i) && p.status !== 'substitute');
+    const playersToPersist = [...starters, ...subs, ...notCalled.map(p => ({ ...p, status: 'not_called' as const }))];
 
     let savedCallupId = editId;
     let savedMatchId = matchId;
@@ -266,9 +269,9 @@ export function useCallupManager() {
         notes,
       } as any).eq('id', editId);
       await supabase.from('callup_players').delete().eq('callup_id', editId);
-      if (calledPlayers.length > 0) {
+      if (playersToPersist.length > 0) {
         await supabase.from('callup_players').insert(
-          calledPlayers.map((p, i) => ({
+          playersToPersist.map((p, i) => ({
             callup_id: editId,
             player_name: p.player_name,
             dorsal: p.dorsal,
@@ -291,9 +294,9 @@ export function useCallupManager() {
       } as any).select().single();
       if (error || !data) { toast.error('Error guardando convocatoria'); return; }
       savedCallupId = data.id;
-      if (calledPlayers.length > 0) {
+      if (playersToPersist.length > 0) {
         await supabase.from('callup_players').insert(
-          calledPlayers.map((p, i) => ({
+          playersToPersist.map((p, i) => ({
             callup_id: data.id,
             player_name: p.player_name,
             dorsal: p.dorsal,
