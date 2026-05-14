@@ -110,7 +110,7 @@ export default function Top3Leaderboard() {
       if (!top.length) return;
       lines.push(`${c.emoji} *${c.title.toUpperCase()}*`);
       top.forEach((r, i) => {
-        lines.push(`${MEDALS[i]} ${r.player_name} — ${valueOf(r, c.key)}`);
+        lines.push(`${MEDALS[i]} ${formatName(r.player_name)} — ${valueOf(r, c.key)}`);
       });
       lines.push('');
     });
