@@ -126,7 +126,20 @@ export default function Top3Leaderboard() {
   const shareImage = async () => {
     if (!cardRef.current) return;
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#0a0a0a', scale: 2 });
+      const node = cardRef.current;
+      const width = Math.max(node.scrollWidth, node.offsetWidth, 720);
+      const height = Math.max(node.scrollHeight, node.offsetHeight);
+      const canvas = await html2canvas(node, {
+        backgroundColor: '#0f172a',
+        scale: 2,
+        useCORS: true,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+      });
       canvas.toBlob(async (blob) => {
         if (!blob) return;
         const file = new File([blob], 'ranking-sant-pau.png', { type: 'image/png' });
