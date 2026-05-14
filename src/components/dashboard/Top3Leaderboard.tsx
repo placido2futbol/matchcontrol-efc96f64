@@ -25,6 +25,23 @@ const CATS: { key: Category; title: string; icon: JSX.Element; accent: string; e
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
+// "APELLIDO1 APELLIDO2, NOMBRE" -> "Nombre Apellido1"
+function formatName(full: string): string {
+  if (!full) return '';
+  const parts = full.split(',');
+  if (parts.length < 2) {
+    const tokens = full.trim().split(/\s+/);
+    return tokens.slice(0, 2).map(cap).join(' ');
+  }
+  const surnames = parts[0].trim().split(/\s+/);
+  const firstName = parts.slice(1).join(',').trim().split(/\s+/)[0] || '';
+  return `${cap(firstName)} ${cap(surnames[0] || '')}`.trim();
+}
+function cap(s: string): string {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 export default function Top3Leaderboard() {
   const { user } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
