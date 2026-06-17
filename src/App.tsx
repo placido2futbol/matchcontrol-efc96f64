@@ -17,6 +17,8 @@ import TacticalBoard from "./pages/TacticalBoard";
 import TacticalViewer from "./pages/TacticalViewer";
 import Callups from "./pages/Callups";
 import MatchHistory from "./pages/MatchHistory";
+import FormularioTemporada from "./pages/FormularioTemporada";
+import FormularioAdmin from "./pages/FormularioAdmin";
 
 const queryClient = new QueryClient();
 
