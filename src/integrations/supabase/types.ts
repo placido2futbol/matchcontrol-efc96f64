@@ -108,6 +108,57 @@ export type Database = {
           },
         ]
       }
+      formulario_temporada_2026_2027: {
+        Row: {
+          compromisos_agosto: string | null
+          continuar_equipo: string
+          created_at: string
+          disponible_12_agosto: string
+          fecha_incorporacion: string | null
+          fecha_nacimiento: string
+          id: string
+          motivo_no_continuar: string | null
+          nombre_completo: string
+          observaciones: string | null
+          posicion_alternativa: string | null
+          posicion_principal: string
+          telefono: string
+          updated_at: string
+        }
+        Insert: {
+          compromisos_agosto?: string | null
+          continuar_equipo: string
+          created_at?: string
+          disponible_12_agosto: string
+          fecha_incorporacion?: string | null
+          fecha_nacimiento: string
+          id?: string
+          motivo_no_continuar?: string | null
+          nombre_completo: string
+          observaciones?: string | null
+          posicion_alternativa?: string | null
+          posicion_principal: string
+          telefono: string
+          updated_at?: string
+        }
+        Update: {
+          compromisos_agosto?: string | null
+          continuar_equipo?: string
+          created_at?: string
+          disponible_12_agosto?: string
+          fecha_incorporacion?: string | null
+          fecha_nacimiento?: string
+          id?: string
+          motivo_no_continuar?: string | null
+          nombre_completo?: string
+          observaciones?: string | null
+          posicion_alternativa?: string | null
+          posicion_principal?: string
+          telefono?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       match_events: {
         Row: {
           created_at: string

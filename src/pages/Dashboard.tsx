@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2, Upload, ClipboardList } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2, Upload, ClipboardList, FileText } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -375,6 +375,20 @@ export default function Dashboard() {
             {!loading && matches.length > 0 && (
               <span className="text-xs text-muted-foreground">{matches.length} partido{matches.length !== 1 ? 's' : ''}</span>
             )}
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate(isAdmin ? '/formulario/admin' : '/formulario')}
+          className="group relative overflow-hidden rounded-xl bg-card border-2 border-success/30 p-4 sm:p-5 text-foreground shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-success/60 active:scale-[0.98] col-span-2 sm:col-span-2"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-success/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="rounded-full bg-success/15 p-3 text-success transition-transform duration-300 group-hover:scale-110">
+              <FileText className="h-6 w-6" />
+            </div>
+            <span className="font-display text-sm sm:text-base tracking-wide text-center">Formulario Temporada 2026/2027</span>
+            {isAdmin && <span className="text-[10px] text-muted-foreground">Panel admin</span>}
           </div>
         </button>
       </div>

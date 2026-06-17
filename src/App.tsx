@@ -17,6 +17,8 @@ import TacticalBoard from "./pages/TacticalBoard";
 import TacticalViewer from "./pages/TacticalViewer";
 import Callups from "./pages/Callups";
 import MatchHistory from "./pages/MatchHistory";
+import FormularioTemporada from "./pages/FormularioTemporada";
+import FormularioAdmin from "./pages/FormularioAdmin";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,8 @@ const App = () => (
                 <Route path="/tactical/view/:id" element={<TacticalViewer />} />
                 <Route path="/callups" element={<Callups />} />
                 <Route path="/history" element={<MatchHistory />} />
+                <Route path="/formulario" element={<FormularioTemporada />} />
+                <Route path="/formulario/admin" element={<FormularioAdmin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeBackground>
