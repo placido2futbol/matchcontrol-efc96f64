@@ -43,6 +43,8 @@ const App = () => (
                 <Route path="/tactical/view/:id" element={<TacticalViewer />} />
                 <Route path="/callups" element={<Callups />} />
                 <Route path="/history" element={<MatchHistory />} />
+                <Route path="/formulario" element={<FormularioTemporada />} />
+                <Route path="/formulario/admin" element={<FormularioAdmin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeBackground>
