@@ -384,6 +384,89 @@ export type Database = {
         }
         Relationships: []
       }
+      session_tasks: {
+        Row: {
+          created_at: string
+          custom_notes: string | null
+          id: string
+          order_index: number
+          session_id: string
+          task_id: string | null
+          task_snapshot: Json | null
+        }
+        Insert: {
+          created_at?: string
+          custom_notes?: string | null
+          id?: string
+          order_index?: number
+          session_id: string
+          task_id?: string | null
+          task_snapshot?: Json | null
+        }
+        Update: {
+          created_at?: string
+          custom_notes?: string | null
+          id?: string
+          order_index?: number
+          session_id?: string
+          task_id?: string | null
+          task_snapshot?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_tasks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "training_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_training_links: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_public: boolean
+          session_id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean
+          session_id: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean
+          session_id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_training_links_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tactical_boards: {
         Row: {
           created_at: string
@@ -447,12 +530,123 @@ export type Database = {
         }
         Relationships: []
       }
+      training_sessions: {
+        Row: {
+          category: string | null
+          coach: string | null
+          created_at: string
+          id: string
+          is_template: boolean
+          microcycle: string | null
+          objective: string | null
+          season: string | null
+          session_date: string | null
+          session_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          coach?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          microcycle?: string | null
+          objective?: string | null
+          season?: string | null
+          session_date?: string | null
+          session_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          coach?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          microcycle?: string | null
+          objective?: string | null
+          season?: string | null
+          session_date?: string | null
+          session_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      training_tasks: {
+        Row: {
+          competitiveness: string | null
+          complexity: string | null
+          created_at: string
+          demand: string | null
+          description: string | null
+          didactic_form: string | null
+          difficulty: string | null
+          id: string
+          image_url: string | null
+          is_favorite: boolean
+          material: string | null
+          name: string
+          players_count: string | null
+          rest_time: string | null
+          space: string | null
+          task_type: string | null
+          updated_at: string
+          user_id: string
+          work_time: string | null
+        }
+        Insert: {
+          competitiveness?: string | null
+          complexity?: string | null
+          created_at?: string
+          demand?: string | null
+          description?: string | null
+          didactic_form?: string | null
+          difficulty?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean
+          material?: string | null
+          name: string
+          players_count?: string | null
+          rest_time?: string | null
+          space?: string | null
+          task_type?: string | null
+          updated_at?: string
+          user_id: string
+          work_time?: string | null
+        }
+        Update: {
+          competitiveness?: string | null
+          complexity?: string | null
+          created_at?: string
+          demand?: string | null
+          description?: string | null
+          didactic_form?: string | null
+          difficulty?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean
+          material?: string | null
+          name?: string
+          players_count?: string | null
+          rest_time?: string | null
+          space?: string | null
+          task_type?: string | null
+          updated_at?: string
+          user_id?: string
+          work_time?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_training_session: { Args: { _token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
