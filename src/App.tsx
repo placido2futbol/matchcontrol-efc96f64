@@ -19,6 +19,9 @@ import Callups from "./pages/Callups";
 import MatchHistory from "./pages/MatchHistory";
 import FormularioTemporada from "./pages/FormularioTemporada";
 import FormularioAdmin from "./pages/FormularioAdmin";
+import EntrenamientosHome from "./pages/entrenamientos/EntrenamientosHome";
+import SessionEditor from "./pages/entrenamientos/SessionEditor";
+import PublicSessionView from "./pages/entrenamientos/PublicSessionView";
 
 const queryClient = new QueryClient();
 
