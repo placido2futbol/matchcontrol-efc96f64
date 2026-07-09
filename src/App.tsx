@@ -19,6 +19,9 @@ import Callups from "./pages/Callups";
 import MatchHistory from "./pages/MatchHistory";
 import FormularioTemporada from "./pages/FormularioTemporada";
 import FormularioAdmin from "./pages/FormularioAdmin";
+import EntrenamientosHome from "./pages/entrenamientos/EntrenamientosHome";
+import SessionEditor from "./pages/entrenamientos/SessionEditor";
+import PublicSessionView from "./pages/entrenamientos/PublicSessionView";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +48,9 @@ const App = () => (
                 <Route path="/history" element={<MatchHistory />} />
                 <Route path="/formulario" element={<FormularioTemporada />} />
                 <Route path="/formulario/admin" element={<FormularioAdmin />} />
+                <Route path="/entrenamientos" element={<EntrenamientosHome />} />
+                <Route path="/entrenamientos/sesion/:id" element={<SessionEditor />} />
+                <Route path="/entrenamientos/publico/:token" element={<PublicSessionView />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ThemeBackground>
