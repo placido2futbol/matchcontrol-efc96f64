@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2, Upload, ClipboardList, FileText } from 'lucide-react';
+import { Plus, Users, History, LogOut, BarChart3, Trash2, Pencil, Calendar, ChevronRight, Trophy, PenTool, Settings, Palette, Image as ImageIcon, X, Moon, Sun, Type, Maximize2, Minimize2, Upload, ClipboardList, FileText, Dumbbell } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
