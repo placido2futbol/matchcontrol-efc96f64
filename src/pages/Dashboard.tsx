@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme, BG_COLORS, ACCENT_OPTIONS, OPACITY_OPTIONS } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
+import { CURRENT_SEASON } from '@/config/season';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -86,6 +87,7 @@ export default function Dashboard() {
       .from('matches')
       .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at')
       .eq('user_id', user.id)
+      .eq('season', CURRENT_SEASON)
       .order('created_at', { ascending: false })
       .limit(50);
     setMatches(data || []);

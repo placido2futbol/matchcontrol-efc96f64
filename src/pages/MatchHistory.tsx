@@ -11,6 +11,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { CURRENT_SEASON, SEASON_LABELS } from '@/config/season';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MatchSummary {
   id: string;
@@ -22,6 +24,7 @@ interface MatchSummary {
   away_score: number;
   status: string;
   created_at: string;
+  season?: string | null;
 }
 
 export default function MatchHistory() {
@@ -31,20 +34,23 @@ export default function MatchHistory() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [season, setSeason] = useState<string>(CURRENT_SEASON);
 
   const fetchMatches = async () => {
     if (!user) return;
+    setLoading(true);
     const { data } = await supabase
       .from('matches')
-      .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at')
+      .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at, season')
       .eq('user_id', user.id)
+      .eq('season', season)
       .order('created_at', { ascending: false })
-      .limit(100);
+      .limit(200);
     setMatches(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchMatches(); }, [user]);
+  useEffect(() => { fetchMatches(); }, [user, season]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -71,6 +77,20 @@ export default function MatchHistory() {
         <h1 className={`font-display text-xl sm:text-2xl flex items-center gap-2 ${textClass}`}>
           <History className="h-5 w-5 text-primary" /> Historial de Partidos
         </h1>
+        <div className="ml-auto">
+          <Select value={season} onValueChange={setSeason}>
+            <SelectTrigger className="h-9 w-[130px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SEASON_LABELS.map(s => (
+                <SelectItem key={s} value={s}>
+                  {s}{s === CURRENT_SEASON ? ' (actual)' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loading ? (
@@ -81,8 +101,8 @@ export default function MatchHistory() {
         <Card className="border-dashed border-2">
           <CardContent className="py-12 text-center">
             <Trophy className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground font-medium">No hay partidos guardados</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">¡Crea tu primer partido!</p>
+            <p className="text-muted-foreground font-medium">No hay partidos en {season}</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">Cambia de temporada o crea tu primer partido</p>
           </CardContent>
         </Card>
       ) : (

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { useTimer } from '@/hooks/useTimer';
 import { supabase } from '@/integrations/supabase/client';
+import { CURRENT_SEASON } from '@/config/season';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -625,7 +626,7 @@ export default function MatchPage() {
         // Insert new match
         const { data: match, error } = await supabase
           .from('matches')
-          .insert(matchData)
+          .insert({ ...matchData, season: CURRENT_SEASON })
           .select()
           .single();
         if (error || !match) throw error;

@@ -66,6 +66,7 @@ export type Database = {
           match_time: string | null
           notes: string | null
           opponent: string
+          season: string
           team_id: string | null
           updated_at: string
           user_id: string
@@ -80,6 +81,7 @@ export type Database = {
           match_time?: string | null
           notes?: string | null
           opponent?: string
+          season?: string
           team_id?: string | null
           updated_at?: string
           user_id: string
@@ -94,6 +96,7 @@ export type Database = {
           match_time?: string | null
           notes?: string | null
           opponent?: string
+          season?: string
           team_id?: string | null
           updated_at?: string
           user_id?: string
@@ -107,6 +110,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fcf_competitions: {
+        Row: {
+          competition_id: string | null
+          competition_name: string | null
+          created_at: string
+          discipline_id: string | null
+          fcf_season_id: number | null
+          group_id: string | null
+          group_name: string | null
+          id: string
+          internal_category: string
+          last_checked_at: string | null
+          season_label: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          competition_id?: string | null
+          competition_name?: string | null
+          created_at?: string
+          discipline_id?: string | null
+          fcf_season_id?: number | null
+          group_id?: string | null
+          group_name?: string | null
+          id?: string
+          internal_category: string
+          last_checked_at?: string | null
+          season_label: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          competition_id?: string | null
+          competition_name?: string | null
+          created_at?: string
+          discipline_id?: string | null
+          fcf_season_id?: number | null
+          group_id?: string | null
+          group_name?: string | null
+          id?: string
+          internal_category?: string
+          last_checked_at?: string | null
+          season_label?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       formulario_temporada_2026_2027: {
         Row: {
@@ -263,6 +317,7 @@ export type Database = {
           id: string
           match_date: string | null
           match_time: string | null
+          season: string
           status: string
           total_seconds: number
           updated_at: string
@@ -280,6 +335,7 @@ export type Database = {
           id?: string
           match_date?: string | null
           match_time?: string | null
+          season?: string
           status?: string
           total_seconds?: number
           updated_at?: string
@@ -297,6 +353,7 @@ export type Database = {
           id?: string
           match_date?: string | null
           match_time?: string | null
+          season?: string
           status?: string
           total_seconds?: number
           updated_at?: string
@@ -381,6 +438,36 @@ export type Database = {
           is_approved?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          fcf_season_id: number | null
+          id: string
+          is_active: boolean
+          is_archived: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fcf_season_id?: number | null
+          id?: string
+          is_active?: boolean
+          is_archived?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fcf_season_id?: number | null
+          id?: string
+          is_active?: boolean
+          is_archived?: boolean
+          label?: string
+          updated_at?: string
         }
         Relationships: []
       }
