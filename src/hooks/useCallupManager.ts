@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTeams } from '@/hooks/useTeams';
 import { toast } from 'sonner';
 import type { Callup, CallupPlayer } from '@/components/callups/types';
+import { CURRENT_SEASON } from '@/config/season';
 
 export function useCallupManager() {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ export function useCallupManager() {
       .from('callups')
       .select('*')
       .eq('user_id', user.id)
+      .eq('season', CURRENT_SEASON)
       .order('created_at', { ascending: false });
     if (error) { toast.error('Error cargando convocatorias'); return; }
 
@@ -95,10 +97,13 @@ export function useCallupManager() {
     setAutofillLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('fcf-next-match', {
-        body: { teamPageUrl: team.fcf_url },
+        body: { teamPageUrl: team.fcf_url, season: CURRENT_SEASON },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'No se pudo obtener el próximo partido');
+      if (!data?.success) {
+        if (data?.pending) { toast.info(data.error); return; }
+        throw new Error(data?.error || 'No se pudo obtener el próximo partido');
+      }
       const m = data.data;
       if (m.opponent) setOpponent(m.opponent);
       if (m.matchDate) setMatchDate(m.matchDate);
@@ -187,6 +192,7 @@ export function useCallupManager() {
       away_team_name: opponent || '',
       match_date: matchDate || null,
       match_time: matchTime || null,
+      season: CURRENT_SEASON,
     };
 
     let mId = existingMatchId;
@@ -285,6 +291,7 @@ export function useCallupManager() {
       const { data, error } = await supabase.from('callups').insert({
         user_id: user.id,
         team_id: selectedTeamId,
+        season: CURRENT_SEASON,
         match_date: matchDate || null,
         match_time: matchTime || null,
         callup_time: callupTime || null,
