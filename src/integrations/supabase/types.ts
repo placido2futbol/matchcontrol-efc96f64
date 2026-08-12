@@ -673,13 +673,19 @@ export type Database = {
           difficulty: string | null
           id: string
           image_url: string | null
+          instructions: string | null
           is_favorite: boolean
           material: string | null
           name: string
+          partial_time: string | null
           players_count: string | null
+          repetitions: string | null
           rest_time: string | null
           space: string | null
+          tags: string[]
           task_type: string | null
+          theme: string | null
+          total_time: string | null
           updated_at: string
           user_id: string
           work_time: string | null
@@ -694,13 +700,19 @@ export type Database = {
           difficulty?: string | null
           id?: string
           image_url?: string | null
+          instructions?: string | null
           is_favorite?: boolean
           material?: string | null
           name: string
+          partial_time?: string | null
           players_count?: string | null
+          repetitions?: string | null
           rest_time?: string | null
           space?: string | null
+          tags?: string[]
           task_type?: string | null
+          theme?: string | null
+          total_time?: string | null
           updated_at?: string
           user_id: string
           work_time?: string | null
@@ -715,13 +727,19 @@ export type Database = {
           difficulty?: string | null
           id?: string
           image_url?: string | null
+          instructions?: string | null
           is_favorite?: boolean
           material?: string | null
           name?: string
+          partial_time?: string | null
           players_count?: string | null
+          repetitions?: string | null
           rest_time?: string | null
           space?: string | null
+          tags?: string[]
           task_type?: string | null
+          theme?: string | null
+          total_time?: string | null
           updated_at?: string
           user_id?: string
           work_time?: string | null
