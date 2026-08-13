@@ -79,6 +79,12 @@ export default function EntrenamientosHome() {
 
   // session creator
   const [sessionDialog, setSessionDialog] = useState(false);
+  // importer
+  const [importOpen, setImportOpen] = useState(false);
+  const [importResult, setImportResult] = useState<ParseResult | null>(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importing, setImporting] = useState(false);
+
   const [newSession, setNewSession] = useState<Partial<TrainingSession>>({
     microcycle: '', session_number: '', session_date: new Date().toISOString().slice(0, 10),
     category: '', season: '2026/2027', coach: '', objective: '',
