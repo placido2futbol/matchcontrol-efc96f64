@@ -35,7 +35,14 @@ interface TrainingTask {
   description: string | null;
   image_url: string | null;
   material: string | null;
+  instructions: string | null;
+  total_time: string | null;
+  partial_time: string | null;
+  repetitions: string | null;
+  theme: string | null;
+  tags: string[] | null;
   is_favorite: boolean;
+
 }
 
 interface TrainingSession {
