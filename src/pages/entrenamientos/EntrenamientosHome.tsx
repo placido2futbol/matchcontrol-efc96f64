@@ -13,8 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Star, Trash2, Pencil, ArrowLeft, Search, Upload, Image as ImageIcon, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
-import mammoth from 'mammoth';
+import ImportPreviewDialog from '@/components/entrenamientos/ImportPreviewDialog';
+import { parseWordExercises } from '@/lib/trainingImport/docxParser';
+import { parseExcelExercises } from '@/lib/trainingImport/excelParser';
+import type { ParsedExercise, ParseResult } from '@/lib/trainingImport/types';
+
 
 interface TrainingTask {
   id: string;
