@@ -299,13 +299,14 @@ export default function EntrenamientosHome() {
               <Star className={`h-4 w-4 mr-1 ${fFav ? 'fill-current' : ''}`} /> Favoritos
             </Button>
             <label className="cursor-pointer">
-              <input type="file" accept=".xlsx,.xls" className="hidden" onChange={e => e.target.files?.[0] && importTasksFromExcel(e.target.files[0])} />
+              <input type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleImportFile(f); }} />
               <span className="inline-flex items-center h-9 px-3 rounded-md border text-sm hover:bg-muted"><Upload className="h-4 w-4 mr-1" /> Excel</span>
             </label>
             <label className="cursor-pointer">
-              <input type="file" accept=".docx" className="hidden" onChange={e => e.target.files?.[0] && importTasksFromWord(e.target.files[0])} />
+              <input type="file" accept=".docx" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleImportFile(f); }} />
               <span className="inline-flex items-center h-9 px-3 rounded-md border text-sm hover:bg-muted"><Upload className="h-4 w-4 mr-1" /> Word</span>
             </label>
+
             <Button size="sm" onClick={() => { setEditingTask({ ...EMPTY_TASK }); setTaskDialog(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Nuevo
             </Button>
