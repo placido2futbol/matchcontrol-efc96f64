@@ -207,10 +207,18 @@ export function detectExerciseBlocks(lines: DocLine[]): Block[] {
   let candidates: string[] = [];
 
   const push = (titulo: string, cid: string) => {
+    // the title line may have been appended to the previous exercise's last field
+    if (current && titulo) {
+      for (const key of Object.keys(current.fields) as FieldKey[]) {
+        const arr = current.fields[key];
+        if (arr.length && arr[arr.length - 1] === titulo) arr.pop();
+      }
+    }
     current = { titulo, fields: emptyFields(), cids: [cid], origen: cid };
     blocks.push(current);
     field = null;
   };
+
 
   for (const line of lines) {
     const lab = detectLabel(line.text);
