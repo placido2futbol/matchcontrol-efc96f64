@@ -424,6 +424,16 @@ export default function EntrenamientosHome() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportPreviewDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        result={importResult}
+        fileName={importFileName}
+        importing={importing}
+        onConfirm={confirmImport}
+      />
     </div>
+
   );
 }
