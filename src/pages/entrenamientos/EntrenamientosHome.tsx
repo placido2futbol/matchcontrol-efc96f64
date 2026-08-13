@@ -167,50 +167,64 @@ export default function EntrenamientosHome() {
     load();
   };
 
-  const importTasksFromExcel = async (file: File) => {
+  const handleImportFile = async (file: File) => {
     if (!user) return;
     try {
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
-      const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      if (!rows.length) return toast.error('Excel vacío');
-      const items = rows.map(r => ({
-        user_id: user.id,
-        name: r.nombre || r.Nombre || r.name || 'Sin nombre',
-        task_type: r.tipo || r.Tipo || null,
-        didactic_form: r.forma || r.Forma || null,
-        difficulty: r.dificultad || r.Dificultad || null,
-        demand: r.exigencia || r.Exigencia || null,
-        space: r.espacio || r.Espacio || null,
-        players_count: String(r.jugadores || r.Jugadores || ''),
-        work_time: String(r.trabajo || r.Trabajo || ''),
-        rest_time: String(r.descanso || r.Descanso || ''),
-        description: r.descripcion || r.Descripcion || r.descripción || null,
-        material: r.material || r.Material || null,
-      }));
-      const { error } = await supabase.from('training_tasks').insert(items);
-      if (error) throw error;
-      toast.success(`${items.length} ejercicios importados`);
-      load();
+      const isWord = /\.docx?$/i.test(file.name);
+      const base = file.name.replace(/\.[^.]+$/, '');
+      const res = isWord ? await parseWordExercises(buf, base) : parseExcelExercises(buf, base);
+      if (!res.exercises.length) { toast.error('No se ha detectado ningún ejercicio en el archivo'); return; }
+      setImportFileName(file.name);
+      setImportResult(res);
+      setImportOpen(true);
     } catch (e: any) { toast.error(e.message); }
   };
 
-  const importTasksFromWord = async (file: File) => {
+  const uploadParsedImage = async (ex: ParsedExercise) => {
+    if (!user || !ex.imagen) return null;
+    const bytes = new Uint8Array(ex.imagen.data);
+    const path = `${user.id}/import/${Date.now()}-${Math.random().toString(36).slice(2)}.${ex.imagen.ext}`;
+    const { error } = await supabase.storage.from('training-images').upload(path, bytes, {
+      contentType: `image/${ex.imagen.ext === 'jpg' ? 'jpeg' : ex.imagen.ext}`,
+    });
+    if (error) return null;
+    const { data } = await supabase.storage.from('training-images').createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+    return data?.signedUrl ?? null;
+  };
+
+  const confirmImport = async (exercises: ParsedExercise[], tematica: string) => {
     if (!user) return;
+    setImporting(true);
     try {
-      const buf = await file.arrayBuffer();
-      const { value } = await mammoth.extractRawText({ arrayBuffer: buf });
-      const blocks = value.split(/\n\s*\n/).filter(b => b.trim());
-      const items = blocks.map(b => {
-        const lines = b.split('\n').map(l => l.trim()).filter(Boolean);
-        return { user_id: user.id, name: lines[0] || 'Sin nombre', description: lines.slice(1).join('\n') || null };
-      });
+      const items = [] as any[];
+      for (const ex of exercises) {
+        const image_url = await uploadParsedImage(ex);
+        items.push({
+          user_id: user.id,
+          name: ex.titulo || 'Sin nombre',
+          description: ex.explicacion || null,
+          instructions: ex.consignas || null,
+          total_time: ex.tiempo_total || null,
+          partial_time: ex.tiempo_parcial || null,
+          repetitions: ex.repeticiones || null,
+          rest_time: ex.descanso || null,
+          material: ex.material || null,
+          theme: tematica || null,
+          tags: ex.subtematicas,
+          image_url,
+        });
+      }
       const { error } = await supabase.from('training_tasks').insert(items);
       if (error) throw error;
       toast.success(`${items.length} ejercicios importados`);
+      setImportOpen(false);
+      setImportResult(null);
       load();
     } catch (e: any) { toast.error(e.message); }
+    finally { setImporting(false); }
   };
+
 
   const filteredTasks = tasks.filter(t => {
     if (fFav && !t.is_favorite) return false;
