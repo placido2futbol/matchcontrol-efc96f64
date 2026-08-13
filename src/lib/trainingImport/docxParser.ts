@@ -206,6 +206,16 @@ export function detectExerciseBlocks(lines: DocLine[]): Block[] {
   let field: FieldKey | null = null;
   let candidates: string[] = [];
 
+  // Pre-pass: a non-label line directly before an "EXPLICACIÓ" label is the title
+  // of the exercise that starts there, never the value of the previous field.
+  const titleLines = new Set<number>();
+  for (let i = 1; i < lines.length; i++) {
+    const lab = detectLabel(lines[i].text);
+    if (!lab || lab.key !== "explicacion") continue;
+    const prev = lines[i - 1];
+    if (!detectLabel(prev.text) && isValidTitle(prev.text)) titleLines.add(i - 1);
+  }
+
   const push = (titulo: string, cid: string) => {
     // the title line may have been appended to the previous exercise's last field
     if (current && titulo) {
@@ -220,7 +230,13 @@ export function detectExerciseBlocks(lines: DocLine[]): Block[] {
   };
 
 
-  for (const line of lines) {
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
+    if (titleLines.has(li)) {
+      candidates = [line.text];
+      continue;
+    }
+
     const lab = detectLabel(line.text);
     if (lab) {
       const starts =
