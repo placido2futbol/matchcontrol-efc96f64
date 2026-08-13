@@ -13,8 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Star, Trash2, Pencil, ArrowLeft, Search, Upload, Image as ImageIcon, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
-import mammoth from 'mammoth';
+import ImportPreviewDialog from '@/components/entrenamientos/ImportPreviewDialog';
+import { parseWordExercises } from '@/lib/trainingImport/docxParser';
+import { parseExcelExercises } from '@/lib/trainingImport/excelParser';
+import type { ParsedExercise, ParseResult } from '@/lib/trainingImport/types';
+
 
 interface TrainingTask {
   id: string;
@@ -32,7 +35,14 @@ interface TrainingTask {
   description: string | null;
   image_url: string | null;
   material: string | null;
+  instructions: string | null;
+  total_time: string | null;
+  partial_time: string | null;
+  repetitions: string | null;
+  theme: string | null;
+  tags: string[] | null;
   is_favorite: boolean;
+
 }
 
 interface TrainingSession {
@@ -76,6 +86,12 @@ export default function EntrenamientosHome() {
 
   // session creator
   const [sessionDialog, setSessionDialog] = useState(false);
+  // importer
+  const [importOpen, setImportOpen] = useState(false);
+  const [importResult, setImportResult] = useState<ParseResult | null>(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importing, setImporting] = useState(false);
+
   const [newSession, setNewSession] = useState<Partial<TrainingSession>>({
     microcycle: '', session_number: '', session_date: new Date().toISOString().slice(0, 10),
     category: '', season: '2026/2027', coach: '', objective: '',
@@ -164,50 +180,64 @@ export default function EntrenamientosHome() {
     load();
   };
 
-  const importTasksFromExcel = async (file: File) => {
+  const handleImportFile = async (file: File) => {
     if (!user) return;
     try {
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
-      const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      if (!rows.length) return toast.error('Excel vacío');
-      const items = rows.map(r => ({
-        user_id: user.id,
-        name: r.nombre || r.Nombre || r.name || 'Sin nombre',
-        task_type: r.tipo || r.Tipo || null,
-        didactic_form: r.forma || r.Forma || null,
-        difficulty: r.dificultad || r.Dificultad || null,
-        demand: r.exigencia || r.Exigencia || null,
-        space: r.espacio || r.Espacio || null,
-        players_count: String(r.jugadores || r.Jugadores || ''),
-        work_time: String(r.trabajo || r.Trabajo || ''),
-        rest_time: String(r.descanso || r.Descanso || ''),
-        description: r.descripcion || r.Descripcion || r.descripción || null,
-        material: r.material || r.Material || null,
-      }));
-      const { error } = await supabase.from('training_tasks').insert(items);
-      if (error) throw error;
-      toast.success(`${items.length} ejercicios importados`);
-      load();
+      const isWord = /\.docx?$/i.test(file.name);
+      const base = file.name.replace(/\.[^.]+$/, '');
+      const res = isWord ? await parseWordExercises(buf, base) : parseExcelExercises(buf, base);
+      if (!res.exercises.length) { toast.error('No se ha detectado ningún ejercicio en el archivo'); return; }
+      setImportFileName(file.name);
+      setImportResult(res);
+      setImportOpen(true);
     } catch (e: any) { toast.error(e.message); }
   };
 
-  const importTasksFromWord = async (file: File) => {
+  const uploadParsedImage = async (ex: ParsedExercise) => {
+    if (!user || !ex.imagen) return null;
+    const bytes = new Uint8Array(ex.imagen.data);
+    const path = `${user.id}/import/${Date.now()}-${Math.random().toString(36).slice(2)}.${ex.imagen.ext}`;
+    const { error } = await supabase.storage.from('training-images').upload(path, bytes, {
+      contentType: `image/${ex.imagen.ext === 'jpg' ? 'jpeg' : ex.imagen.ext}`,
+    });
+    if (error) return null;
+    const { data } = await supabase.storage.from('training-images').createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+    return data?.signedUrl ?? null;
+  };
+
+  const confirmImport = async (exercises: ParsedExercise[], tematica: string) => {
     if (!user) return;
+    setImporting(true);
     try {
-      const buf = await file.arrayBuffer();
-      const { value } = await mammoth.extractRawText({ arrayBuffer: buf });
-      const blocks = value.split(/\n\s*\n/).filter(b => b.trim());
-      const items = blocks.map(b => {
-        const lines = b.split('\n').map(l => l.trim()).filter(Boolean);
-        return { user_id: user.id, name: lines[0] || 'Sin nombre', description: lines.slice(1).join('\n') || null };
-      });
+      const items = [] as any[];
+      for (const ex of exercises) {
+        const image_url = await uploadParsedImage(ex);
+        items.push({
+          user_id: user.id,
+          name: ex.titulo || 'Sin nombre',
+          description: ex.explicacion || null,
+          instructions: ex.consignas || null,
+          total_time: ex.tiempo_total || null,
+          partial_time: ex.tiempo_parcial || null,
+          repetitions: ex.repeticiones || null,
+          rest_time: ex.descanso || null,
+          material: ex.material || null,
+          theme: tematica || null,
+          tags: ex.subtematicas,
+          image_url,
+        });
+      }
       const { error } = await supabase.from('training_tasks').insert(items);
       if (error) throw error;
       toast.success(`${items.length} ejercicios importados`);
+      setImportOpen(false);
+      setImportResult(null);
       load();
     } catch (e: any) { toast.error(e.message); }
+    finally { setImporting(false); }
   };
+
 
   const filteredTasks = tasks.filter(t => {
     if (fFav && !t.is_favorite) return false;
@@ -276,13 +306,14 @@ export default function EntrenamientosHome() {
               <Star className={`h-4 w-4 mr-1 ${fFav ? 'fill-current' : ''}`} /> Favoritos
             </Button>
             <label className="cursor-pointer">
-              <input type="file" accept=".xlsx,.xls" className="hidden" onChange={e => e.target.files?.[0] && importTasksFromExcel(e.target.files[0])} />
+              <input type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleImportFile(f); }} />
               <span className="inline-flex items-center h-9 px-3 rounded-md border text-sm hover:bg-muted"><Upload className="h-4 w-4 mr-1" /> Excel</span>
             </label>
             <label className="cursor-pointer">
-              <input type="file" accept=".docx" className="hidden" onChange={e => e.target.files?.[0] && importTasksFromWord(e.target.files[0])} />
+              <input type="file" accept=".docx" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleImportFile(f); }} />
               <span className="inline-flex items-center h-9 px-3 rounded-md border text-sm hover:bg-muted"><Upload className="h-4 w-4 mr-1" /> Word</span>
             </label>
+
             <Button size="sm" onClick={() => { setEditingTask({ ...EMPTY_TASK }); setTaskDialog(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Nuevo
             </Button>
@@ -355,7 +386,13 @@ export default function EntrenamientosHome() {
               <div><Label>Tiempo descanso</Label><Input value={editingTask.rest_time || ''} onChange={e => setEditingTask({ ...editingTask, rest_time: e.target.value })} /></div>
               <div><Label>Complejidad</Label><Input value={editingTask.complexity || ''} onChange={e => setEditingTask({ ...editingTask, complexity: e.target.value })} /></div>
               <div><Label>Competitividad</Label><Input value={editingTask.competitiveness || ''} onChange={e => setEditingTask({ ...editingTask, competitiveness: e.target.value })} /></div>
+              <div><Label>Temática</Label><Input value={editingTask.theme || ''} onChange={e => setEditingTask({ ...editingTask, theme: e.target.value })} /></div>
+              <div><Label>Tiempo total</Label><Input value={editingTask.total_time || ''} onChange={e => setEditingTask({ ...editingTask, total_time: e.target.value })} /></div>
+              <div><Label>Tiempo parcial</Label><Input value={editingTask.partial_time || ''} onChange={e => setEditingTask({ ...editingTask, partial_time: e.target.value })} /></div>
+              <div><Label>Repeticiones</Label><Input value={editingTask.repetitions || ''} onChange={e => setEditingTask({ ...editingTask, repetitions: e.target.value })} /></div>
               <div className="sm:col-span-2"><Label>Material</Label><Input value={editingTask.material || ''} onChange={e => setEditingTask({ ...editingTask, material: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Label>Consignas</Label><Textarea rows={3} value={editingTask.instructions || ''} onChange={e => setEditingTask({ ...editingTask, instructions: e.target.value })} /></div>
+
               <div className="sm:col-span-2"><Label>Descripción</Label><Textarea rows={4} value={editingTask.description || ''} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} /></div>
               <div className="sm:col-span-2">
                 <Label>Imagen</Label>
@@ -400,6 +437,16 @@ export default function EntrenamientosHome() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportPreviewDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        result={importResult}
+        fileName={importFileName}
+        importing={importing}
+        onConfirm={confirmImport}
+      />
     </div>
+
   );
 }
