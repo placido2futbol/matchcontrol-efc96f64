@@ -386,7 +386,13 @@ export default function EntrenamientosHome() {
               <div><Label>Tiempo descanso</Label><Input value={editingTask.rest_time || ''} onChange={e => setEditingTask({ ...editingTask, rest_time: e.target.value })} /></div>
               <div><Label>Complejidad</Label><Input value={editingTask.complexity || ''} onChange={e => setEditingTask({ ...editingTask, complexity: e.target.value })} /></div>
               <div><Label>Competitividad</Label><Input value={editingTask.competitiveness || ''} onChange={e => setEditingTask({ ...editingTask, competitiveness: e.target.value })} /></div>
+              <div><Label>Temática</Label><Input value={editingTask.theme || ''} onChange={e => setEditingTask({ ...editingTask, theme: e.target.value })} /></div>
+              <div><Label>Tiempo total</Label><Input value={editingTask.total_time || ''} onChange={e => setEditingTask({ ...editingTask, total_time: e.target.value })} /></div>
+              <div><Label>Tiempo parcial</Label><Input value={editingTask.partial_time || ''} onChange={e => setEditingTask({ ...editingTask, partial_time: e.target.value })} /></div>
+              <div><Label>Repeticiones</Label><Input value={editingTask.repetitions || ''} onChange={e => setEditingTask({ ...editingTask, repetitions: e.target.value })} /></div>
               <div className="sm:col-span-2"><Label>Material</Label><Input value={editingTask.material || ''} onChange={e => setEditingTask({ ...editingTask, material: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Label>Consignas</Label><Textarea rows={3} value={editingTask.instructions || ''} onChange={e => setEditingTask({ ...editingTask, instructions: e.target.value })} /></div>
+
               <div className="sm:col-span-2"><Label>Descripción</Label><Textarea rows={4} value={editingTask.description || ''} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} /></div>
               <div className="sm:col-span-2">
                 <Label>Imagen</Label>
