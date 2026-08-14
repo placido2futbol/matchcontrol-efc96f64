@@ -6,6 +6,7 @@ describe("real docx", () => {
   it("parses", async () => {
     const buf = readFileSync("/tmp/jocs.docx");
     const res = await parseWordExercises(new Uint8Array(buf).buffer as ArrayBuffer);
-    console.log(JSON.stringify(res, (k,v)=> k==="data"||k==="blob"||k==="bytes"?"[bin]":v, 1).slice(0, 12000));
+    console.log("N", res.exercises.length, "disc", res.discarded, "blocks", res.totalBlocks);
+    console.log(res.exercises.map((e:any,i:number)=>`${i+1}. ${e.titulo} | img:${e.imagen?.source} | expl:${(e.explicacion||"").length}`).join("\n"));
   }, 60000);
 });
