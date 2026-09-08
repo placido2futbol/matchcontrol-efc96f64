@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { ClubProvider } from "@/hooks/useClub";
 import ThemeBackground from "@/components/ThemeBackground";
+import ClubSeasonBar from "@/components/ClubSeasonBar";
 import Index from "./pages/Index";
 import Match from "./pages/Match";
 import Teams from "./pages/Teams";
@@ -28,12 +30,14 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <ClubProvider>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <ThemeBackground>
+              <ClubSeasonBar />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/match" element={<Match />} />
@@ -57,6 +61,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
+      </ClubProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

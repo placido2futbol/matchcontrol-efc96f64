@@ -59,6 +59,7 @@ export type Database = {
         Row: {
           callup_location: string | null
           callup_time: string | null
+          club_id: string | null
           created_at: string
           id: string
           match_date: string | null
@@ -74,6 +75,7 @@ export type Database = {
         Insert: {
           callup_location?: string | null
           callup_time?: string | null
+          club_id?: string | null
           created_at?: string
           id?: string
           match_date?: string | null
@@ -89,6 +91,7 @@ export type Database = {
         Update: {
           callup_location?: string | null
           callup_time?: string | null
+          club_id?: string | null
           created_at?: string
           id?: string
           match_date?: string | null
@@ -103,6 +106,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "callups_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "callups_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -111,8 +121,48 @@ export type Database = {
           },
         ]
       }
+      clubs: {
+        Row: {
+          created_at: string
+          crest_url: string | null
+          fcf_url: string | null
+          id: string
+          name: string
+          name_key: string
+          short_name: string | null
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crest_url?: string | null
+          fcf_url?: string | null
+          id?: string
+          name: string
+          name_key: string
+          short_name?: string | null
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crest_url?: string | null
+          fcf_url?: string | null
+          id?: string
+          name?: string
+          name_key?: string
+          short_name?: string | null
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fcf_competitions: {
         Row: {
+          club_id: string | null
           competition_id: string | null
           competition_name: string | null
           created_at: string
@@ -129,6 +179,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          club_id?: string | null
           competition_id?: string | null
           competition_name?: string | null
           created_at?: string
@@ -145,6 +196,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          club_id?: string | null
           competition_id?: string | null
           competition_name?: string | null
           created_at?: string
@@ -160,7 +212,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fcf_competitions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       formulario_temporada_2026_2027: {
         Row: {
@@ -309,6 +369,7 @@ export type Database = {
           away_score: number
           away_team_id: string | null
           away_team_name: string
+          club_id: string | null
           created_at: string
           halftime_result: string | null
           home_score: number
@@ -327,6 +388,7 @@ export type Database = {
           away_score?: number
           away_team_id?: string | null
           away_team_name?: string
+          club_id?: string | null
           created_at?: string
           halftime_result?: string | null
           home_score?: number
@@ -345,6 +407,7 @@ export type Database = {
           away_score?: number
           away_team_id?: string | null
           away_team_name?: string
+          club_id?: string | null
           created_at?: string
           halftime_result?: string | null
           home_score?: number
@@ -365,6 +428,13 @@ export type Database = {
             columns: ["away_team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
           {
@@ -556,6 +626,7 @@ export type Database = {
       }
       tactical_boards: {
         Row: {
+          club_id: string | null
           created_at: string
           id: string
           name: string
@@ -564,6 +635,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -572,6 +644,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -579,10 +652,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tactical_boards_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {
+          club_id: string | null
           created_at: string
           crest_url: string | null
           fcf_url: string | null
@@ -590,10 +672,12 @@ export type Database = {
           kit_html: string | null
           kit_url: string | null
           name: string
+          season: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           crest_url?: string | null
           fcf_url?: string | null
@@ -601,10 +685,12 @@ export type Database = {
           kit_html?: string | null
           kit_url?: string | null
           name: string
+          season?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           crest_url?: string | null
           fcf_url?: string | null
@@ -612,14 +698,24 @@ export type Database = {
           kit_html?: string | null
           kit_url?: string | null
           name?: string
+          season?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_sessions: {
         Row: {
           category: string | null
+          club_id: string | null
           coach: string | null
           created_at: string
           id: string
@@ -634,6 +730,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          club_id?: string | null
           coach?: string | null
           created_at?: string
           id?: string
@@ -648,6 +745,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          club_id?: string | null
           coach?: string | null
           created_at?: string
           id?: string
@@ -660,7 +758,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_tasks: {
         Row: {
