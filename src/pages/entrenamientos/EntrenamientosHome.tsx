@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -101,7 +102,9 @@ export default function EntrenamientosHome() {
     if (!user) return;
     setLoading(true);
     const [s, t] = await Promise.all([
-      supabase.from('training_sessions').select('*').eq('user_id', user.id).eq('club_id', clubId).order('session_date', { ascending: false }),
+      (clubId
+        ? supabase.from('training_sessions').select('*').eq('user_id', user.id).eq('club_id', clubId).order('session_date', { ascending: false })
+        : supabase.from('training_sessions').select('*').eq('user_id', user.id).order('session_date', { ascending: false })),
       supabase.from('training_tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     ]);
     setSessions(s.data || []);
@@ -149,7 +152,7 @@ export default function EntrenamientosHome() {
 
   const createSession = async () => {
     if (!user) return;
-    const payload = { ...newSession, user_id: user.id, club_id: clubId, season } as any;
+    const payload = { ...newSession, user_id: user.id, club_id: clubId, season: newSession.season || season } as any;
     const { data, error } = await supabase.from('training_sessions').insert(payload).select().single();
     if (error) return toast.error(error.message);
     toast.success('Sesión creada');
