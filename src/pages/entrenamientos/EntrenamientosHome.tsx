@@ -70,6 +70,7 @@ const EMPTY_TASK: Partial<TrainingTask> = {
 
 export default function EntrenamientosHome() {
   const { user } = useAuth();
+  const { clubId, season } = useClub();
   const navigate = useNavigate();
   const [tab, setTab] = useState('sesiones');
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
