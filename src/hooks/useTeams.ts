@@ -70,7 +70,7 @@ export function useTeams() {
 
   useEffect(() => {
     fetchTeams();
-  }, [user]);
+  }, [user, clubId]);
 
   const saveTeam = async (
     name: string,
@@ -99,7 +99,7 @@ export function useTeams() {
     } else {
       const { data, error } = await supabase
         .from('teams')
-        .insert({ user_id: user.id, name, crest_url: crestUrl, kit_url: kitUrl, kit_html: kitHtml || '', fcf_url: fcfUrl })
+        .insert({ user_id: user.id, name, crest_url: crestUrl, kit_url: kitUrl, kit_html: kitHtml || '', fcf_url: fcfUrl, club_id: clubId, season })
         .select()
         .single();
       if (error || !data) { toast.error('Error guardando equipo'); return; }
