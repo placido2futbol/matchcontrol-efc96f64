@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useClub } from './useClub';
 import { toast } from 'sonner';
 
 export interface Team {
@@ -22,19 +23,22 @@ export interface Player {
 
 export function useTeams() {
   const { user } = useAuth();
+  const { clubId, season } = useClub();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTeams = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: teamsData, error } = await supabase
+    let query = supabase
       .from('teams')
       .select('*')
-      .eq('user_id', user.id)
-      .order('name');
+      .eq('user_id', user.id);
+    if (clubId) query = query.eq('club_id', clubId);
+    const { data: teamsData, error } = await query.order('name');
 
     if (error) { toast.error('Error cargando equipos'); return; }
+
 
     const teamsWithPlayers: Team[] = [];
     for (const t of teamsData || []) {
