@@ -83,20 +83,20 @@ export default function Dashboard() {
 
   const fetchMatches = async () => {
     if (!user) return;
-    const { data } = await supabase
+    let q = supabase
       .from('matches')
       .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at')
       .eq('user_id', user.id)
-      .eq('season', CURRENT_SEASON)
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .eq('season', season);
+    if (clubId) q = q.eq('club_id', clubId);
+    const { data } = await q.order('created_at', { ascending: false }).limit(50);
     setMatches(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchMatches();
-  }, [user]);
+  }, [user, clubId, season]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
