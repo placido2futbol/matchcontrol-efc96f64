@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
 import { Trophy, Square, Share2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 
-const SANT_PAU_KEY = "SANT PAU D'ORDAL";
 
 interface Row {
   player_name: string;
@@ -44,6 +44,9 @@ function cap(s: string): string {
 
 export default function Top3Leaderboard() {
   const { user } = useAuth();
+  const { club, clubId, season } = useClub();
+  const SANT_PAU_KEY = (club?.name_key || "SANT PAU D'ORDAL").toUpperCase();
+  const clubLabel = (club?.short_name || "Sant Pau d'Ordal");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -52,8 +55,9 @@ export default function Top3Leaderboard() {
     if (!user) return;
     (async () => {
       // Sant Pau teams + roster
-      const { data: teams } = await supabase
-        .from('teams').select('id, name').eq('user_id', user.id);
+      let tq = supabase.from('teams').select('id, name').eq('user_id', user.id);
+      if (clubId) tq = tq.eq('club_id', clubId);
+      const { data: teams } = await tq;
       const spTeamIds = (teams || []).filter(t => t.name.toUpperCase().includes(SANT_PAU_KEY)).map(t => t.id);
       let rosterNames = new Set<string>();
       if (spTeamIds.length) {
@@ -62,9 +66,11 @@ export default function Top3Leaderboard() {
       }
 
       // All match_players for user matches
-      const { data: matches } = await supabase.from('matches').select('id').eq('user_id', user.id);
+      let mq = supabase.from('matches').select('id').eq('user_id', user.id).eq('season', season);
+      if (clubId) mq = mq.eq('club_id', clubId);
+      const { data: matches } = await mq;
       const matchIds = (matches || []).map(m => m.id);
-      if (!matchIds.length) { setLoading(false); return; }
+      if (!matchIds.length) { setRows([]); setLoading(false); return; }
 
       const { data: mps } = await supabase
         .from('match_players')
@@ -85,7 +91,7 @@ export default function Top3Leaderboard() {
       setRows(Array.from(agg.values()));
       setLoading(false);
     })();
-  }, [user]);
+  }, [user, clubId, season]);
 
   const getTop = (cat: Category) => {
     const sorted = [...rows].sort((a, b) => {
@@ -104,7 +110,7 @@ export default function Top3Leaderboard() {
     cat === 'goals' ? r.goals : cat === 'yellow' ? r.yellow_cards : r.red_cards;
 
   const buildText = () => {
-    const lines = ["🏆 *RANKING SANT PAU D'ORDAL* 🏆", ''];
+    const lines = [`🏆 *RANKING ${clubLabel.toUpperCase()} ${season}* 🏆`, ''];
     CATS.forEach(c => {
       const top = getTop(c.key);
       if (!top.length) return;
@@ -144,7 +150,7 @@ export default function Top3Leaderboard() {
         if (!blob) return;
         const file = new File([blob], 'ranking-sant-pau.png', { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Ranking Sant Pau' });
+          await navigator.share({ files: [file], title: `Ranking ${clubLabel}` });
         } else {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -166,7 +172,7 @@ export default function Top3Leaderboard() {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-display text-sm sm:text-base flex items-center gap-2">
-          <Trophy className="h-4 w-4 text-primary" /> Top 3 Sant Pau
+          <Trophy className="h-4 w-4 text-primary" /> Top 3 {clubLabel}
         </h2>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={shareImage}>
@@ -180,8 +186,8 @@ export default function Top3Leaderboard() {
 
       <div ref={cardRef} className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-5 shadow-xl border border-primary/20">
         <div className="text-center mb-4">
-          <div className="font-display text-lg sm:text-xl text-white tracking-wide">🏆 RANKING SANT PAU 🏆</div>
-          <div className="text-[10px] text-white/60 uppercase tracking-widest">Estadísticas Acumuladas</div>
+          <div className="font-display text-lg sm:text-xl text-white tracking-wide">🏆 RANKING {clubLabel.toUpperCase()} 🏆</div>
+          <div className="text-[10px] text-white/60 uppercase tracking-widest">Temporada {season}</div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {CATS.map(c => {

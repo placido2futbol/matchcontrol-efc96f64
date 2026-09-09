@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeams } from '@/hooks/useTeams';
+import { useClub } from '@/hooks/useClub';
 import { toast } from 'sonner';
 import type { Callup, CallupPlayer } from '@/components/callups/types';
 import { CURRENT_SEASON } from '@/config/season';
@@ -9,6 +10,7 @@ import { CURRENT_SEASON } from '@/config/season';
 export function useCallupManager() {
   const { user } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
+  const { clubId, season: activeSeason } = useClub();
 
   const [callups, setCallups] = useState<Callup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ export function useCallupManager() {
       .from('callups')
       .select('*')
       .eq('user_id', user.id)
-      .eq('season', CURRENT_SEASON)
+      .eq('season', activeSeason)
       .order('created_at', { ascending: false });
     if (error) { toast.error('Error cargando convocatorias'); return; }
 
@@ -192,7 +194,8 @@ export function useCallupManager() {
       away_team_name: opponent || '',
       match_date: matchDate || null,
       match_time: matchTime || null,
-      season: CURRENT_SEASON,
+      season: activeSeason,
+      club_id: clubId,
     };
 
     let mId = existingMatchId;
@@ -291,7 +294,8 @@ export function useCallupManager() {
       const { data, error } = await supabase.from('callups').insert({
         user_id: user.id,
         team_id: selectedTeamId,
-        season: CURRENT_SEASON,
+        season: activeSeason,
+        club_id: clubId,
         match_date: matchDate || null,
         match_time: matchTime || null,
         callup_time: callupTime || null,

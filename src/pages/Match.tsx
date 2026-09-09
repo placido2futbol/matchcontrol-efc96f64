@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeams, Team } from '@/hooks/useTeams';
+import { useClub } from '@/hooks/useClub';
 import { useTimer } from '@/hooks/useTimer';
 import { supabase } from '@/integrations/supabase/client';
 import { CURRENT_SEASON } from '@/config/season';
@@ -66,6 +67,7 @@ function normalizeImportedPlayers(players: Array<{ name: string; dorsal: string;
 export default function MatchPage() {
   const { user } = useAuth();
   const { teams } = useTeams();
+  const { clubId, season: activeSeason } = useClub();
   const timer = useTimer();
   const navigate = useNavigate();
   const { matchId } = useParams<{ matchId?: string }>();
@@ -626,7 +628,7 @@ export default function MatchPage() {
         // Insert new match
         const { data: match, error } = await supabase
           .from('matches')
-          .insert({ ...matchData, season: CURRENT_SEASON })
+          .insert({ ...matchData, season: activeSeason, club_id: clubId })
           .select()
           .single();
         if (error || !match) throw error;

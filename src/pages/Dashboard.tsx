@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme, BG_COLORS, ACCENT_OPTIONS, OPACITY_OPTIONS } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { CURRENT_SEASON } from '@/config/season';
+import { useClub } from '@/hooks/useClub';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +43,7 @@ interface MatchSummary {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const { clubId, club, season } = useClub();
   const ADMIN_EMAILS = ['pinilla.22@gmail.com', 'placido.futbol2@gmail.com'];
   const isAdmin = ADMIN_EMAILS.includes(user?.email ?? '');
   const navigate = useNavigate();
@@ -83,20 +85,20 @@ export default function Dashboard() {
 
   const fetchMatches = async () => {
     if (!user) return;
-    const { data } = await supabase
+    let q = supabase
       .from('matches')
       .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at')
       .eq('user_id', user.id)
-      .eq('season', CURRENT_SEASON)
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .eq('season', season);
+    if (clubId) q = q.eq('club_id', clubId);
+    const { data } = await q.order('created_at', { ascending: false }).limit(50);
     setMatches(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchMatches();
-  }, [user]);
+  }, [user, clubId, season]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
