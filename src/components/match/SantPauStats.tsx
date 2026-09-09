@@ -1,6 +1,7 @@
 import { MatchPlayer } from './PlayerRow';
 import { MatchEvent } from './EventLog';
 import { calcMinutesPlayed } from '@/lib/calcMinutesPlayed';
+import { useClub } from '@/hooks/useClub';
 
 const SANT_PAU_NAME = "SANT PAU D'ORDAL, U.E. A";
 
@@ -29,8 +30,10 @@ export default function SantPauStats({
   events,
   totalSeconds,
 }: SantPauStatsProps) {
-  const isSantPauHome = homeTeamName.toUpperCase().includes("SANT PAU D'ORDAL");
-  const isSantPauAway = awayTeamName.toUpperCase().includes("SANT PAU D'ORDAL");
+  const { club } = useClub();
+  const key = (club?.name_key || "SANT PAU D'ORDAL").toUpperCase();
+  const isSantPauHome = homeTeamName.toUpperCase().includes(key);
+  const isSantPauAway = awayTeamName.toUpperCase().includes(key);
 
   if (!isSantPauHome && !isSantPauAway) return null;
 
@@ -65,7 +68,7 @@ export default function SantPauStats({
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <h3 className="font-display text-sm text-center mb-3 text-foreground">
-        ⚽ ESTADÍSTICAS SANT PAU D'ORDAL
+        ⚽ ESTADÍSTICAS {(club?.short_name || "Sant Pau d'Ordal").toUpperCase()}
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border border-border">

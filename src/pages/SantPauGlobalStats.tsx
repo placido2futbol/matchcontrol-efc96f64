@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Printer } from 'lucide-react';
@@ -7,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { calcMinutesFromDbEvents } from '@/lib/calcMinutesFromDbEvents';
 import { toast } from 'sonner';
 
-const SANT_PAU_KEY = "SANT PAU D'ORDAL";
 
 interface MatchInfo {
   id: string;
@@ -41,6 +41,9 @@ interface EventRow {
 
 export default function SantPauGlobalStats() {
   const { user } = useAuth();
+  const { club, clubId, season } = useClub();
+  const SANT_PAU_KEY = (club?.name_key || "SANT PAU D'ORDAL").toUpperCase();
+  const clubLabel = club?.short_name || "Sant Pau d'Ordal";
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchInfo[]>([]);
   const [playerData, setPlayerData] = useState<Record<string, PlayerAccum>>({});
@@ -51,12 +54,14 @@ export default function SantPauGlobalStats() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      setLoading(true);
       // Fetch matches, and all teams + players in parallel
       const [{ data: allMatches }, { data: allTeams }] = await Promise.all([
         supabase
           .from('matches')
           .select('id, match_date, home_team_name, away_team_name, home_score, away_score, total_seconds')
           .eq('user_id', user.id)
+          .eq('season', season)
           .order('match_date', { ascending: true }),
         supabase
           .from('teams')
@@ -149,7 +154,7 @@ export default function SantPauGlobalStats() {
       setPlayerData(accum);
       setLoading(false);
     })();
-  }, [user]);
+  }, [user, clubId, season]);
 
   // Merge roster players with match players so all appear
   const playerNames = Array.from(
@@ -238,7 +243,7 @@ export default function SantPauGlobalStats() {
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
         <h1 className="font-display text-xl text-foreground flex-1">
-          📊 Estadísticas Sant Pau d'Ordal
+          📊 Estadísticas {clubLabel}
         </h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={matches.length === 0}>
@@ -251,13 +256,13 @@ export default function SantPauGlobalStats() {
       </div>
 
       <div className="hidden print:block text-center mb-4">
-        <h1 className="text-lg font-bold">📊 Estadísticas Sant Pau d'Ordal</h1>
+        <h1 className="text-lg font-bold">📊 Estadísticas {clubLabel}</h1>
       </div>
 
       {loading ? (
         <p className="text-muted-foreground">Cargando...</p>
       ) : matches.length === 0 ? (
-        <p className="text-muted-foreground">No hay partidos de Sant Pau d'Ordal guardados.</p>
+        <p className="text-muted-foreground">No hay partidos de {clubLabel} en {season}.</p>
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-x-auto">
           <table className="w-full text-xs border-collapse">

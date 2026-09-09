@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
 import { TacticalPlayer, generateId } from './types';
 import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
 
@@ -15,7 +16,6 @@ interface RosterPanelProps {
   onAddPlayer: (player: Partial<TacticalPlayer>) => void;
 }
 
-const SANT_PAU_KEY = "SANT PAU D'ORDAL";
 
 function getShortName(fullName: string): string {
   // "APELLIDO APELLIDO, NOMBRE" → "NOMBRE"
@@ -28,6 +28,8 @@ function getShortName(fullName: string): string {
 
 export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
   const { user } = useAuth();
+  const { club, clubId } = useClub();
+  const SANT_PAU_KEY = (club?.name_key || "SANT PAU D'ORDAL").toUpperCase();
   const [players, setPlayers] = useState<RosterPlayer[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,10 +41,9 @@ export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
       }
 
       // Try loading from DB first
-      const { data: teams } = await supabase
-        .from('teams')
-        .select('id, name')
-        .eq('user_id', user.id);
+      let tq = supabase.from('teams').select('id, name').eq('user_id', user.id);
+      if (clubId) tq = tq.eq('club_id', clubId);
+      const { data: teams } = await tq;
 
       const spTeam = (teams || []).find(t =>
         t.name.toUpperCase().includes(SANT_PAU_KEY)
@@ -87,7 +88,7 @@ export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
     }
 
     load();
-  }, [user]);
+  }, [user, clubId]);
 
   if (loading) {
     return (
@@ -100,7 +101,7 @@ export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
   return (
     <div className="space-y-1.5">
       <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
-        Sant Pau d'Ordal ({players.length})
+        {club?.short_name || "Sant Pau d'Ordal"} ({players.length})
       </h3>
       <div className="flex flex-wrap gap-1">
         {players.map((p, i) => (
