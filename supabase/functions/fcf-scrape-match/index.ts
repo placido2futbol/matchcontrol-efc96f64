@@ -56,27 +56,65 @@ Deno.serve(async (req) => {
     const seasonMatch = teamPageUrl.match(/equip\/(\d{4})/);
     const season = seasonMatch ? seasonMatch[1] : '2526';
 
-    const calendarUrl = `https://www.fcf.cat/calendari-equip/${season}/futbol-11/quarta-catalana/grup-28/${teamSlug}`;
-    console.log(`Fetching calendar: ${calendarUrl}`);
+    // Candidate pages that may contain links to actas.
+    const candidates: string[] = [teamPageUrl];
+    if (seasonMatch) {
+      candidates.push(
+        `https://www.fcf.cat/calendari-equip/${season}/futbol-11/quarta-catalana/grup-28/${teamSlug}`
+      );
+    }
 
-    const calResponse = await fetch(calendarUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-    const calHtml = await calResponse.text();
-
-    const actaRegex = /href="(https:\/\/www\.fcf\.cat\/acta\/[^"]+)"/g;
     const actaUrls: string[] = [];
-    let match;
-    while ((match = actaRegex.exec(calHtml)) !== null) {
-      actaUrls.push(match[1]);
+    const seen = new Set<string>();
+
+    async function collectActas(pageUrl: string, depth = 0) {
+      try {
+        console.log(`Fetching page: ${pageUrl}`);
+        const res = await fetch(pageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (!res.ok) return;
+        const html = await res.text();
+
+        const actaRegex = /href="(https:\/\/www\.fcf\.cat\/acta\/[^"]+|\/acta\/[^"]+)"/g;
+        let m;
+        while ((m = actaRegex.exec(html)) !== null) {
+          const url = m[1].startsWith('http') ? m[1] : `https://www.fcf.cat${m[1]}`;
+          if (!seen.has(url)) { seen.add(url); actaUrls.push(url); }
+        }
+
+        // If nothing found, follow calendar links discovered on this page.
+        if (actaUrls.length === 0 && depth === 0) {
+          const calRegex = /href="((?:https:\/\/www\.fcf\.cat)?\/(?:ca\/)?calendari[^"]*)"/g;
+          const calLinks: string[] = [];
+          let c;
+          while ((c = calRegex.exec(html)) !== null) {
+            const url = c[1].startsWith('http') ? c[1] : `https://www.fcf.cat${c[1]}`;
+            if (!calLinks.includes(url)) calLinks.push(url);
+          }
+          for (const link of calLinks.slice(0, 3)) {
+            await collectActas(link, depth + 1);
+            if (actaUrls.length > 0) break;
+          }
+        }
+      } catch (e) {
+        console.error(`Error fetching ${pageUrl}:`, e);
+      }
+    }
+
+    for (const c of candidates) {
+      await collectActas(c);
+      if (actaUrls.length > 0) break;
     }
 
     if (actaUrls.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, error: 'No se encontraron actas' }),
+        JSON.stringify({
+          success: false,
+          error: 'No se han trobat actes publicades per a aquest equip. Comprova la URL FCF de l\'equip o espera que la federació publiqui l\'acta.',
+        }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    let match;
 
     let matchData: MatchData | null = null;
 
