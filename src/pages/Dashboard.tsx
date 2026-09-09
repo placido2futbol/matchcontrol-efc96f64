@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme, BG_COLORS, ACCENT_OPTIONS, OPACITY_OPTIONS } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { CURRENT_SEASON } from '@/config/season';
+import { useClub } from '@/hooks/useClub';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +43,7 @@ interface MatchSummary {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const { clubId, club, season } = useClub();
   const ADMIN_EMAILS = ['pinilla.22@gmail.com', 'placido.futbol2@gmail.com'];
   const isAdmin = ADMIN_EMAILS.includes(user?.email ?? '');
   const navigate = useNavigate();

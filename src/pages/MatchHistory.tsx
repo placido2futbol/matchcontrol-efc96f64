@@ -31,26 +31,26 @@ export default function MatchHistory() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { textClass, btnClass, compactCards } = useTheme();
+  const { clubId, season, setSeason } = useClub();
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [season, setSeason] = useState<string>(CURRENT_SEASON);
 
   const fetchMatches = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    let q = supabase
       .from('matches')
       .select('id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, status, created_at, season')
       .eq('user_id', user.id)
-      .eq('season', season)
-      .order('created_at', { ascending: false })
-      .limit(200);
+      .eq('season', season);
+    if (clubId) q = q.eq('club_id', clubId);
+    const { data } = await q.order('created_at', { ascending: false }).limit(200);
     setMatches(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchMatches(); }, [user, season]);
+  useEffect(() => { fetchMatches(); }, [user, season, clubId]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
