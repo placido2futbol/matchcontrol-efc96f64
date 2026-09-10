@@ -25,7 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
+import { getFcfTeamsForClub } from '@/data/fcf-teams';
 import { toast } from 'sonner';
 import Top3Leaderboard from '@/components/dashboard/Top3Leaderboard';
 
@@ -220,7 +220,7 @@ export default function Dashboard() {
                     <ImageIcon className="h-3.5 w-3.5" /> Escudo de fondo
                   </span>
                   <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {FCF_EQUIPOS_DB.map(team => (
+                    {getFcfTeamsForClub(club?.name_key).map(team => (
                       <button
                         key={team.name}
                         onClick={() => { selectCrest(team.crest); setBgCustomImage(''); }}
