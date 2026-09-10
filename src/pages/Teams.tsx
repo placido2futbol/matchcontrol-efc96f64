@@ -162,13 +162,14 @@ export default function Teams() {
       </div>
 
       {/* FCF import */}
+      {fcfTeams.length > 0 && (
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-sm">Importar desde FCF (Quarta Catalana · Grup 28)</CardTitle>
         </CardHeader>
         <CardContent className="py-2">
           <div className="flex gap-2 flex-wrap">
-            {FCF_EQUIPOS_DB.map(fcf => (
+            {fcfTeams.map(fcf => (
               <Button
                 key={fcf.fcf}
                 variant="outline"
