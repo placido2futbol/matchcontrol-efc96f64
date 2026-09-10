@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Share2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
+const SANT_PAU_CREST = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png";
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PitchSVG from '@/components/tactical/PitchSVG';
