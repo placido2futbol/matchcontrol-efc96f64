@@ -41,6 +41,8 @@ const initialScenes = createPPTScenes();
 export default function TacticalBoard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { club } = useClub();
+  const clubCrest = club?.crest_url || (club?.name_key?.toUpperCase().includes("SANT PAU") ? SANT_PAU_CREST : '');
   const pitchRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
