@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Share2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClub } from '@/hooks/useClub';
+const SANT_PAU_CREST = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png";
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PitchSVG from '@/components/tactical/PitchSVG';
@@ -39,6 +41,8 @@ const initialScenes = createPPTScenes();
 export default function TacticalBoard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { club } = useClub();
+  const clubCrest = club?.crest_url || (club?.name_key?.toUpperCase().includes("SANT PAU") ? SANT_PAU_CREST : '');
   const pitchRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -569,12 +573,14 @@ export default function TacticalBoard() {
                   onDoubleClick={(e) => { e.stopPropagation(); updateScene(s => ({ ...s, titlePos: { x: -100, y: -100 } })); }}
                   title="Doble clic para ocultar"
                 >
+                  {clubCrest && (
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
-                    alt="Escudo Sant Pau"
+                    src={clubCrest}
+                    alt={`Escudo ${club?.short_name || ''}`}
                     className="w-10 h-10 object-contain drop-shadow-lg pointer-events-none"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
+                  )}
                   <div
                     className="pointer-events-none"
                     style={{
