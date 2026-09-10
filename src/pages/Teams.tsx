@@ -190,6 +190,8 @@ export default function Teams() {
           </div>
         </CardContent>
       </Card>
+      )}
+
 
       {/* Teams list */}
       {loading ? (
