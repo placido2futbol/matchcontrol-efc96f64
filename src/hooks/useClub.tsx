@@ -34,7 +34,7 @@ const LS_SEASON = 'mc_selected_season';
 
 const DEFAULT_CLUBS = [
   { name: "SANT PAU D'ORDAL, U.E. A", name_key: "SANT PAU D'ORDAL", short_name: "Sant Pau d'Ordal", fcf_url: 'https://www.fcf.cat/equip/2627/4cat/sant-pau-dordal-ue-a', sort_order: 0 },
-  { name: 'SUBIRATS UNIÓ ESPORTIVA – Juvenil', name_key: 'SUBIRATS', short_name: 'Subirats Juvenil', fcf_url: 'https://www.fcf.cat/ca/clubs/19635628/categories/26118703', sort_order: 1 },
+  { name: 'SUBIRATS UNIÓ ESPORTIVA – Juvenil', name_key: 'SUBIRATS', short_name: 'Subirats Juvenil', fcf_url: 'https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947', sort_order: 1 },
 ];
 
 export function ClubProvider({ children }: { children: ReactNode }) {
