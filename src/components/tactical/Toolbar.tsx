@@ -11,7 +11,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
+import { getFcfTeamsForClub } from '@/data/fcf-teams';
+import { useClub } from '@/hooks/useClub';
 
 interface ToolbarProps {
   tool: DrawingTool;
