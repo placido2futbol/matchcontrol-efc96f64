@@ -73,18 +73,35 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { clubId } = useClub();
+  /** Visual settings are stored per club so each club keeps its own crest/background. */
+  const scope = clubId || 'default';
+  const k = (base: string) => `${base}__${scope}`;
+  /** Falls back to the old global value the first time a club is used. */
+  const read = (base: string) => localStorage.getItem(k(base)) ?? localStorage.getItem(base);
+
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('mc_dark') === 'true');
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('mc_accent') || 'green');
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mc_fontsize') || 'normal');
   const [compactCards, setCompactCards] = useState(() => localStorage.getItem('mc_compact') === 'true');
-  const [crestOpacity, setCrestOpacity] = useState(() => Number(localStorage.getItem('mc_crest_opacity') || '15'));
-  const [bgColor, setBgColor] = useState(() => localStorage.getItem('mc_bg_color') || '');
-  const [bgCrest, setBgCrest] = useState(() => localStorage.getItem('mc_bg_crest') || '');
-  const [bgCustomImage, _setBgCustomImage] = useState(() => localStorage.getItem('mc_bg_custom_image') || '');
+  const [crestOpacity, setCrestOpacity] = useState(() => Number(read('mc_crest_opacity') || '15'));
+  const [bgColor, setBgColor] = useState(() => read('mc_bg_color') || '');
+  const [bgCrest, setBgCrest] = useState(() => read('mc_bg_crest') || '');
+  const [bgCustomImage, _setBgCustomImage] = useState(() => read('mc_bg_custom_image') || '');
+  const [hydratedScope, setHydratedScope] = useState(scope);
+
+  // Reload the visual settings whenever the selected club changes
+  useEffect(() => {
+    setCrestOpacity(Number(read('mc_crest_opacity') || '15'));
+    setBgColor(read('mc_bg_color') || '');
+    setBgCrest(read('mc_bg_crest') || '');
+    _setBgCustomImage(read('mc_bg_custom_image') || '');
+    setHydratedScope(scope);
+  }, [scope]);
 
   const setBgCustomImage = (value: string) => {
     _setBgCustomImage(value);
-    localStorage.setItem('mc_bg_custom_image', value);
+    localStorage.setItem(k('mc_bg_custom_image'), value);
   };
 
   useEffect(() => {
