@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useClub } from '@/hooks/useClub';
 import { TacticalPlayer, generateId } from './types';
-import { FCF_EQUIPOS_DB } from '@/data/fcf-teams';
+import { getFcfTeamsForClub } from '@/data/fcf-teams';
 
 interface RosterPlayer {
   name: string;
@@ -73,9 +73,10 @@ export default function RosterPanel({ onAddPlayer }: RosterPanelProps) {
     }
 
     function loadFromStatic() {
-      const spTeam = FCF_EQUIPOS_DB.find(t =>
+      const spTeam = getFcfTeamsForClub(club?.name_key).find(t =>
         t.name.toUpperCase().includes(SANT_PAU_KEY)
       );
+      setPlayers([]);
       if (spTeam) {
         setPlayers(spTeam.players.map(name => ({
           name,
