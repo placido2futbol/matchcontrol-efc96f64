@@ -47,6 +47,8 @@ export default function Toolbar({
   onClearDrawings, onAddHomePlayer, onAddAwayPlayer, onFullscreen,
   showCrest, crestUrl, onSelectCrest,
 }: ToolbarProps) {
+  const { club } = useClub();
+  const crestTeams = getFcfTeamsForClub(club?.name_key);
   return (
     <div className="flex items-center gap-1 p-1.5 bg-card border border-border rounded-xl shadow-lg shrink-0">
       {/* Drawing tools */}
@@ -140,7 +142,7 @@ export default function Toolbar({
                 <DropdownMenuSeparator />
               </>
             )}
-            {FCF_EQUIPOS_DB.map(team => (
+            {crestTeams.map(team => (
               <DropdownMenuItem
                 key={team.name}
                 onClick={() => onSelectCrest(team.crest)}
