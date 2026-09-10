@@ -573,12 +573,14 @@ export default function TacticalBoard() {
                   onDoubleClick={(e) => { e.stopPropagation(); updateScene(s => ({ ...s, titlePos: { x: -100, y: -100 } })); }}
                   title="Doble clic para ocultar"
                 >
+                  {clubCrest && (
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Escudo_UE_Sant_Pau.png/200px-Escudo_UE_Sant_Pau.png"
-                    alt="Escudo Sant Pau"
+                    src={clubCrest}
+                    alt={`Escudo ${club?.short_name || ''}`}
                     className="w-10 h-10 object-contain drop-shadow-lg pointer-events-none"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
+                  )}
                   <div
                     className="pointer-events-none"
                     style={{
