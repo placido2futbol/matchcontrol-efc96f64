@@ -1,0 +1,1 @@
+UPDATE public.clubs SET fcf_url = 'https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947', updated_at = now() WHERE upper(name_key) LIKE '%SUBIRATS%';
