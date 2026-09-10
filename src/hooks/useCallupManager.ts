@@ -29,12 +29,13 @@ export function useCallupManager() {
 
   const fetchCallups = async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    let query = supabase
       .from('callups')
       .select('*')
       .eq('user_id', user.id)
-      .eq('season', activeSeason)
-      .order('created_at', { ascending: false });
+      .eq('season', activeSeason);
+    if (clubId) query = query.eq('club_id', clubId);
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) { toast.error('Error cargando convocatorias'); return; }
 
     const callupsWithPlayers: Callup[] = [];
@@ -68,7 +69,7 @@ export function useCallupManager() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchCallups(); }, [user]);
+  useEffect(() => { setCallups([]); fetchCallups(); }, [user, clubId, activeSeason]);
 
   const selectedTeam = teams.find(t => t.id === selectedTeamId);
 
