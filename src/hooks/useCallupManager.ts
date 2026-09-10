@@ -69,7 +69,7 @@ export function useCallupManager() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchCallups(); }, [user]);
+  useEffect(() => { setCallups([]); fetchCallups(); }, [user, clubId, activeSeason]);
 
   const selectedTeam = teams.find(t => t.id === selectedTeamId);
 
