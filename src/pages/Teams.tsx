@@ -332,6 +332,7 @@ export default function Teams() {
                     )}
                   </Button>
                 )}
+                </div>
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {players.map((p, i) => (
