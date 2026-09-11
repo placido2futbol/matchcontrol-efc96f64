@@ -129,7 +129,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [fontSize]);
 
   useEffect(() => { localStorage.setItem('mc_compact', String(compactCards)); }, [compactCards]);
-  useEffect(() => { localStorage.setItem('mc_crest_opacity', String(crestOpacity)); }, [crestOpacity]);
+  useEffect(() => {
+    if (hydratedScope !== scope) return;
+    localStorage.setItem(k('mc_crest_opacity'), String(crestOpacity));
+  }, [crestOpacity, hydratedScope, scope]);
 
   const selectBgColor = (value: string) => {
     setBgColor(value);
