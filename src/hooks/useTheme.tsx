@@ -136,13 +136,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const selectBgColor = (value: string) => {
     setBgColor(value);
-    localStorage.setItem('mc_bg_color', value);
+    localStorage.setItem(k('mc_bg_color'), value);
   };
 
   const selectCrest = (value: string) => {
     const newVal = bgCrest === value ? '' : value;
     setBgCrest(newVal);
-    localStorage.setItem('mc_bg_crest', newVal);
+    localStorage.setItem(k('mc_bg_crest'), newVal);
   };
 
   const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
