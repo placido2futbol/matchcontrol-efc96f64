@@ -301,6 +301,22 @@ export default function Teams() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-foreground">Jugadores</label>
+                <div className="flex items-center gap-1">
+                <input
+                  ref={excelFileRef}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  onChange={handleExcelImport}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => excelFileRef.current?.click()}
+                  className="text-xs h-7"
+                >
+                  <Upload className="h-3 w-3 mr-1" /> Importar Excel
+                </Button>
                 {fcfUrl && (
                   <Button
                     variant="outline"
