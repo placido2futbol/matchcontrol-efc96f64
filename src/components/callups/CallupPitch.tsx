@@ -126,7 +126,7 @@ export default function CallupPitch({
                   className="text-primary-foreground font-black text-center leading-tight drop-shadow-lg uppercase tracking-wide mt-0.5"
                   style={{ fontSize: isMobile ? 8 : 10, maxWidth: isMobile ? 54 : 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
-                  {player.player_name.split(' ').pop()}
+                  {player.player_name.split(' ')[0]}
                 </span>
               </>
             ) : (
