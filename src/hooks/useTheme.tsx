@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useClub } from '@/hooks/useClub';
 
 export const BG_COLORS = [
   // Claros
@@ -128,17 +129,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [fontSize]);
 
   useEffect(() => { localStorage.setItem('mc_compact', String(compactCards)); }, [compactCards]);
-  useEffect(() => { localStorage.setItem('mc_crest_opacity', String(crestOpacity)); }, [crestOpacity]);
+  useEffect(() => {
+    if (hydratedScope !== scope) return;
+    localStorage.setItem(k('mc_crest_opacity'), String(crestOpacity));
+  }, [crestOpacity, hydratedScope, scope]);
 
   const selectBgColor = (value: string) => {
     setBgColor(value);
-    localStorage.setItem('mc_bg_color', value);
+    localStorage.setItem(k('mc_bg_color'), value);
   };
 
   const selectCrest = (value: string) => {
     const newVal = bgCrest === value ? '' : value;
     setBgCrest(newVal);
-    localStorage.setItem('mc_bg_crest', newVal);
+    localStorage.setItem(k('mc_bg_crest'), newVal);
   };
 
   const selectedBgColor = BG_COLORS.find(c => c.value === bgColor);
@@ -152,7 +156,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resetAll = () => {
     selectBgColor('');
     setBgCrest('');
-    localStorage.setItem('mc_bg_crest', '');
+    localStorage.setItem(k('mc_bg_crest'), '');
     setBgCustomImage('');
     setDarkMode(false);
     setAccentColor('green');
