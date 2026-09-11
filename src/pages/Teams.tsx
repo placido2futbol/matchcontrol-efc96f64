@@ -29,7 +29,52 @@ export default function Teams() {
   const [fcfUrl, setFcfUrl] = useState('');
   const [players, setPlayers] = useState<{ name: string; dorsal: string; photo_url: string }[]>([{ name: '', dorsal: '', photo_url: '' }]);
   const kitFileRef = useRef<HTMLInputElement>(null);
+  const excelFileRef = useRef<HTMLInputElement>(null);
   const [scrapingDorsals, setScrapingDorsals] = useState(false);
+
+  const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const { read, utils } = await import('xlsx');
+      const buf = await file.arrayBuffer();
+      const wb = read(buf);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows: any[] = utils.sheet_to_json(ws, { header: 1 });
+
+      if (rows.length < 2) { toast.error('El archivo está vacío'); return; }
+
+      const header = (rows[0] as string[]).map(h => String(h ?? '').toLowerCase().trim());
+      const nameCol = header.findIndex(h => h.includes('nombre') || h.includes('name') || h.includes('jugador'));
+      const dorsalCol = header.findIndex(h => h.includes('dorsal') || h.includes('número') || h.includes('numero') || h.includes('num'));
+
+      if (nameCol < 0) { toast.error('No se encontró columna de nombre'); return; }
+
+      const existing = new Set(players.map(p => p.name.toLowerCase().trim()).filter(Boolean));
+      let added = 0;
+      const newPlayers = players.filter(p => p.name.trim());
+
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i] as any[];
+        const pname = String(row[nameCol] ?? '').trim();
+        if (!pname || existing.has(pname.toLowerCase())) continue;
+        existing.add(pname.toLowerCase());
+        newPlayers.push({
+          name: pname,
+          dorsal: dorsalCol >= 0 ? String(row[dorsalCol] ?? '').trim() : '',
+          photo_url: '',
+        });
+        added++;
+      }
+
+      if (added === 0) { toast.error('No se encontraron jugadores nuevos en el Excel'); return; }
+      setPlayers(newPlayers);
+      toast.success(`${added} jugadores importados desde Excel`);
+    } catch {
+      toast.error('Error leyendo el archivo Excel');
+    }
+  };
 
   const openNew = () => {
     setEditId(undefined);
