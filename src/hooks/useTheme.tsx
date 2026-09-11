@@ -156,7 +156,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resetAll = () => {
     selectBgColor('');
     setBgCrest('');
-    localStorage.setItem('mc_bg_crest', '');
+    localStorage.setItem(k('mc_bg_crest'), '');
     setBgCustomImage('');
     setDarkMode(false);
     setAccentColor('green');
