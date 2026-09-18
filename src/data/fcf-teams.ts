@@ -105,6 +105,20 @@ export const FCF_EQUIPOS_DB: FCFTeam[] = [
     fcf: "https://www.fcf.cat/equip/2627/4cat/torrellenc-ce-a",
     players: ["GARCÍA NAVA, DANIEL","FERRER ALBERT, ANTONI","SOTO VILA, JUAN ANTONIO","SALCEDO CASTAÑO, OSCAR","LLANES HERNANDEZ, ERIC","GERVILLA TRIGO, ALEJANDRO","ESTELA ALMAZÁN, PAU","GONZALEZ MORENO, ROGER","MARRUGAT SAUMELL, ROGER","LAGARES BUSTAMANTE, JONATAN","GERVILLA TRIGO, KEVIN","PEREZ DE TUDELA NAVA, DIDAC","GOMIZ CAMPILLOS, ADRIAN","CAÑAMERO HERNANDEZ, DANIEL","LOBATO RAFECAS, ADRIA","TORRES CALLEJA, LLUIS","TOSSO TACON, CHRISTIAN","DOMINGUEZ PEREZ, AIDAN","SALCEDO DIAZ, ALEIX","SANZ SUAREZ, ALEIX","GARCIA NOGALES, DAVID","REAL CASAÑAS, MIGUEL","COMORERA BASCOMPTE, ESTEVE"]
   },
+  {
+    name: "OLIVELLA, C.E A",
+    crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000582928_olivella_200x200.png",
+    kit: "",
+    fcf: "https://www.fcf.cat/equip/2627/4cat/olivella-ce-a",
+    players: []
+  },
+  {
+    name: "HORTONENC, F.C. A",
+    crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000967751_00100_0000949348_Escut_sense_fons.png",
+    kit: "",
+    fcf: "https://www.fcf.cat/equip/2627/4cat/hortonenc-fc-a",
+    players: []
+  },
 ];
 
 /**
