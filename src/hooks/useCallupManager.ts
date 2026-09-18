@@ -10,7 +10,7 @@ import { CURRENT_SEASON } from '@/config/season';
 export function useCallupManager() {
   const { user } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
-  const { clubId, season: activeSeason } = useClub();
+  const { clubId, club, season: activeSeason } = useClub();
 
   const [callups, setCallups] = useState<Callup[]>([]);
   const [loading, setLoading] = useState(true);
