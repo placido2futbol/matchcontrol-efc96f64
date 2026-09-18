@@ -96,11 +96,16 @@ export function useCallupManager() {
   const autofillFromFCF = async () => {
     const team = teams.find(t => t.id === selectedTeamId);
     if (!team) { toast.error('Selecciona primero un equipo'); return; }
-    if (!team.fcf_url) { toast.error('Este equipo no tiene URL de FCF configurada en Equipos'); return; }
+    if (!team.fcf_url && !club?.fcf_url) { toast.error('Este equipo no tiene URL de FCF configurada en Equipos'); return; }
     setAutofillLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('fcf-next-match', {
-        body: { teamPageUrl: team.fcf_url, season: CURRENT_SEASON },
+        body: {
+          teamPageUrl: team.fcf_url,
+          clubUrl: club?.fcf_url || '',
+          teamName: team.name || club?.name || '',
+          season: CURRENT_SEASON,
+        },
       });
       if (error) throw error;
       if (!data?.success) {
