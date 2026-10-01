@@ -198,7 +198,7 @@ function parseActa(html: string, actaUrl: string) {
 
   // section markers (Alineacions / Suplents / Equip Tècnic) in render order
   const markers: Array<{ at: number; label: string }> = [];
-  const markerRe = /"children":"(Alineacions|Suplents|Equip T[^"]{0,6}cnic)"/g;
+  const markerRe = /"children":"(Alineacions|Suplents|Equip T[^"]{0,8}cnic)"/g;
   let mm: RegExpExecArray | null;
   while ((mm = markerRe.exec(lineups)) !== null) {
     markers.push({ at: mm.index, label: mm[1].startsWith('Equip') ? 'staff' : mm[1] });
