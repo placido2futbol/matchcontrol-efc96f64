@@ -214,6 +214,7 @@ function parseActa(html: string, actaUrl: string) {
   while ((rm = rowRe.exec(lineups)) !== null) {
     const name = jstr(rm[1]).trim();
     const at = rm.index;
+    if (!name || /^jugador/i.test(name) || /^dorsal/i.test(name)) continue;
 
     let label = '';
     let alineacionsSeen = 0;
