@@ -232,10 +232,8 @@ function parseActa(html: string, actaUrl: string) {
       : '';
 
     let segment = lineups.slice(at, at + 4000);
-    const nextRow = segment.search(/"className":"truncate[^"]*","children":"/g) > 0
-      ? segment.slice(10).search(/"className":"truncate[^"]*","children":"/) + 10
-      : -1;
-    if (nextRow > 0) segment = segment.slice(0, nextRow);
+    const rel = segment.slice(10).search(/"className":"truncate[^"]*","children":"/);
+    if (rel >= 0) segment = segment.slice(0, rel + 10);
 
     const player: MatchPlayer = { name, dorsal, isStarter: label === 'Alineacions' };
     (side === 'home' ? homePlayers : awayPlayers).push(player);
