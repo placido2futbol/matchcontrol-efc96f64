@@ -152,12 +152,15 @@ function buildFlight(html: string): { page: string; lineups: string } {
     return v.replace(/"\$L([0-9a-f]+)"/g, (_s, ref) => resolve(ref, depth + 1));
   };
 
-  const page = resolve('0');
+  // Nested payload chunks arrive JSON-escaped; flatten so one regex set works.
+  const flat = (s: string) => s.replace(/\\"/g, '"');
+
+  const page = flat(resolve('0'));
   let lineupsId = '';
   for (const [id, v] of map) {
     if (v.includes('"localName"')) { lineupsId = id; break; }
   }
-  const lineups = lineupsId ? resolve(lineupsId) : page;
+  const lineups = lineupsId ? flat(resolve(lineupsId)) : page;
   return { page, lineups };
 }
 
