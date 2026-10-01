@@ -259,9 +259,9 @@ function parseActa(html: string, actaUrl: string) {
     const parts = seg.split(/(?="children":"\d+ - \d+")/).slice(1);
     for (const c of parts) {
       const runningScore = c.match(/"children":"(\d+ - \d+)"/)?.[1]?.replace(/\s/g, '') ?? '';
-      const nameM = c.match(/line-clamp-1","children":\["((?:[^"\\]|\\.)*)"/);
+      const nameM = c.match(/line-clamp-1","children":\["([^"]+)"/);
       const minuteM = c.match(/"children":"\((\d+)'\)"/);
-      const kindM = c.match(/"children":\["(GOL[^"]*)"," \(","((?:[^"\\]|\\.)*)","\)"\]/);
+      const kindM = c.match(/"children":\["(GOL[^"]*)"," \(","([^"]+)","\)"\]/);
       if (!nameM || !minuteM) continue;
       const playerName = jstr(nameM[1]).trim();
       const scoringTeam = kindM ? jstr(kindM[2]) : '';
