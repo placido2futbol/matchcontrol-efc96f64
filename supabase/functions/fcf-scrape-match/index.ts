@@ -209,7 +209,7 @@ function parseActa(html: string, actaUrl: string) {
   const cards: MatchCard[] = [];
   const rowGoals: Array<{ playerName: string; minute: number; teamSide: 'home' | 'away' }> = [];
 
-  const rowRe = /"className":"truncate","children":"((?:[^"\\]|\\.)*)"/g;
+  const rowRe = /"className":"truncate[^"]*","children":"([^"]+)"/g;
   let rm: RegExpExecArray | null;
   while ((rm = rowRe.exec(lineups)) !== null) {
     const name = jstr(rm[1]).trim();
