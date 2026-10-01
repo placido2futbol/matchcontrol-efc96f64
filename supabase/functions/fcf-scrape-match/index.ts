@@ -191,7 +191,7 @@ function rowEvents(segment: string): RowEvent[] {
 function parseActa(html: string, actaUrl: string) {
   const { page, lineups } = buildFlight(html);
 
-  const names = lineups.match(/"localName":"((?:[^"\\]|\\.)*)","visitorName":"((?:[^"\\]|\\.)*)"/);
+  const names = lineups.match(/"localName":"([^"]+)","visitorName":"([^"]+)"/);
   if (!names) return null;
   const homeTeamName = jstr(names[1]);
   const awayTeamName = jstr(names[2]);
