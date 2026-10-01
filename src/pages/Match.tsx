@@ -424,6 +424,8 @@ export default function MatchPage() {
       const { data, error } = await supabase.functions.invoke('fcf-scrape-match', {
         body: { 
           teamPageUrl: teamUrl,
+          clubUrl: club?.fcf_url,
+          season: activeSeason,
           homeTeamName: homeTeam?.name,
           awayTeamName: awayTeam?.name 
         },
