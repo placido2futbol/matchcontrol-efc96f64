@@ -152,12 +152,15 @@ function buildFlight(html: string): { page: string; lineups: string } {
     return v.replace(/"\$L([0-9a-f]+)"/g, (_s, ref) => resolve(ref, depth + 1));
   };
 
-  const page = resolve('0');
+  // Nested payload chunks arrive JSON-escaped; flatten so one regex set works.
+  const flat = (s: string) => s.replace(/\\+"/g, '"');
+
+  const page = flat(resolve('0'));
   let lineupsId = '';
   for (const [id, v] of map) {
     if (v.includes('"localName"')) { lineupsId = id; break; }
   }
-  const lineups = lineupsId ? resolve(lineupsId) : page;
+  const lineups = lineupsId ? flat(resolve(lineupsId)) : page;
   return { page, lineups };
 }
 
@@ -188,14 +191,14 @@ function rowEvents(segment: string): RowEvent[] {
 function parseActa(html: string, actaUrl: string) {
   const { page, lineups } = buildFlight(html);
 
-  const names = lineups.match(/"localName":"((?:[^"\\]|\\.)*)","visitorName":"((?:[^"\\]|\\.)*)"/);
+  const names = lineups.match(/"localName":"([^"]+)","visitorName":"([^"]+)"/);
   if (!names) return null;
   const homeTeamName = jstr(names[1]);
   const awayTeamName = jstr(names[2]);
 
   // section markers (Alineacions / Suplents / Equip Tècnic) in render order
   const markers: Array<{ at: number; label: string }> = [];
-  const markerRe = /"children":"(Alineacions|Suplents|Equip T[^"]{0,6}cnic)"/g;
+  const markerRe = /"children":"(Alineacions|Suplents|Equip T[^"]{0,8}cnic)"/g;
   let mm: RegExpExecArray | null;
   while ((mm = markerRe.exec(lineups)) !== null) {
     markers.push({ at: mm.index, label: mm[1].startsWith('Equip') ? 'staff' : mm[1] });
@@ -206,11 +209,12 @@ function parseActa(html: string, actaUrl: string) {
   const cards: MatchCard[] = [];
   const rowGoals: Array<{ playerName: string; minute: number; teamSide: 'home' | 'away' }> = [];
 
-  const rowRe = /"className":"truncate","children":"((?:[^"\\]|\\.)*)"/g;
+  const rowRe = /"className":"truncate[^"]*","children":"([^"]+)"/g;
   let rm: RegExpExecArray | null;
   while ((rm = rowRe.exec(lineups)) !== null) {
     const name = jstr(rm[1]).trim();
     const at = rm.index;
+    if (!name || /^jugador/i.test(name) || /^dorsal/i.test(name)) continue;
 
     let label = '';
     let alineacionsSeen = 0;
@@ -229,8 +233,8 @@ function parseActa(html: string, actaUrl: string) {
       : '';
 
     let segment = lineups.slice(at, at + 4000);
-    const nextRow = segment.indexOf('"className":"truncate"', 10);
-    if (nextRow > 0) segment = segment.slice(0, nextRow);
+    const rel = segment.slice(10).search(/"className":"truncate[^"]*","children":"/);
+    if (rel >= 0) segment = segment.slice(0, rel + 10);
 
     const player: MatchPlayer = { name, dorsal, isStarter: label === 'Alineacions' };
     (side === 'home' ? homePlayers : awayPlayers).push(player);
@@ -254,9 +258,9 @@ function parseActa(html: string, actaUrl: string) {
     const parts = seg.split(/(?="children":"\d+ - \d+")/).slice(1);
     for (const c of parts) {
       const runningScore = c.match(/"children":"(\d+ - \d+)"/)?.[1]?.replace(/\s/g, '') ?? '';
-      const nameM = c.match(/line-clamp-1","children":\["((?:[^"\\]|\\.)*)"/);
-      const minuteM = c.match(/"children":"\((\d+)'\)"/);
-      const kindM = c.match(/"children":\["(GOL[^"]*)"," \(","((?:[^"\\]|\\.)*)","\)"\]/);
+      const nameM = c.match(/line-clamp-1[^"]*","children":\["([^"]+)"/) ?? c.match(/"nombre":"([^"]+)"/);
+      const minuteM = c.match(/\((\d+)'\)/);
+      const kindM = c.match(/"children":\["(GOL[^"]*)"," \(","([^"]+)","\)"\]/);
       if (!nameM || !minuteM) continue;
       const playerName = jstr(nameM[1]).trim();
       const scoringTeam = kindM ? jstr(kindM[2]) : '';
