@@ -129,5 +129,27 @@ export const FCF_STATIC_COMPETITION_KEY = "SANT PAU D'ORDAL";
 
 export function getFcfTeamsForClub(nameKey?: string | null): FCFTeam[] {
   if (!nameKey) return [];
-  return nameKey.toUpperCase().includes(FCF_STATIC_COMPETITION_KEY) ? FCF_EQUIPOS_DB : [];
+  const key = nameKey.toUpperCase();
+  if (key.includes(FCF_STATIC_COMPETITION_KEY)) return FCF_EQUIPOS_DB;
+  if (key.includes('SUBIRATS')) return FCF_SUBIRATS_JUVENIL_DB;
+  return [];
 }
+// Juvenil · grup del Subirats (temporada 2026/27)
+export const FCF_SUBIRATS_JUVENIL_DB: FCFTeam[] = [
+  { name: "SUBIRATS UNIO ESPORTIVA A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0001178366_6484_SubiratsB.png", kit: "", fcf: "https://www.fcf.cat/ca/clubs/19635628/categories/26118703", players: [] },
+  { name: "BEGUES, C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000572499_begues_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=BEGUES%2C%20C.F.%20A", players: [] },
+  { name: "BLANCA SUBUR, C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000963513_00100_0000955983_logo_bs_png.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=BLANCA%20SUBUR%2C%20C.F.%20A", players: [] },
+  { name: "CASTELLDEFELS, U.E. B", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000654303_castelldefels_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=CASTELLDEFELS%2C%20U.E.%20B", players: [] },
+  { name: "CORBERA , C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0001227995_CORBERA.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=CORBERA%20%2C%20C.F.%20A", players: [] },
+  { name: "CUBELLES, C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000648832_cubelles_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=CUBELLES%2C%20C.F.%20A", players: [] },
+  { name: "FATIMA, F.C. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0001162983_FatimaPNG.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=FATIMA%2C%20F.C.%20A", players: [] },
+  { name: "FUNDACIO E. ATLETIC VILAFRANCA  A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0001107676_logo_version_3.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=FUNDACIO%20E.%20ATLETIC%20VILAFRANCA%20%20A", players: [] },
+  { name: "IGUALADA, C.F. B", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000822231_igualada_200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=IGUALADA%2C%20C.F.%20B", players: [] },
+  { name: "MARTORELL C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000661611_martorellcf_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=MARTORELL%20C.F.%20A", players: [] },
+  { name: "MOLINS DE REI, C.F. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000579924_molins_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=MOLINS%20DE%20REI%2C%20C.F.%20A", players: [] },
+  { name: "PRAT, A.E. B", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000892062_aeprat_200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=PRAT%2C%20A.E.%20B", players: [] },
+  { name: "P\u00aa BLAUGRANA VALLIRANA A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000282591_pb_vallirana.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=P%C2%AA%20BLAUGRANA%20VALLIRANA%20A", players: [] },
+  { name: "SANT ANDREU DE LA BARCA AGRUP. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000956158_6288_SantAndreudelaBarcaAgrup_200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=SANT%20ANDREU%20DE%20LA%20BARCA%20AGRUP.%20A", players: [] },
+  { name: "SITGES, U.E. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000656810_sitges_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=SITGES%2C%20U.E.%20A", players: [] },
+  { name: "VISTA ALEGRE,U.D. A", crest: "https://files.fcf.cat/escudos/clubes/escudos/00100_0000672066_vistaalegre_200x200.png", kit: "", fcf: "https://www.fcf.cat/ca/competicio?temporadaId=22&disciplinaId=19308233&competicioId=58161933&grupId=58161947&equip=VISTA%20ALEGRE%2CU.D.%20A", players: [] },
+];
