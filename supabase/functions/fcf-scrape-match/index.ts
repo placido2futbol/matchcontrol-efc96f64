@@ -329,25 +329,32 @@ Deno.serve(async (req) => {
 
     if (!actaUrl) {
       if (!teamPageUrl && !clubUrl) {
-        return jsonResp({ success: false, error: 'Es requereix la URL FCF de l\'equip' }, 400);
+        return jsonResp({ success: false, error: 'Es requereix la URL FCF de l\'equip' }, 200);
       }
       const groupId = await resolveGroupId([clubUrl, teamPageUrl].filter(Boolean), season.fcfSeasonId);
       if (!groupId) {
-        return jsonResp({ success: false, error: 'No s\'ha pogut identificar el grup a la FCF. Revisa la URL FCF del club.' }, 404);
+        return jsonResp({ success: false, error: 'No s\'ha pogut identificar el grup a la FCF. Revisa la URL FCF del club.' }, 200);
       }
       const fixtures = await fetchFixtures(groupId);
-      const fixture = fixtures.find((f: any) => {
+      const candidates = fixtures.filter((f: any) => {
         const casa = String(f.NOMBRE_CASA ?? '');
         const fuera = String(f.NOMBRE_FUERA ?? '');
         const direct = sameTeam(casa, homeTeamName) && sameTeam(fuera, awayTeamName);
         const swapped = sameTeam(casa, awayTeamName) && sameTeam(fuera, homeTeamName);
         return (direct || swapped) && f.CODACTA;
       });
+      const closed = (f: any) => String(f.CERRADA) === '1' || f.GOLES_CASA != null;
+      const isDirect = (f: any) => sameTeam(String(f.NOMBRE_CASA ?? ''), homeTeamName);
+      const fixture =
+        candidates.find((f: any) => closed(f) && isDirect(f)) ??
+        candidates.find(closed) ??
+        candidates.find(isDirect) ??
+        candidates[0];
       if (!fixture) {
         return jsonResp({
           success: false,
           error: 'No s\'ha trobat aquest partit al calendari de la FCF per a la temporada ' + seasonLabel,
-        }, 404);
+        }, 200);
       }
       actaUrl = `https://www.fcf.cat/ca/competicio/acta/${fixture.CODACTA}`;
     }
@@ -355,7 +362,7 @@ Deno.serve(async (req) => {
     console.log('Fetching acta', actaUrl);
     const res = await fetch(actaUrl, { headers: UA });
     if (!res.ok) {
-      return jsonResp({ success: false, error: `La FCF ha respost ${res.status} en obrir l'acta` }, 502);
+      return jsonResp({ success: false, error: `La FCF ha respost ${res.status} en obrir l'acta` }, 200);
     }
     const html = await res.text();
     const matchData = parseActa(html, actaUrl);
@@ -364,7 +371,7 @@ Deno.serve(async (req) => {
       return jsonResp({
         success: false,
         error: 'L\'acta encara no té alineacions publicades per la federació.',
-      }, 404);
+      }, 200);
     }
 
     // Keep the caller's home/away orientation
