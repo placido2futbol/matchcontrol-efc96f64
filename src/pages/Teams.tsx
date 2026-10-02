@@ -143,7 +143,7 @@ export default function Teams() {
     setScrapingDorsals(true);
     try {
       const { data, error } = await supabase.functions.invoke('fcf-scrape-dorsals', {
-        body: { teamPageUrl: fcfUrl },
+        body: { teamPageUrl: fcfUrl, teamName: name, clubUrl: club?.fcf_url },
       });
 
       if (error || !data?.success) {
@@ -173,10 +173,13 @@ export default function Teams() {
       }
 
       // Update dorsals in current player list
-      const dorsalMap = new Map(matchedTeam.players.map(p => [p.name.toUpperCase().trim(), p.dorsal]));
+      // Name key independent of order/accents: "APELLIDO, NOMBRE" == "NOMBRE APELLIDO"
+      const nameKey = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
+        .replace(/[^A-Z0-9]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
+      const dorsalMap = new Map(matchedTeam.players.map(p => [nameKey(p.name), p.dorsal]));
       
       const updatedPlayers = players.map(p => {
-        const dorsal = dorsalMap.get(p.name.toUpperCase().trim());
+        const dorsal = dorsalMap.get(nameKey(p.name));
         if (dorsal && !p.dorsal) {
           return { ...p, dorsal };
         }
