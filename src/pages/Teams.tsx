@@ -210,7 +210,7 @@ export default function Teams() {
       {fcfTeams.length > 0 && (
       <Card>
         <CardHeader className="py-3">
-          <CardTitle className="text-sm">Importar desde FCF (Quarta Catalana · Grup 28)</CardTitle>
+          <CardTitle className="text-sm">Importar desde FCF ({club?.name_key?.toUpperCase().includes('SUBIRATS') ? 'Juvenil · grupo del Subirats' : 'Quarta Catalana · Grup 28'})</CardTitle>
         </CardHeader>
         <CardContent className="py-2">
           <div className="flex gap-2 flex-wrap">
