@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import goolSound from '@/assets/gool.wav.asset.json';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { useClub } from '@/hooks/useClub';
 import { useTimer } from '@/hooks/useTimer';
