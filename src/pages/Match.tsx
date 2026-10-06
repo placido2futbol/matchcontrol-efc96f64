@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import goolSound from '@/assets/gool.wav.asset.json';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { useClub } from '@/hooks/useClub';
 import { useTimer } from '@/hooks/useTimer';
@@ -67,7 +68,18 @@ function normalizeImportedPlayers(players: Array<{ name: string; dorsal: string;
 export default function MatchPage() {
   const { user } = useAuth();
   const { teams } = useTeams();
-  const { clubId, club, season: activeSeason } = useClub();
+  const { clubId, club, season: activeSeason, isClubTeam } = useClub();
+  const goalAudioRef = useRef<HTMLAudioElement | null>(null);
+  const playGoalSound = useCallback(() => {
+    try {
+      if (!goalAudioRef.current) {
+        goalAudioRef.current = new Audio(goolSound.url);
+        goalAudioRef.current.preload = 'auto';
+      }
+      goalAudioRef.current.currentTime = 0;
+      void goalAudioRef.current.play().catch(() => { /* autoplay bloqueado */ });
+    } catch { /* ignore */ }
+  }, []);
   const timer = useTimer();
   const navigate = useNavigate();
   const { matchId } = useParams<{ matchId?: string }>();
@@ -332,6 +344,8 @@ export default function MatchPage() {
           teamSide: side,
           playerName: player?.playerName || 'Desconocido',
         });
+        const scoringTeam = side === 'home' ? homeTeam : awayTeam;
+        if (isClubTeam(scoringTeam?.name)) playGoalSound();
       }
     },
     onYellowCard1: (slotIndex: number, checked: boolean) => {
