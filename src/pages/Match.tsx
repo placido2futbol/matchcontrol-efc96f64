@@ -334,6 +334,8 @@ export default function MatchPage() {
           teamSide: side,
           playerName: player?.playerName || 'Desconocido',
         });
+        const scoringTeam = side === 'home' ? homeTeam : awayTeam;
+        if (isClubTeam(scoringTeam?.name)) playGoalSound();
       }
     },
     onYellowCard1: (slotIndex: number, checked: boolean) => {
