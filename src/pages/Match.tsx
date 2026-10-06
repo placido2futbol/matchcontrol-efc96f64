@@ -68,7 +68,8 @@ function normalizeImportedPlayers(players: Array<{ name: string; dorsal: string;
 export default function MatchPage() {
   const { user } = useAuth();
   const { teams } = useTeams();
-  const { clubId, club, season: activeSeason } = useClub();
+  const { clubId, club, season: activeSeason, isClubTeam } = useClub();
+  const goalAudioRef = useRef<HTMLAudioElement | null>(null);
   const timer = useTimer();
   const navigate = useNavigate();
   const { matchId } = useParams<{ matchId?: string }>();
