@@ -70,6 +70,16 @@ export default function MatchPage() {
   const { teams } = useTeams();
   const { clubId, club, season: activeSeason, isClubTeam } = useClub();
   const goalAudioRef = useRef<HTMLAudioElement | null>(null);
+  const playGoalSound = useCallback(() => {
+    try {
+      if (!goalAudioRef.current) {
+        goalAudioRef.current = new Audio(goolSound.url);
+        goalAudioRef.current.preload = 'auto';
+      }
+      goalAudioRef.current.currentTime = 0;
+      void goalAudioRef.current.play().catch(() => { /* autoplay bloqueado */ });
+    } catch { /* ignore */ }
+  }, []);
   const timer = useTimer();
   const navigate = useNavigate();
   const { matchId } = useParams<{ matchId?: string }>();
