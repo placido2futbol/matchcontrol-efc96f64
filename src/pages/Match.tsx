@@ -203,7 +203,8 @@ export default function MatchPage() {
       setLoadingMatch(false);
     };
     load();
-  }, [matchId, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId, user?.id]);
 
   // Auto-generate default positions when players change and no positions exist
   useEffect(() => {
@@ -378,8 +379,8 @@ export default function MatchPage() {
           const outP = prev.find(p => p.slotIndex === pendingSub)!;
           const inP = prev.find(p => p.slotIndex === slotIndex)!;
           return prev.map(p => {
-            if (p.slotIndex === pendingSub) return { ...p, playerName: inP.playerName, goals: inP.goals, yellowCard1: inP.yellowCard1, yellowCard2: inP.yellowCard2, redCard: inP.redCard };
-            if (p.slotIndex === slotIndex) return { ...p, playerName: outP.playerName, goals: outP.goals, yellowCard1: outP.yellowCard1, yellowCard2: outP.yellowCard2, redCard: outP.redCard };
+            if (p.slotIndex === pendingSub) return { ...p, playerName: inP.playerName, dorsal: inP.dorsal, photoUrl: inP.photoUrl, goals: inP.goals, yellowCard1: inP.yellowCard1, yellowCard2: inP.yellowCard2, redCard: inP.redCard };
+            if (p.slotIndex === slotIndex) return { ...p, playerName: outP.playerName, dorsal: outP.dorsal, photoUrl: outP.photoUrl, goals: outP.goals, yellowCard1: outP.yellowCard1, yellowCard2: outP.yellowCard2, redCard: outP.redCard };
             return p;
           });
         });
