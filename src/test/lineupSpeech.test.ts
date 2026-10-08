@@ -7,7 +7,7 @@ describe('lineup speech', () => {
     expect(s).toHaveLength(4);
     expect(s[0]).toBe(LINEUP_INTRO);
     expect(s[3]).toBe(LINEUP_OUTRO);
-    expect(s[1]).toContain('JOOORDI');
+    expect(s[1]).toContain('JOOOORDI');
     expect(s[1]).toContain('deeeeu');
   });
   it('skips empty slots', () => {
