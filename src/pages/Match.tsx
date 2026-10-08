@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import Scoreboard from '@/components/match/Scoreboard';
 import TeamPanel from '@/components/match/TeamPanel';
+import LineupAnnouncer from '@/components/match/LineupAnnouncer';
 import EventLog, { MatchEvent } from '@/components/match/EventLog';
 import SantPauStats from '@/components/match/SantPauStats';
 import { MatchPlayer } from '@/components/match/PlayerRow';
@@ -821,6 +822,8 @@ export default function MatchPage() {
 
       {/* Players */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+        {isClubTeam(homeTeam?.name) && <LineupAnnouncer starters={homePlayers.filter(p => p.isStarter)} />}
         <TeamPanel
           title={homeTeam?.name || 'Equipo Local'}
           teamSide="home"
@@ -831,6 +834,9 @@ export default function MatchPage() {
           pendingSubSlot={homePendingSub}
           {...homeHandlers}
         />
+        </div>
+        <div>
+        {isClubTeam(awayTeam?.name) && <LineupAnnouncer starters={awayPlayers.filter(p => p.isStarter)} />}
         <TeamPanel
           title={awayTeam?.name || 'Equipo Visitante'}
           teamSide="away"
@@ -841,6 +847,7 @@ export default function MatchPage() {
           pendingSubSlot={awayPendingSub}
           {...awayHandlers}
         />
+        </div>
       </div>
 
       {/* Events */}
