@@ -8,7 +8,7 @@ describe('lineup speech', () => {
     expect(s[0]).toBe(LINEUP_INTRO);
     expect(s[3]).toBe(LINEUP_OUTRO);
     expect(s[1]).toContain('JOOOORDI');
-    expect(s[1]).toContain('deeeeu');
+    expect(s[1]).toContain('deeeeeu');
   });
   it('skips empty slots', () => {
     expect(buildLineupScript([{ playerName: '', dorsal: '3' }])).toHaveLength(2);
