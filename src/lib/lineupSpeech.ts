@@ -30,13 +30,15 @@ export const LINEUP_INTRO =
   "Senyores i senyors, afició del Sant Pau! Prepareu-vos perquè arriba l'onze titular del nostre equip! Som-hi, Sant Pau!";
 export const LINEUP_OUTRO = 'I aquest és el nostre onze titular! Som-hi, Sant Pau! A per la victòria!';
 
-export function playerLine(name: string, dorsal: string): string {
-  const shout = displayName(name).split(/\s+/).slice(0, 2).map(w => stretch(w, 3).toUpperCase()).join(' ');
+export function playerLine(name: string, dorsal: string, style = 'stadium'): string {
+  const words = displayName(name).split(/\s+/).slice(0, 2);
+  const shout = style === 'stadium' ? words.map(w => stretch(w, 3).toUpperCase()).join(' ') : words.join(' ');
   const d = dorsal?.trim();
-  return d ? `Amb el dorsal número ${stretch(catalanNumber(d))}... ${shout}!` : `I també... ${shout}!`;
+  const number = style === 'stadium' ? stretch(catalanNumber(d)) : catalanNumber(d);
+  return d ? `Amb el dorsal número ${number}... ${shout}!` : `I també... ${shout}!`;
 }
 
-export function buildLineupScript(players: { playerName: string; dorsal: string }[]): string[] {
-  const lines = players.filter(p => p.playerName?.trim()).map(p => playerLine(p.playerName, p.dorsal));
+export function buildLineupScript(players: { playerName: string; dorsal: string }[], style = 'stadium'): string[] {
+  const lines = players.filter(p => p.playerName?.trim()).map(p => playerLine(p.playerName, p.dorsal, style));
   return [LINEUP_INTRO, ...lines, LINEUP_OUTRO];
 }
