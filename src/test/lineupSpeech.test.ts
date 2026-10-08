@@ -1,7 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { buildLineupScript, catalanNumber, LINEUP_INTRO, LINEUP_OUTRO } from '@/lib/lineupSpeech';
+import { LINEUP_VOICES, resolveLineupVoice } from '../../supabase/functions/_shared/lineupVoice';
 
 describe('lineup speech', () => {
+  it('offers distinct male and female voices', () => {
+    expect(LINEUP_VOICES.map(v => v.id)).toEqual(['Fenrir', 'Charon', 'Kore', 'Aoede']);
+    expect(resolveLineupVoice('Aoede', 'natural').voice.id).toBe('Aoede');
+  });
+  it('uses the selected style and a safe default', () => {
+    expect(resolveLineupVoice('Kore', 'radio').style.id).toBe('radio');
+    expect(resolveLineupVoice('invalid', 'invalid').voice.id).toBe('Fenrir');
+  });
+  it('natural and radio styles do not stretch player names or dorsals', () => {
+    for (const style of ['natural', 'radio']) {
+      expect(buildLineupScript([{ playerName: 'MARTÍNEZ, JORDI', dorsal: '10' }], style)[1])
+        .toBe('Amb el dorsal número deu... Jordi Martínez!');
+    }
+  });
   it('uses intro, one line per current player and outro', () => {
     const s = buildLineupScript([{ playerName: 'MARTÍNEZ, JORDI', dorsal: '10' }, { playerName: 'PERE SOLER', dorsal: '7' }]);
     expect(s).toHaveLength(4);
