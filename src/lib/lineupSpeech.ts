@@ -42,3 +42,49 @@ export function buildLineupScript(players: { playerName: string; dorsal: string 
   const lines = players.filter(p => p.playerName?.trim()).map(p => playerLine(p.playerName, p.dorsal, style));
   return [LINEUP_INTRO, ...lines, LINEUP_OUTRO];
 }
+
+export interface LineupTemplates {
+  intro: string; starter: string; sub: string;
+  coach: string; coachName: string;
+  delegate: string; delegateName: string;
+  outro: string;
+}
+
+export const DEFAULT_TEMPLATES: LineupTemplates = {
+  intro: LINEUP_INTRO,
+  starter: 'Amb el dorsal número {dorsal}... {nombre}!',
+  sub: 'A la banqueta, amb el dorsal {dorsal}... {nombre}!',
+  coach: 'I a la banda, el nostre entrenador... {nombre}!',
+  coachName: '',
+  delegate: 'I la nostra delegada... {nombre}!',
+  delegateName: '',
+  outro: 'Aquest és el nostre equip! Som-hi, Sant Pau! A per la victòria!',
+};
+
+export type SegmentBlock = 'intro' | 'starter' | 'sub' | 'coach' | 'delegate' | 'outro';
+export interface Segment { block: SegmentBlock; text: string }
+
+export function fillTemplate(tpl: string, name: string, dorsal: string, style = 'stadium'): string {
+  const words = displayName(name).split(/\s+/).slice(0, 2);
+  const nombre = style === 'stadium' ? words.map(w => stretch(w, 3).toUpperCase()).join(' ') : words.join(' ');
+  const d = dorsal?.trim();
+  if (!d && tpl.includes('{dorsal}')) return `I també... ${nombre}!`;
+  const num = d ? (style === 'stadium' ? stretch(catalanNumber(d)) : catalanNumber(d)) : '';
+  return tpl.split('{nombre}').join(nombre).split('{dorsal}').join(num);
+}
+
+/** Intro → starters → subs → coach → delegate → outro. Empty blocks are skipped. */
+export function buildAnnouncement(
+  starters: { playerName: string; dorsal: string }[],
+  subs: { playerName: string; dorsal: string }[],
+  t: LineupTemplates, style = 'stadium',
+): Segment[] {
+  const out: Segment[] = [];
+  if (t.intro.trim()) out.push({ block: 'intro', text: t.intro.trim() });
+  starters.filter(p => p.playerName?.trim()).forEach(p => out.push({ block: 'starter', text: fillTemplate(t.starter, p.playerName, p.dorsal, style) }));
+  subs.filter(p => p.playerName?.trim()).forEach(p => out.push({ block: 'sub', text: fillTemplate(t.sub, p.playerName, p.dorsal, style) }));
+  if (t.coachName.trim() && t.coach.trim()) out.push({ block: 'coach', text: fillTemplate(t.coach, t.coachName, '', style) });
+  if (t.delegateName.trim() && t.delegate.trim()) out.push({ block: 'delegate', text: fillTemplate(t.delegate, t.delegateName, '', style) });
+  if (t.outro.trim()) out.push({ block: 'outro', text: t.outro.trim() });
+  return out;
+}
