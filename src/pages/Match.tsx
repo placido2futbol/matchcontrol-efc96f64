@@ -796,7 +796,11 @@ export default function MatchPage() {
         </div>
       </div>
 
-      <div className="flex justify-end pt-2 pb-4">
+      <div className="flex flex-wrap justify-end items-center gap-2 pt-2 pb-4">
+        {(() => {
+          const clubPlayers = isClubTeam(homeTeam?.name) ? homePlayers : isClubTeam(awayTeam?.name) ? awayPlayers : null;
+          return clubPlayers ? <LineupAnnouncer starters={clubPlayers.filter(p => p.isStarter)} subs={clubPlayers.filter(p => !p.isStarter)} /> : null;
+        })()}
         <Button 
           variant="outline" 
           onClick={handleImportFCF} 
@@ -823,7 +827,6 @@ export default function MatchPage() {
       {/* Players */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
-        {isClubTeam(homeTeam?.name) && <LineupAnnouncer starters={homePlayers.filter(p => p.isStarter)} />}
         <TeamPanel
           title={homeTeam?.name || 'Equipo Local'}
           teamSide="home"
@@ -836,7 +839,6 @@ export default function MatchPage() {
         />
         </div>
         <div>
-        {isClubTeam(awayTeam?.name) && <LineupAnnouncer starters={awayPlayers.filter(p => p.isStarter)} />}
         <TeamPanel
           title={awayTeam?.name || 'Equipo Visitante'}
           teamSide="away"

@@ -33,3 +33,13 @@ describe('lineup speech', () => {
     expect(catalanNumber('35')).toBe('trenta-cinc');
   });
 });
+
+import { buildAnnouncement, DEFAULT_TEMPLATES } from '@/lib/lineupSpeech';
+describe('full announcement', () => {
+  it('orders intro, starters, subs, coach, delegate, outro and fills variables', () => {
+    const t = { ...DEFAULT_TEMPLATES, coachName: 'Pere', delegateName: 'Anna', sub: 'Suplent {dorsal} {nombre}' };
+    const s = buildAnnouncement([{ playerName: 'JORDI', dorsal: '10' }], [{ playerName: 'PAU', dorsal: '7' }], t, 'natural');
+    expect(s.map(x => x.block)).toEqual(['intro', 'starter', 'sub', 'coach', 'delegate', 'outro']);
+    expect(s[2].text).toBe('Suplent set Pau');
+  });
+});
