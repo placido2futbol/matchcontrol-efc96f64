@@ -1,8 +1,14 @@
 export const LINEUP_VOICES = [
   { id: 'Fenrir', label: 'Chico · enérgico' },
   { id: 'Charon', label: 'Chico · profundo' },
+  { id: 'Orus', label: 'Chico · firme' },
+  { id: 'Enceladus', label: 'Chico · suave' },
+  { id: 'Iapetus', label: 'Chico · claro' },
   { id: 'Kore', label: 'Chica · potente' },
   { id: 'Aoede', label: 'Chica · cálida' },
+  { id: 'Leda', label: 'Chica · joven' },
+  { id: 'Callirrhoe', label: 'Chica · alegre' },
+  { id: 'Autonoe', label: 'Chica · brillante' },
 ] as const;
 
 export const LINEUP_STYLES = [
