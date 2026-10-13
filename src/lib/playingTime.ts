@@ -38,25 +38,28 @@ export function playingTimeSeconds(
     const scoredBefore = ordered.some(event => event.type === 'goal' && event.playerName === name && event.time < first.time);
     active.set(name, first.out === name || scoredBefore);
   }
-  let enteredAt: number | null = active.has(playerName)
-    ? (active.get(playerName) ? 0 : null)
-    : (isStarter ? 0 : null);
-  let played = 0;
-  for (const event of substitutions) {
+  const corrected = substitutions.map(event => {
     let out = event.out;
     let incoming = event.in;
-    // Older matches could record the arrows backwards. Reverse only when both
-    // players' reconstructed participation proves that direction impossible.
-    if (out && incoming && active.get(out) === false && active.get(incoming) === true) {
+    // An already active player cannot enter again without first leaving.
+    if (out && incoming && active.get(incoming) === true) {
       [out, incoming] = [incoming, out];
     }
+    if (out) active.set(out, false);
+    if (incoming) active.set(incoming, true);
+    return { out, in: incoming, time: event.time };
+  });
+  const first = corrected.find(event => event.out === playerName || event.in === playerName);
+  let enteredAt: number | null = (first ? first.out === playerName : isStarter) ? 0 : null;
+  let played = 0;
+  for (const event of corrected) {
+    const out = event.out;
+    const incoming = event.in;
     if (out === playerName && enteredAt !== null) {
       played += event.time - enteredAt;
       enteredAt = null;
     }
     if (incoming === playerName && enteredAt === null) enteredAt = event.time;
-    if (out) active.set(out, false);
-    if (incoming) active.set(incoming, true);
   }
   if (enteredAt !== null) played += end - enteredAt;
   return Math.max(0, Math.min(played, end));
