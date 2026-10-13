@@ -42,7 +42,11 @@ export function playingTimeSeconds(
     let out = event.out;
     let incoming = event.in;
     // An already active player cannot enter again without first leaving.
-    if (out && incoming && active.get(incoming) === true && active.get(out) === false) {
+    const firstIncoming = substitutions.find(change => change.out === incoming || change.in === incoming);
+    const priorGoal = firstIncoming?.time === event.time && ordered.some(
+      goal => goal.type === 'goal' && goal.playerName === incoming && goal.time < event.time,
+    );
+    if (out && incoming && active.get(incoming) === true && (active.get(out) === false || priorGoal)) {
       [out, incoming] = [incoming, out];
     }
     if (out) active.set(out, false);
