@@ -4,7 +4,7 @@ import { LINEUP_VOICES, resolveLineupVoice } from '../../supabase/functions/_sha
 
 describe('lineup speech', () => {
   it('offers distinct male and female voices', () => {
-    expect(LINEUP_VOICES.map(v => v.id)).toEqual(['Fenrir', 'Charon', 'Kore', 'Aoede']);
+    expect(LINEUP_VOICES.map(v => v.id)).toEqual(['Fenrir', 'Charon', 'Orus', 'Enceladus', 'Iapetus', 'Kore', 'Aoede', 'Leda', 'Callirrhoe', 'Autonoe']);
     expect(resolveLineupVoice('Aoede', 'natural').voice.id).toBe('Aoede');
   });
   it('uses the selected style and a safe default', () => {
