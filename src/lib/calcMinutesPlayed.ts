@@ -1,5 +1,6 @@
 import { MatchEvent } from '@/components/match/EventLog';
 import { MatchPlayer } from '@/components/match/PlayerRow';
+import { playingTimeSeconds } from './playingTime';
 
 /**
  * Calculate minutes played for a player based on substitution events.
@@ -20,61 +21,10 @@ export function calcMinutesPlayed(
   events: MatchEvent[],
   totalSeconds: number
 ): number {
-  if (!playerName) return 0;
-
-  const MAX_MINUTES = 90;
-  const totalMinutes = Math.min(Math.floor(totalSeconds / 60), MAX_MINUTES);
-
-  // Extract sub events relevant to this player
-  const subEvents = events
-    .filter(e => e.type === 'substitution')
-    .sort((a, b) => a.minute - b.minute);
-
-  // Build timeline of "in" and "out" moments (in seconds)
-  const timeline: { type: 'in' | 'out'; second: number }[] = [];
-
-  if (isStarter) {
-    timeline.push({ type: 'in', second: 0 });
-  }
-
-  for (const ev of subEvents) {
-    const details = ev.details || '';
-    // Check if player goes out
-    if (details.includes(`Sale ${playerName}`)) {
-      timeline.push({ type: 'out', second: ev.minute });
-    }
-    // Check if player comes in
-    if (details.includes(`Entra ${playerName}`)) {
-      timeline.push({ type: 'in', second: ev.minute });
-    }
-  }
-
-  if (timeline.length === 0) return 0;
-
-  // Build intervals from timeline
-  let totalPlayed = 0;
-  let currentIn: number | null = null;
-
-  for (const entry of timeline) {
-    if (entry.type === 'in') {
-      if (currentIn === null) {
-        currentIn = entry.second;
-      }
-    } else if (entry.type === 'out') {
-      if (currentIn !== null) {
-        totalPlayed += entry.second - currentIn;
-        currentIn = null;
-      }
-    }
-  }
-
-  // If player is still on the field, close interval at end of match
-  if (currentIn !== null) {
-    totalPlayed += totalSeconds - currentIn;
-  }
-
-  const minutes = Math.floor(totalPlayed / 60);
-  return Math.min(minutes, MAX_MINUTES);
+  return Math.floor(playingTimeSeconds(playerName, isStarter, events.map(event => ({
+    ...event,
+    time: event.minute,
+  })), totalSeconds) / 60);
 }
 
 /**

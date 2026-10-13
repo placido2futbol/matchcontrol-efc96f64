@@ -390,9 +390,16 @@ export default function MatchPage() {
       if (type === 'in' && pendingSub !== null) {
         const outPlayer = players.find(p => p.slotIndex === pendingSub);
         const inPlayer = players.find(p => p.slotIndex === slotIndex);
+        if (!outPlayer || !inPlayer || outPlayer.slotIndex === inPlayer.slotIndex) return;
+        if (!outPlayer.isStarter || inPlayer.isStarter) {
+          toast.error('Selecciona salir en el jugador del campo y entrar en el suplente.');
+          setPendingSub(null);
+          return;
+        }
         setPlayers(prev => {
-          const outP = prev.find(p => p.slotIndex === pendingSub)!;
-          const inP = prev.find(p => p.slotIndex === slotIndex)!;
+          const outP = prev.find(p => p.slotIndex === pendingSub);
+          const inP = prev.find(p => p.slotIndex === slotIndex);
+          if (!outP || !inP) return prev;
           return prev.map(p => {
             if (p.slotIndex === pendingSub) return { ...p, playerName: inP.playerName, dorsal: inP.dorsal, photoUrl: inP.photoUrl, goals: inP.goals, yellowCard1: inP.yellowCard1, yellowCard2: inP.yellowCard2, redCard: inP.redCard };
             if (p.slotIndex === slotIndex) return { ...p, playerName: outP.playerName, dorsal: outP.dorsal, photoUrl: outP.photoUrl, goals: outP.goals, yellowCard1: outP.yellowCard1, yellowCard2: outP.yellowCard2, redCard: outP.redCard };
