@@ -42,7 +42,7 @@ export function playingTimeSeconds(
     let out = event.out;
     let incoming = event.in;
     // An already active player cannot enter again without first leaving.
-    if (out && incoming && active.get(incoming) === true) {
+    if (out && incoming && active.get(incoming) === true && active.get(out) === false) {
       [out, incoming] = [incoming, out];
     }
     if (out) active.set(out, false);
